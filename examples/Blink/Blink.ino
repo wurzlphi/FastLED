@@ -2,6 +2,14 @@
 /// @brief   Blink the first LED of an LED strip
 /// @example Blink.ino
 
+// Optimization: Disable color correction for simple examples
+// This saves ~162 bytes by avoiding CRGB::computeAdjustment()
+#define NO_CORRECTION 1
+
+// Optimization: Disable dithering for simple examples  
+// This saves ~122 bytes by avoiding PixelController::init_binary_dithering()
+#define NO_DITHERING 1
+
 #include <FastLED.h>
 
 // How many leds in your strip?
