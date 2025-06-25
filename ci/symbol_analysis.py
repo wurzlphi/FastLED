@@ -139,7 +139,7 @@ def generate_report(
     # Largest symbols overall
     print("\nLARGEST SYMBOLS (all symbols, sorted by size):")
     symbols_sorted = sorted(symbols, key=lambda x: x["size"], reverse=True)
-    
+
     for i, sym in enumerate(symbols_sorted[:30]):
         display_name = sym.get("demangled_name", sym["name"])
         print(f"  {i+1:2d}. {sym['size']:6d} bytes - {display_name}")
@@ -158,8 +158,12 @@ def generate_report(
         type_stats[sym_type]["count"] += 1
         type_stats[sym_type]["size"] += sym["size"]
 
-    for sym_type, stats in sorted(type_stats.items(), key=lambda x: x[1]["size"], reverse=True):
-        print(f"  {sym_type}: {stats['count']} symbols, {stats['size']} bytes ({stats['size']/1024:.1f} KB)")
+    for sym_type, stats in sorted(
+        type_stats.items(), key=lambda x: x[1]["size"], reverse=True
+    ):
+        print(
+            f"  {sym_type}: {stats['count']} symbols, {stats['size']} bytes ({stats['size']/1024:.1f} KB)"
+        )
 
     # Dependencies analysis
     if dependencies:
@@ -231,8 +235,10 @@ def find_board_build_info(board_name: Optional[str] = None) -> Tuple[Path, str]:
 
 def main():
     import argparse
-    
-    parser = argparse.ArgumentParser(description="Analyze symbols in ELF files for any platform")
+
+    parser = argparse.ArgumentParser(
+        description="Analyze symbols in ELF files for any platform"
+    )
     parser.add_argument("--board", help="Board name to analyze (e.g., uno, esp32dev)")
     args = parser.parse_args()
 

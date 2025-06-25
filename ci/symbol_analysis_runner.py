@@ -4,11 +4,10 @@ Generic Symbol Analysis Runner for GitHub Actions
 Wrapper script to run symbol analysis with proper error handling for any platform
 """
 import argparse
-import os
 import sys
 from pathlib import Path
 
-from ci.symbol_analysis import main as symbol_analysis
+from symbol_analysis import main as symbol_analysis
 
 
 def main():
@@ -24,9 +23,7 @@ def main():
     )
     args = parser.parse_args()
 
-    print(
-        f"Symbol Analysis Runner - Board: {args.board}, Example: {args.example}"
-    )
+    print(f"Symbol Analysis Runner - Board: {args.board}, Example: {args.example}")
 
     # Check if build_info.json exists
     build_info_path = Path(".build") / args.board / "build_info.json"
@@ -44,18 +41,18 @@ def main():
     try:
         # Import and run the generic symbol analysis
         print("Running symbol analysis...")
-        
+
         # Override sys.argv to pass the board argument to the symbol analysis script
         original_argv = sys.argv
         sys.argv = ["symbol_analysis.py", "--board", args.board]
-        
+
         try:
             symbol_analysis()
             print("Symbol analysis completed successfully!")
             return 0
         finally:
             sys.argv = original_argv
-            
+
     except ImportError as e:
         print(f"Failed to import symbol_analysis module: {e}")
         if args.skip_on_failure:
