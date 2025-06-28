@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+//#include <stddef.h>
 #include "fl/stdint.h"
 
 #include "fl/namespace.h"
@@ -62,21 +62,6 @@ template <typename Key, size_t N> class FixedSet {
             auto it = find(key);
             if (it == end()) {
                 data.push_back(fl::move(key));
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Emplace - construct in place with perfect forwarding
-    template<typename... Args>
-    bool emplace(Args&&... args) {
-        if (data.size() < N) {
-            // Create a temporary to check if it already exists
-            Key temp_key(fl::forward<Args>(args)...);
-            auto it = find(temp_key);
-            if (it == end()) {
-                data.push_back(fl::move(temp_key));
                 return true;
             }
         }

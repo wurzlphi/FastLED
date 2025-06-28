@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+
 #include "fl/stdint.h"
 #include <string.h>
 
@@ -379,24 +379,6 @@ public:
             other.mFront = temp_front;
             other.mAlloc = temp_alloc;
         }
-    }
-
-    // Emplace back - construct in place with perfect forwarding
-    template<typename... Args>
-    void emplace_back(Args&&... args) {
-        ensure_capacity(mSize + 1);
-        size_t back_index = get_index(mSize);
-        mAlloc.construct(&mData[back_index], fl::forward<Args>(args)...);
-        ++mSize;
-    }
-
-    // Emplace front - construct in place with perfect forwarding
-    template<typename... Args>
-    void emplace_front(Args&&... args) {
-        ensure_capacity(mSize + 1);
-        mFront = (mFront - 1 + mCapacity) % mCapacity;
-        mAlloc.construct(&mData[mFront], fl::forward<Args>(args)...);
-        ++mSize;
     }
 };
 

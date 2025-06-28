@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+//#include <stddef.h>
 #include "fl/stdint.h"
 #include <string.h>
 
@@ -168,16 +168,6 @@ template <typename T, size_t N> class FixedVector {
         if (current_size < N) {
             void *mem = &memory()[current_size];
             new (mem) T(fl::move(value));
-            ++current_size;
-        }
-    }
-
-    // Emplace back - construct in place with perfect forwarding
-    template<typename... Args>
-    void emplace_back(Args&&... args) {
-        if (current_size < N) {
-            T *mem = &memory()[current_size];
-            new (mem) T(fl::forward<Args>(args)...);
             ++current_size;
         }
     }
@@ -554,16 +544,6 @@ template <typename T, typename Allocator = fl::allocator<T>> class HeapVector {
         ensure_size(mSize + 1);
         if (mSize < mCapacity) {
             mAlloc.construct(&mArray[mSize], fl::move(value));
-            ++mSize;
-        }
-    }
-
-    // Emplace back - construct in place with perfect forwarding
-    template<typename... Args>
-    void emplace_back(Args&&... args) {
-        ensure_size(mSize + 1);
-        if (mSize < mCapacity) {
-            mAlloc.construct(&mArray[mSize], fl::forward<Args>(args)...);
             ++mSize;
         }
     }
@@ -1057,9 +1037,9 @@ template <typename T, size_t INLINED_SIZE> class InlinedVector {
             }
             mHeap.push_back(value);
         } else {
-            mFixed.push_back(value);
+                mFixed.push_back(value);
         }
-    }
+            }
 
     // Move version of push_back
     void push_back(T &&value) {
@@ -1068,35 +1048,15 @@ template <typename T, size_t INLINED_SIZE> class InlinedVector {
                 // transfer
                 mHeap.clear();
                 mHeap.reserve(INLINED_SIZE + 1);
-                for (auto &v : mFixed) {
+            for (auto &v : mFixed) {
                     mHeap.push_back(fl::move(v));
-                }
-                mFixed.clear();
-                mUsingHeap = true;
             }
+            mFixed.clear();
+            mUsingHeap = true;
+        }
             mHeap.push_back(fl::move(value));
         } else {
             mFixed.push_back(fl::move(value));
-        }
-    }
-
-    // Emplace back - construct in place with perfect forwarding
-    template<typename... Args>
-    void emplace_back(Args&&... args) {
-        if (mUsingHeap || mFixed.size() == INLINED_SIZE) {
-            if (!mUsingHeap && mFixed.size() == INLINED_SIZE) {
-                // transfer
-                mHeap.clear();
-                mHeap.reserve(INLINED_SIZE + 1);
-                for (auto &v : mFixed) {
-                    mHeap.push_back(fl::move(v));
-                }
-                mFixed.clear();
-                mUsingHeap = true;
-            }
-            mHeap.emplace_back(fl::forward<Args>(args)...);
-        } else {
-            mFixed.emplace_back(fl::forward<Args>(args)...);
         }
     }
 
