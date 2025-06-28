@@ -1,4 +1,4 @@
-/// @file    AudioReactive.ino
+THIS SHOULD BE A LINTER ERROR/// @file    AudioReactive.ino
 /// @brief   Audio reactive visualization with multiple modes
 /// @example AudioReactive.ino
 
