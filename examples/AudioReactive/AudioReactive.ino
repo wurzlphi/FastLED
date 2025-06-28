@@ -1,4 +1,4 @@
-THIS SHOULD BE A LINTER ERROR/// @file    AudioReactive.ino
+/// @file    AudioReactive.ino
 /// @brief   Audio reactive visualization with multiple modes
 /// @example AudioReactive.ino
 
@@ -23,8 +23,14 @@ void loop() {}
 using namespace fl;
 
 // Display configuration
-#define WIDTH 100
-#define HEIGHT 100
+// For WebAssembly, use a smaller display to avoid memory issues
+#ifdef __EMSCRIPTEN__
+#define WIDTH 32
+#define HEIGHT 32
+#else
+#define WIDTH 64
+#define HEIGHT 64
+#endif
 #define NUM_LEDS (WIDTH * HEIGHT)
 #define LED_PIN 3
 #define LED_TYPE WS2812B
@@ -66,12 +72,12 @@ UIAudio audio("Audio Input");
 // Global variables
 CRGB leds[NUM_LEDS];
 XYMap xyMap(WIDTH, HEIGHT, false);
-FFTBins fftBins(FFT_SIZE / 2);
 SoundLevelMeter soundMeter(0.0f, 0.0f);
 
-// Audio processing variables
-float fftSmooth[FFT_SIZE / 2] = {0};
-float beatHistory[43] = {0};
+// Audio processing variables - keep these smaller for WebAssembly
+static const int NUM_BANDS = 16;  // Reduced from 32
+float fftSmooth[NUM_BANDS] = {0};
+float beatHistory[20] = {0};  // Reduced from 43
 int beatHistoryIndex = 0;
 float beatAverage = 0;
 float beatVariance = 0;
@@ -82,8 +88,11 @@ float peakLevel = 0;
 
 // Visual effect variables
 uint8_t hue = 0;
+// Remove large static arrays for WebAssembly
+#ifndef __EMSCRIPTEN__
 float plasma[WIDTH][HEIGHT];
 uint8_t fireBuffer[WIDTH][HEIGHT] = {0};
+#endif
 
 // Get current color palette
 CRGBPalette16 getCurrentPalette() {
@@ -102,22 +111,22 @@ CRGBPalette16 getCurrentPalette() {
 // Beat detection algorithm
 bool detectBeat(float energy) {
     beatHistory[beatHistoryIndex] = energy;
-    beatHistoryIndex = (beatHistoryIndex + 1) % 43;
+    beatHistoryIndex = (beatHistoryIndex + 1) % 20;
     
     // Calculate average
     beatAverage = 0;
-    for (int i = 0; i < 43; i++) {
+    for (int i = 0; i < 20; i++) {
         beatAverage += beatHistory[i];
     }
-    beatAverage /= 43.0f;
+    beatAverage /= 20.0f;
     
     // Calculate variance
     beatVariance = 0;
-    for (int i = 0; i < 43; i++) {
+    for (int i = 0; i < 20; i++) {
         float diff = beatHistory[i] - beatAverage;
         beatVariance += diff * diff;
     }
-    beatVariance /= 43.0f;
+    beatVariance /= 20.0f;
     
     // Detect beat
     float threshold = beatAverage + (beatSensitivity.value() * sqrt(beatVariance));
@@ -159,23 +168,22 @@ void clearDisplay() {
 }
 
 // Visualization: Spectrum Bars
-void drawSpectrumBars(const FFTBins& fft, float peak) {
+void drawSpectrumBars(FFTBins* fft, float peak) {
     clearDisplay();
     CRGBPalette16 palette = getCurrentPalette();
     
-    int barWidth = WIDTH / 32;  // 32 frequency bands
+    int barWidth = WIDTH / NUM_BANDS;
     
-    for (int band = 0; band < 32 && band < fft.bins_db.size(); band++) {
-        float magnitude = fft.bins_db[band];
+    for (int band = 0; band < NUM_BANDS && band < fft->bins_db.size(); band++) {
+        float magnitude = fft->bins_db[band];
         
         // Apply noise floor
         magnitude = magnitude / 100.0f;  // Normalize from dB
         magnitude = max(0.0f, magnitude - noiseFloor.value());
         
         // Smooth the FFT
-        int fftIndex = band * (fft.bins_db.size() / 32);
-        fftSmooth[fftIndex] = fftSmooth[fftIndex] * 0.8f + magnitude * 0.2f;
-        magnitude = fftSmooth[fftIndex];
+        fftSmooth[band] = fftSmooth[band] * 0.8f + magnitude * 0.2f;
+        magnitude = fftSmooth[band];
         
         // Apply gain
         magnitude *= audioGain.value() * autoGainValue;
@@ -192,13 +200,13 @@ void drawSpectrumBars(const FFTBins& fft, float peak) {
                 CRGB color = ColorFromPalette(palette, colorIndex + hue);
                 
                 int ledIndex = xyMap(xStart + x, y);
-                if (ledIndex >= 0) {
+                if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
                     leds[ledIndex] = color;
                 }
                 
                 if (mirrorMode) {
                     int mirrorIndex = xyMap(WIDTH - 1 - (xStart + x), y);
-                    if (mirrorIndex >= 0) {
+                    if (mirrorIndex >= 0 && mirrorIndex < NUM_LEDS) {
                         leds[mirrorIndex] = color;
                     }
                 }
@@ -208,18 +216,18 @@ void drawSpectrumBars(const FFTBins& fft, float peak) {
 }
 
 // Visualization: Radial Spectrum
-void drawRadialSpectrum(const FFTBins& fft, float peak) {
+void drawRadialSpectrum(FFTBins* fft, float peak) {
     clearDisplay();
     CRGBPalette16 palette = getCurrentPalette();
     
     int centerX = WIDTH / 2;
     int centerY = HEIGHT / 2;
     
-    for (int angle = 0; angle < 360; angle += 3) {
-        int band = (angle / 3) % 32;
-        if (band >= fft.bins_db.size()) continue;
+    for (int angle = 0; angle < 360; angle += 6) {  // Reduced resolution
+        int band = (angle / 6) % NUM_BANDS;
+        if (band >= fft->bins_db.size()) continue;
         
-        float magnitude = fft.bins_db[band] / 100.0f;
+        float magnitude = fft->bins_db[band] / 100.0f;
         magnitude = max(0.0f, magnitude - noiseFloor.value());
         magnitude *= audioGain.value() * autoGainValue;
         magnitude = fl::clamp(magnitude, 0.0f, 1.0f);
@@ -233,7 +241,7 @@ void drawRadialSpectrum(const FFTBins& fft, float peak) {
             if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
                 uint8_t colorIndex = fl::map_range<int, uint8_t>(r, 0, radius, 255, 0);
                 int ledIndex = xyMap(x, y);
-                if (ledIndex >= 0) {
+                if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
                     leds[ledIndex] = ColorFromPalette(palette, colorIndex + hue);
                 }
             }
@@ -267,7 +275,7 @@ void drawWaveform(const Slice<const int16_t>& pcm, float peak) {
             int plotY = centerY + y;
             if (plotY >= 0 && plotY < HEIGHT) {
                 int ledIndex = xyMap(x, plotY);
-                if (ledIndex >= 0) {
+                if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
                     leds[ledIndex] = color;
                 }
             }
@@ -288,7 +296,7 @@ void drawVUMeter(float rms, float peak) {
         for (int y = HEIGHT/3; y < 2*HEIGHT/3; y++) {
             uint8_t colorIndex = fl::map_range<int, uint8_t>(x, 0, WIDTH, 0, 255);
             int ledIndex = xyMap(x, y);
-            if (ledIndex >= 0) {
+            if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
                 leds[ledIndex] = ColorFromPalette(palette, colorIndex);
             }
         }
@@ -300,7 +308,7 @@ void drawVUMeter(float rms, float peak) {
     
     for (int y = HEIGHT/4; y < 3*HEIGHT/4; y++) {
         int ledIndex = xyMap(peakX, y);
-        if (ledIndex >= 0) {
+        if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
             leds[ledIndex] = CRGB::White;
         }
     }
@@ -310,8 +318,8 @@ void drawVUMeter(float rms, float peak) {
         for (int x = 0; x < WIDTH; x++) {
             int ledIndex1 = xyMap(x, 0);
             int ledIndex2 = xyMap(x, HEIGHT - 1);
-            if (ledIndex1 >= 0) leds[ledIndex1] = CRGB::White;
-            if (ledIndex2 >= 0) leds[ledIndex2] = CRGB::White;
+            if (ledIndex1 >= 0 && ledIndex1 < NUM_LEDS) leds[ledIndex1] = CRGB::White;
+            if (ledIndex2 >= 0 && ledIndex2 < NUM_LEDS) leds[ledIndex2] = CRGB::White;
         }
     }
 }
@@ -323,7 +331,8 @@ void drawMatrixRain(float peak) {
         for (int y = HEIGHT - 1; y > 0; y--) {
             int currentIndex = xyMap(x, y);
             int aboveIndex = xyMap(x, y - 1);
-            if (currentIndex >= 0 && aboveIndex >= 0) {
+            if (currentIndex >= 0 && currentIndex < NUM_LEDS && 
+                aboveIndex >= 0 && aboveIndex < NUM_LEDS) {
                 leds[currentIndex] = leds[aboveIndex];
                 leds[currentIndex].fadeToBlackBy(40);
             }
@@ -335,44 +344,31 @@ void drawMatrixRain(float peak) {
     for (int i = 0; i < numDrops; i++) {
         int x = random(WIDTH);
         int ledIndex = xyMap(x, 0);
-        if (ledIndex >= 0) {
+        if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
             leds[ledIndex] = CHSV(96, 255, 255);  // Green
         }
     }
 }
 
-// Visualization: Fire Effect
+// Visualization: Fire Effect (simplified for WebAssembly)
 void drawFireEffect(float peak) {
-    // Update fire buffer
-    for (int x = 0; x < WIDTH; x++) {
-        // Add heat at bottom based on audio
-        int heat = 100 + (peak * 155 * audioGain.value() * autoGainValue);
-        fireBuffer[x][HEIGHT - 1] = MIN(heat, 255);
-    }
+    // Simple fire effect without buffer
+    clearDisplay();
     
-    // Propagate fire upwards
-    for (int y = 0; y < HEIGHT - 1; y++) {
-        for (int x = 0; x < WIDTH; x++) {
-            int heat = fireBuffer[x][y + 1];
-            
-            // Add some randomness
-            heat = heat - random(0, 20);
-            
-            // Spread to neighbors
-            if (x > 0) heat = (heat + fireBuffer[x - 1][y + 1]) / 2;
-            if (x < WIDTH - 1) heat = (heat + fireBuffer[x + 1][y + 1]) / 2;
-            
-            fireBuffer[x][y] = MAX(0, heat);
-        }
-    }
+    // Add heat at bottom based on audio
+    int heat = 100 + (peak * 155 * audioGain.value() * autoGainValue);
+    heat = MIN(heat, 255);
     
-    // Convert to colors
     for (int x = 0; x < WIDTH; x++) {
         for (int y = 0; y < HEIGHT; y++) {
+            // Simple gradient from bottom to top
+            int heatLevel = heat * (HEIGHT - y) / HEIGHT;
+            heatLevel = heatLevel * random(80, 120) / 100;  // Add randomness
+            heatLevel = MIN(heatLevel, 255);
+            
             int ledIndex = xyMap(x, y);
-            if (ledIndex >= 0) {
-                uint8_t heat = fireBuffer[x][y];
-                leds[ledIndex] = HeatColor(heat);
+            if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
+                leds[ledIndex] = HeatColor(heatLevel);
             }
         }
     }
@@ -397,7 +393,7 @@ void drawPlasmaWave(float peak) {
             
             uint8_t colorIndex = value * 255;
             int ledIndex = xyMap(x, y);
-            if (ledIndex >= 0) {
+            if (ledIndex >= 0 && ledIndex < NUM_LEDS) {
                 leds[ledIndex] = ColorFromPalette(palette, colorIndex + hue);
             }
         }
@@ -410,6 +406,10 @@ void setup() {
     
     Serial.println("Audio Reactive Visualizations");
     Serial.println("Initializing...");
+    Serial.print("Display size: ");
+    Serial.print(WIDTH);
+    Serial.print("x");
+    Serial.println(HEIGHT);
     
     // Initialize LEDs
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS);
@@ -421,13 +421,6 @@ void setup() {
     brightness.onChanged([](float value) {
         FastLED.setBrightness(value);
     });
-    
-    // Initialize plasma buffer
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
-            plasma[x][y] = 0;
-        }
-    }
     
     Serial.println("Setup complete!");
 }
@@ -442,8 +435,9 @@ void loop() {
         return;
     }
     
-    // Process audio samples
-    while (AudioSample sample = audio.next()) {
+    // Process only one audio sample per frame to avoid accumulation
+    AudioSample sample = audio.next();
+    if (sample.isValid()) {
         // Update sound meter
         soundMeter.processBlock(sample.pcm());
         
@@ -469,7 +463,8 @@ void loop() {
             isBeat = detectBeat(peak);
         }
         
-        // Get FFT data
+        // Get FFT data - create local FFTBins to avoid accumulation
+        FFTBins fftBins(NUM_BANDS);
         sample.fft(&fftBins);
         
         // Update color animation
@@ -485,11 +480,11 @@ void loop() {
         // Draw selected visualization
         switch (visualMode.as_int()) {
             case 0:  // Spectrum Bars
-                drawSpectrumBars(fftBins, peakLevel);
+                drawSpectrumBars(&fftBins, peakLevel);
                 break;
                 
             case 1:  // Radial Spectrum
-                drawRadialSpectrum(fftBins, peakLevel);
+                drawRadialSpectrum(&fftBins, peakLevel);
                 break;
                 
             case 2:  // Waveform
@@ -515,6 +510,11 @@ void loop() {
     }
     
     FastLED.show();
+    
+    // Add a small delay to prevent tight loops in WebAssembly
+    #ifdef __EMSCRIPTEN__
+    delay(1);
+    #endif
 }
 
 #endif  // SKETCH_HAS_LOTS_OF_MEMORY
