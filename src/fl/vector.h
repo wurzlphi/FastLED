@@ -1,4 +1,4 @@
-#pragma once
+THIS SHOULD BE A LINTER ERROR#pragma once
 
 #include <stddef.h>
 #include "fl/stdint.h"
