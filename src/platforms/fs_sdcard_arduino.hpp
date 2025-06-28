@@ -159,8 +159,6 @@ public:
 };
 
 // Implementation of the factory function to create SD card filesystem
-inline FsImplPtr make_sdcard_filesystem(int cs_pin) {
-    return FsArduinoPtr::New(cs_pin);
-}
+// Note: Implementation is now in file_system.cpp to avoid weak symbol issues
 
 } // namespace fl
