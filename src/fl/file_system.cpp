@@ -4,7 +4,7 @@
 
 #ifdef __EMSCRIPTEN__
 #include "platforms/wasm/fs_wasm.h"
-#elif defined(ARDUINO) && __has_include(<SD.h>)
+#elif __has_include(<SD.h>)
 // Include Arduino SD card implementation when SD library is available
 #include "platforms/fs_sdcard_arduino.hpp"
 #endif
