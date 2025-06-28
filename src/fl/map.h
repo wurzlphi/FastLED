@@ -170,6 +170,26 @@ template <typename Key, typename Value, size_t N> class FixedMap {
         return {false, end()};
     }
 
+    // Emplace - construct in place with perfect forwarding
+    template<typename... Args>
+    Pair<bool, iterator> emplace(Args&&... args) {
+        if (data.size() < N) {
+            data.emplace_back(fl::forward<Args>(args)...);
+            iterator it = data.end() - 1;
+            // Check if key already existed
+            Key& key = it->first;
+            for (iterator check_it = data.begin(); check_it != it; ++check_it) {
+                if (check_it->first == key) {
+                    // Key already exists, remove the newly added element
+                    data.pop_back();
+                    return {false, check_it};
+                }
+            }
+            return {true, it};
+        }
+        return {false, end()};
+    }
+
     bool update(const Key &key, const Value &value,
                 bool insert_if_missing = true) {
         iterator it = find(key);

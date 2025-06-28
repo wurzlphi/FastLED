@@ -172,6 +172,16 @@ template <typename T, size_t N> class FixedVector {
         }
     }
 
+    // Emplace back - construct in place with perfect forwarding
+    template<typename... Args>
+    void emplace_back(Args&&... args) {
+        if (current_size < N) {
+            T *mem = &memory()[current_size];
+            new (mem) T(fl::forward<Args>(args)...);
+            ++current_size;
+        }
+    }
+
     void reserve(size_t n) {
         if (n > N) {
             // This is a no-op for fixed size vectors
@@ -544,6 +554,16 @@ template <typename T, typename Allocator = fl::allocator<T>> class HeapVector {
         ensure_size(mSize + 1);
         if (mSize < mCapacity) {
             mAlloc.construct(&mArray[mSize], fl::move(value));
+            ++mSize;
+        }
+    }
+
+    // Emplace back - construct in place with perfect forwarding
+    template<typename... Args>
+    void emplace_back(Args&&... args) {
+        ensure_size(mSize + 1);
+        if (mSize < mCapacity) {
+            mAlloc.construct(&mArray[mSize], fl::forward<Args>(args)...);
             ++mSize;
         }
     }
@@ -1057,6 +1077,26 @@ template <typename T, size_t INLINED_SIZE> class InlinedVector {
             mHeap.push_back(fl::move(value));
         } else {
             mFixed.push_back(fl::move(value));
+        }
+    }
+
+    // Emplace back - construct in place with perfect forwarding
+    template<typename... Args>
+    void emplace_back(Args&&... args) {
+        if (mUsingHeap || mFixed.size() == INLINED_SIZE) {
+            if (!mUsingHeap && mFixed.size() == INLINED_SIZE) {
+                // transfer
+                mHeap.clear();
+                mHeap.reserve(INLINED_SIZE + 1);
+                for (auto &v : mFixed) {
+                    mHeap.push_back(fl::move(v));
+                }
+                mFixed.clear();
+                mUsingHeap = true;
+            }
+            mHeap.emplace_back(fl::forward<Args>(args)...);
+        } else {
+            mFixed.emplace_back(fl::forward<Args>(args)...);
         }
     }
 

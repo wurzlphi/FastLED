@@ -260,6 +260,40 @@ class HashMap {
         }
     }
 
+    // Emplace - construct in place with perfect forwarding
+    template<typename... Args>
+    fl::pair<iterator, bool> emplace(Args&&... args) {
+        // Create a temporary pair to extract the key
+        fl::pair<Key, T> temp_pair(fl::forward<Args>(args)...);
+        
+        const bool will_rehash = needs_rehash();
+        if (will_rehash) {
+            if (_tombstones > _size) {
+                rehash_inline_no_resize();
+            } else {
+                rehash(_buckets.size() * 2);
+            }
+        }
+        
+        size_t idx;
+        bool is_new;
+        fl::pair<size_t, bool> p = find_slot(temp_pair.first);
+        idx = p.first;
+        is_new = p.second;
+        
+        if (is_new) {
+            _buckets[idx].key = fl::move(temp_pair.first);
+            _buckets[idx].value = fl::move(temp_pair.second);
+            mark_occupied(idx);
+            ++_size;
+            return fl::pair<iterator, bool>(iterator(this, idx), true);
+        } else {
+            FASTLED_ASSERT(idx != npos, "HashMap::emplace: invalid index at "
+                                            << idx << " which is " << npos);
+            return fl::pair<iterator, bool>(iterator(this, idx), false);
+        }
+    }
+
     // remove key; returns true if removed
     bool remove(const Key &key) {
         auto idx = find_index(key);
