@@ -36,7 +36,7 @@ JsonUiManager::~JsonUiManager() {
 }
 
 void JsonUiManager::addComponent(fl::WeakPtr<JsonUiInternal> component) {
-    FL_WARN("*** JsonUiManager::addComponent ENTRY ***");
+    //FL_WARN("*** JsonUiManager::addComponent ENTRY ***");
     fl::lock_guard<fl::mutex> lock(mMutex);
     mComponents.insert(component);
     mItemsAdded = true;
@@ -44,9 +44,7 @@ void JsonUiManager::addComponent(fl::WeakPtr<JsonUiInternal> component) {
     // Mark the component as changed so it gets sent to the frontend initially
     if (auto ptr = component.lock()) {
         ptr->markChanged();
-        FL_WARN("*** COMPONENT REGISTERED: ID " << ptr->id() << " name=" << ptr->name() << " (Total: " << mComponents.size() << ")");
-    } else {
-        FL_WARN("*** ERROR: Component weak_ptr is already expired!");
+        //FL_WARN("*** COMPONENT REGISTERED: ID " << ptr->id() << " name=" << ptr->name() << " (Total: " << mComponents.size() << ")");
     }
 }
 
@@ -65,24 +63,24 @@ void JsonUiManager::processPendingUpdates() {
 }
 
 fl::vector<JsonUiInternalPtr> JsonUiManager::getComponents() {
-    FL_WARN("*** JsonUiManager::getComponents ENTRY ***");
+    //FL_WARN("*** JsonUiManager::getComponents ENTRY ***");
     fl::lock_guard<fl::mutex> lock(mMutex);
-    FL_WARN("*** mComponents.size() = " << mComponents.size());
+    //FL_WARN("*** mComponents.size() = " << mComponents.size());
     fl::vector<JsonUiInternalPtr> out;
     for (auto &component : mComponents) {
         if (auto ptr = component.lock()) {
             out.push_back(ptr);
-            FL_WARN("*** Added component to output: id=" << ptr->id() << " name=" << ptr->name());
+            //FL_WARN("*** Added component to output: id=" << ptr->id() << " name=" << ptr->name());
         } else {
             FL_WARN("*** WARNING: Component weak_ptr is expired, skipping");
         }
     }
-    FL_WARN("*** Returning " << out.size() << " components");
+    //FL_WARN("*** Returning " << out.size() << " components");
     return out;
 }
 
 void JsonUiManager::updateUiComponents(const char* jsonStr) {
-    FL_WARN("*** JsonUiManager::updateUiComponents ENTRY ***");
+    //FL_WARN("*** JsonUiManager::updateUiComponents ENTRY ***");
     // FL_WARN("*** INCOMING JSON: " << (jsonStr ? jsonStr : "NULL"));
     // FL_WARN("*** JSON LENGTH: " << (jsonStr ? strlen(jsonStr) : 0));
     // FL_WARN("*** CURRENT COMPONENT COUNT: " << mComponents.size());
@@ -109,11 +107,6 @@ void JsonUiManager::executeUiUpdates(const FLArduinoJson::JsonDocument &doc) {
     auto type = getJsonType(doc);
     auto components = getComponents();
     
-    FL_WARN("*** executeUiUpdates: Found " << components.size() << " components");
-    for (auto &component : components) {
-        FL_WARN("*** Component available: id=" << component->id() << " name=" << component->name());
-    }
-
     if (type == fl::JSON_OBJECT) {
         auto obj = doc.as<FLArduinoJson::JsonObjectConst>();
         bool any_found = false;
@@ -123,13 +116,13 @@ void JsonUiManager::executeUiUpdates(const FLArduinoJson::JsonDocument &doc) {
             string idStr;
             idStr.append(id);
             
-            FL_WARN("*** Checking for key: " << idStr.c_str());
+            //FL_WARN("*** Checking for key: " << idStr.c_str());
             
             if (obj.containsKey(idStr.c_str())) {
                 const FLArduinoJson::JsonVariantConst v = obj[idStr.c_str()];
                 component->update(v);
                 any_found = true;
-                FL_WARN("*** Found component with ID " << id << " and updated it");
+                //FL_WARN("*** Found component with ID " << id << " and updated it");
                 break;
             }
         }
