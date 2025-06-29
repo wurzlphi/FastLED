@@ -126,6 +126,21 @@ void JsonAudioImpl::updateInternal(const FLArduinoJson::JsonVariantConst &value)
     mAudioDataBuffer.clear();
     parseJsonStringToInt16Vector(mSerializeBuffer, &mAudioDataBuffer);
     int size = mAudioDataBuffer.size();
+    
+    // Limit the amount of audio data we process to prevent accumulation
+    // If we already have samples in the buffer, limit new samples more aggressively
+    int maxNewSamples = kJsAudioSamples;  // Default: one chunk worth
+    if (!mAudioSampleImpls.empty()) {
+        // If buffer isn't empty, only allow a small number of new samples
+        maxNewSamples = kJsAudioSamples / 4;  // 128 samples max when buffer has data
+    }
+    
+    // Limit the size to prevent excessive accumulation
+    if (size > maxNewSamples) {
+        size = maxNewSamples;
+        FL_WARN("Audio buffer size limited from " << mAudioDataBuffer.size() << " to " << size << " samples to prevent accumulation");
+    }
+    
     // take in the data and break it up into chunks of kJsAudioSamples
     for (int i = 0; i < size; i += kJsAudioSamples) {
         AudioSampleImplPtr sample = NewPtr<AudioSampleImpl>();
@@ -133,7 +148,9 @@ void JsonAudioImpl::updateInternal(const FLArduinoJson::JsonVariantConst &value)
                        mAudioDataBuffer.begin() +
                            MIN(i + kJsAudioSamples, size));
         mAudioSampleImpls.push_back(sample);
-        while (mAudioSampleImpls.size() > 5) {
+        
+        // Apply buffer limit after each addition
+        while (mAudioSampleImpls.size() > 3) {  // Further reduced from 5 to 3
             mAudioSampleImpls.erase(mAudioSampleImpls.begin());
         }
     }
