@@ -133,7 +133,7 @@ void JsonAudioImpl::updateInternal(const FLArduinoJson::JsonVariantConst &value)
                        mAudioDataBuffer.begin() +
                            MIN(i + kJsAudioSamples, size));
         mAudioSampleImpls.push_back(sample);
-        while (mAudioSampleImpls.size() > 10) {
+        while (mAudioSampleImpls.size() > 5) {
             mAudioSampleImpls.erase(mAudioSampleImpls.begin());
         }
     }
