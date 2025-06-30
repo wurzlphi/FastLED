@@ -9,6 +9,7 @@ Modern platforms are so fast that the extra performance is not needed, but accur
 */
 
 #include "fl/stdint.h"
+#include "fastled_progmem.h"
 
 namespace fl {
 
@@ -23,7 +24,17 @@ enum EaseType {
     EASE_IN_SINE,
     EASE_OUT_SINE,
     EASE_IN_OUT_SINE,
+    EASE_GAMMA_2_8,  // Gamma 2.8 correction
 };
+
+// Gamma 2.8 lookup table stored in PROGMEM (EEPROM section)
+extern const uint16_t _gamma_2_8_table[256] FL_PROGMEM;
+
+// Function to access gamma 2.8 lookup table
+uint16_t gamma2_8_lookup(uint8_t input);
+
+// 16-bit version that maps input to 8-bit range first
+uint16_t gamma2_8_lookup16(uint16_t input);
 
 // 8-bit easing functions
 /// 8-bit quadratic ease-in function
@@ -129,6 +140,7 @@ inline uint16_t ease16(EaseType type, uint16_t i) {
         case EASE_IN_SINE: return easeInSine16(i);
         case EASE_OUT_SINE: return easeOutSine16(i);
         case EASE_IN_OUT_SINE: return easeInOutSine16(i);
+        case EASE_GAMMA_2_8: return gamma2_8_lookup16(i);
         default: return i;
     }
 }
@@ -190,6 +202,12 @@ inline void ease16(EaseType type, uint16_t* src, uint16_t* dst, uint16_t count) 
             }
             break;
         }
+        case EASE_GAMMA_2_8: {
+            for (uint16_t i = 0; i < count; i++) {
+                dst[i] = gamma2_8_lookup16(src[i]);
+            }
+            break;
+        }
     }
 }
 
@@ -205,6 +223,7 @@ inline uint8_t ease8(EaseType type, uint8_t i) {
         case EASE_IN_SINE: return easeInSine8(i);
         case EASE_OUT_SINE: return easeOutSine8(i);
         case EASE_IN_OUT_SINE: return easeInOutSine8(i);
+        case EASE_GAMMA_2_8: return gamma2_8_lookup(i);
         default: return i;
     }
 }
@@ -263,6 +282,12 @@ inline void ease8(EaseType type, uint8_t* src, uint8_t* dst, uint8_t count) {
         case EASE_IN_OUT_SINE: {
             for (uint8_t i = 0; i < count; i++) {
                 dst[i] = easeInOutSine8(src[i]);
+            }
+            break;
+        }
+        case EASE_GAMMA_2_8: {
+            for (uint8_t i = 0; i < count; i++) {
+                dst[i] = gamma2_8_lookup(src[i]);
             }
             break;
         }
