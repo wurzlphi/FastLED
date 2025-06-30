@@ -34,4 +34,4 @@ if [ $# -eq 0 ]; then
     interactive_stmt="--interactive"
 fi
 
-uv run ci/ci-compile.py $interactive_stmt "$@"
+uv run ci/ci-compile-v2.py $interactive_stmt "$@"

@@ -217,12 +217,14 @@ def create_build_dir(
         locked_print(f"[Thread {thread_id}] Error creating build directory {builddir}: {e}")
         return False, f"Failed to create build directory: {e}"
     
-    # Clean lib directory (FastLED source) for updates - this is necessary for incremental builds
+    # PRESERVE lib directory (FastLED source) for faster incremental builds
+    # The lib directory contains the compiled FastLED library and should be preserved
+    # between example compilations to avoid unnecessary FastLED rebuilds
     libdir = builddir / "lib"
     if libdir.exists():
-        locked_print(f"[Thread {thread_id}] Removing existing lib directory: {libdir}")
-        if not robust_rmtree(libdir):
-            locked_print(f"[Thread {thread_id}] Warning: Failed to remove lib directory {libdir}, continuing anyway")
+        locked_print(f"[Thread {thread_id}] Preserving existing lib directory for incremental builds: {libdir}")
+    else:
+        locked_print(f"[Thread {thread_id}] Lib directory will be created on first build: {libdir}")
     
     # Remove existing platformio.ini to ensure clean configuration
     platformio_ini = builddir / "platformio.ini"

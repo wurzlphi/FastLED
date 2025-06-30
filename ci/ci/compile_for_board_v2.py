@@ -151,16 +151,23 @@ def update_build_cache(
 def sync_example_files(
     example_path: Path, 
     srcdir: Path, 
-    changed_files: Optional[Set[str]] = None
+    changed_files: Optional[Set[str]] = None,
+    clean_existing: bool = False
 ) -> None:
     """
     Sync example files to src directory.
     If changed_files is provided, only sync those files.
+    If clean_existing is True, clean the src directory first (for example switching).
     """
+    if clean_existing and srcdir.exists():
+        # Clean sync - remove and recreate src directory for new examples
+        locked_print(f"Cleaning src directory for new example: {srcdir}")
+        shutil.rmtree(srcdir, ignore_errors=False)
+        # Ensure directory is recreated immediately
+        srcdir.mkdir(parents=True, exist_ok=True)
+    
     if changed_files is None:
-        # Full sync - remove and recreate src directory
-        if srcdir.exists():
-            shutil.rmtree(srcdir, ignore_errors=False)
+        # Full sync - ensure src directory exists and copy all files
         srcdir.mkdir(parents=True, exist_ok=True)
         
         # Copy all files
@@ -197,6 +204,7 @@ def compile_for_board_and_example(
     verbose_on_failure: bool,
     libs: Optional[List[str]],
     force_rebuild: bool = False,
+    clean_src_only: bool = False,
 ) -> Tuple[bool, str]:
     """Compile the given example for the given board with incremental build support."""
     global ERROR_HAPPENED
@@ -230,10 +238,13 @@ def compile_for_board_and_example(
         locked_print(f"Force rebuild requested for {example.name}")
     
     # Sync example files to src directory
-    if needs_rebuild_flag or force_rebuild:
-        # Full rebuild - always clean sync when rebuilding or forced
-        locked_print(f"{'Force rebuild' if force_rebuild else 'Rebuild needed'} for {example.name}, performing full sync")
-        sync_example_files(example, srcdir)
+    if needs_rebuild_flag or force_rebuild or clean_src_only:
+        # Determine sync mode
+        clean_mode = force_rebuild or clean_src_only
+        sync_mode = "full clean sync" if force_rebuild else ("clean src sync" if clean_src_only else "full sync")
+        
+        locked_print(f"{'Force rebuild' if force_rebuild else ('Clean src only' if clean_src_only else 'Rebuild needed')} for {example.name}, performing {sync_mode}")
+        sync_example_files(example, srcdir, clean_existing=clean_mode)
     else:
         # Incremental build - only sync changed files if any
         if changed_files:
@@ -437,9 +448,9 @@ def compile_examples(
         if is_first:
             locked_print(f"*** Building first example {example} for board {board_name} ***")
         
-        # CRITICAL FIX: Force rebuild when switching between examples to avoid conflicts
-        # Each example gets its own clean build environment
-        example_force_rebuild = force_rebuild or not is_first
+        # OPTIMIZED FIX: Clean src only when switching between examples to avoid conflicts
+        # This preserves the FastLED library build while avoiding function conflicts
+        clean_src_for_new_example = not is_first and not force_rebuild
         
         # Use locking for first build on GitHub to manage memory usage
         if is_first and USE_FIRST_BUILD_LOCK:
@@ -450,7 +461,8 @@ def compile_examples(
                     build_dir=build_dir,
                     verbose_on_failure=verbose_on_failure,
                     libs=libs,
-                    force_rebuild=example_force_rebuild,
+                    force_rebuild=force_rebuild,
+                    clean_src_only=clean_src_for_new_example,
                 )
         else:
             success, message = compile_for_board_and_example(
@@ -459,7 +471,8 @@ def compile_examples(
                 build_dir=build_dir,
                 verbose_on_failure=verbose_on_failure,
                 libs=libs,
-                force_rebuild=example_force_rebuild,
+                force_rebuild=force_rebuild,
+                clean_src_only=clean_src_for_new_example,
             )
         
         is_first = False
