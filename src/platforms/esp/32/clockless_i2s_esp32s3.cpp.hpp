@@ -33,6 +33,7 @@
 #include "cpixel_ledcontroller.h"
 
 #include "clockless_i2s_esp32s3.h"
+#include "fl/int.h"
 
 namespace { // anonymous namespace
 
@@ -68,7 +69,7 @@ class I2SEsp32S3_Group {
         mRectDrawBuffer.onQueuingDone();
     }
 
-    void addObject(Pin pin, uint16_t numLeds, bool is_rgbw) {
+    void addObject(Pin pin, fl::u16 numLeds, bool is_rgbw) {
         mRectDrawBuffer.queue(fl::DrawItem(pin, numLeds, is_rgbw));
     }
 

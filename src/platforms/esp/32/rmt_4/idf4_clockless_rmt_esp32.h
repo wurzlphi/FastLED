@@ -60,6 +60,7 @@ FASTLED_NAMESPACE_BEGIN
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 4, 0)
 // 8 for (ESP32)  4 for (ESP32S2, ESP32S3)  2 for (ESP32C3, ESP32H2)
 #include "soc/soc_caps.h"
+#include "fl/int.h"
 #define FASTLED_RMT_MAX_CHANNELS SOC_RMT_TX_CANDIDATES_PER_GROUP
 #else
 #ifdef CONFIG_IDF_TARGET_ESP32S2
@@ -94,7 +95,7 @@ public:
     {
     }
 
-    virtual uint16_t getMaxRefreshRate() const { return 400; }
+    virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
     // -- Show pixels

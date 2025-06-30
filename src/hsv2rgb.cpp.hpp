@@ -9,6 +9,7 @@
 #include "fl/math_macros.h"
 
 #include "hsv2rgb.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -596,7 +597,7 @@ CHSV rgb2hsv_approximate( const CRGB& rgb)
     //Serial.print("g.2="); Serial.print(g); Serial.println("");
     //Serial.print("b.2="); Serial.print(b); Serial.println("");
 
-    uint16_t total = r + g + b;
+    fl::u16 total = r + g + b;
 
     //Serial.print("total="); Serial.print(total); Serial.println("");
 
@@ -632,7 +633,7 @@ CHSV rgb2hsv_approximate( const CRGB& rgb)
     if( v != 255) {
         // this part could probably use refinement/rethinking,
         // (but it doesn't overflow & wrap anymore)
-        uint16_t s16;
+        fl::u16 s16;
         s16 = (s * 256);
         s16 /= v;
         //Serial.print("s16="); Serial.print(s16); Serial.println("");

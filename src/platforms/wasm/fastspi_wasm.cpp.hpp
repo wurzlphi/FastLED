@@ -5,6 +5,7 @@
 #include "FastLED.h"
 
 #include "platforms/wasm/fastspi_wasm.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -71,7 +72,7 @@ void WasmSpiOutput::writeByte(uint8_t byte) {
     mRgb.push_back(byte);
 }
 
-void WasmSpiOutput::writeWord(uint16_t word) {
+void WasmSpiOutput::writeWord(fl::u16 word) {
     writeByte(word >> 8);
     writeByte(word & 0xFF);
 }

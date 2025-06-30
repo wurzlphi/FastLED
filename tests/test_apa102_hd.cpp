@@ -17,10 +17,11 @@
 
 #include "crgb.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 FASTLED_USING_NAMESPACE
 
 TEST_CASE("five_bit_bitshift") {
-  const uint16_t test_data[][2][4] = {
+  const fl::u16 test_data[][2][4] = {
     { // test case
       //r g  b  brightness
       {0, 0, 0, 0}, // input
@@ -172,9 +173,9 @@ static float compute_power_5bit(CRGB color, uint8_t power_5bit, uint8_t brightne
 
 
 static float compute_power_apa102(CRGB color, uint8_t brightness, uint8_t* power_5bit) {
-  uint16_t r16 = map8_to_16(color.r);
-  uint16_t g16 = map8_to_16(color.g);
-  uint16_t b16 = map8_to_16(color.b);
+  fl::u16 r16 = map8_to_16(color.r);
+  fl::u16 g16 = map8_to_16(color.g);
+  fl::u16 b16 = map8_to_16(color.b);
   CRGB out_colors;
   uint8_t v5 = 31;
   uint8_t post_brightness_scale = five_bit_bitshift(r16, g16, b16, brightness, &out_colors, power_5bit);

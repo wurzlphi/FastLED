@@ -18,6 +18,7 @@
 #include "cpixel_ledcontroller.h"
 
 #include "clockless_objectfled.h"
+#include "fl/int.h"
 
 namespace { // anonymous namespace
 
@@ -55,7 +56,7 @@ class ObjectFLEDGroup {
         mRectDrawBuffer.onQueuingDone();
     }
 
-    void addObject(uint8_t pin, uint16_t numLeds, bool is_rgbw) {
+    void addObject(uint8_t pin, fl::u16 numLeds, bool is_rgbw) {
         mRectDrawBuffer.queue(fl::DrawItem(pin, numLeds, is_rgbw));
     }
 
@@ -103,7 +104,7 @@ void ObjectFled::SetOverclock(float overclock) {
     gOverclock = overclock;
 }
 
-void ObjectFled::SetLatchDelay(uint16_t latch_delay_us) {
+void ObjectFled::SetLatchDelay(fl::u16 latch_delay_us) {
     gLatchDelayUs = latch_delay_us;
 }
 

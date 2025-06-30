@@ -7,13 +7,14 @@
 #include "fl/map.h"
 #include "fl/namespace.h"
 #include "fl/singleton.h"
+#include "fl/int.h"
 
 // Define a reasonable maximum number of strips
 
 namespace fl {
 
 class CLEDController;
-extern uint16_t cled_contoller_size();
+extern fl::u16 cled_contoller_size();
 
 class StripIdMap {
   public:
@@ -69,8 +70,8 @@ class StripIdMap {
         // objects. Note that the device should already have been added by the
         // time this function is called.
         StripIdMap &instance = Instance();
-        uint16_t controller_size = cled_contoller_size();
-        uint16_t smallest_diff = 0xFFFF;
+        fl::u16 controller_size = cled_contoller_size();
+        fl::u16 smallest_diff = 0xFFFF;
         CLEDController *closest_controller = nullptr;
 
         for (auto it = instance.mStripMap.begin();

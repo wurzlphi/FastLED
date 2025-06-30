@@ -11,6 +11,7 @@
 #include "fl/leds.h"
 #include "fl/grid.h"
 #include "fl/screenmap.h"
+#include "fl/int.h"
 
 
 
@@ -20,18 +21,18 @@ namespace fl {
 namespace {
 
 // New helper function to calculate individual LED position
-vec2f calculateLedPositionExtended(uint16_t ledIndex, uint16_t numLeds, float totalTurns, const Gap& gapParams, uint16_t width, uint16_t height) {
+vec2f calculateLedPositionExtended(fl::u16 ledIndex, fl::u16 numLeds, float totalTurns, const Gap& gapParams, fl::u16 width, fl::u16 height) {
     FL_UNUSED(height);
     FL_UNUSED(totalTurns);
 
     // Check if gap feature is active AND will actually be triggered
-    bool gapActive = (gapParams.num_leds > 0 && gapParams.gap > 0.0f && numLeds > static_cast<uint16_t>(gapParams.num_leds));
+    bool gapActive = (gapParams.num_leds > 0 && gapParams.gap > 0.0f && numLeds > static_cast<fl::u16>(gapParams.num_leds));
     
     if (!gapActive) {
         // Original behavior when no gap or gap never triggers
         const float ledProgress = static_cast<float>(ledIndex) / static_cast<float>(numLeds - 1);
-        const uint16_t row = ledIndex / width;
-        const uint16_t remainder = ledIndex % width;
+        const fl::u16 row = ledIndex / width;
+        const fl::u16 remainder = ledIndex % width;
         const float alpha = static_cast<float>(remainder) / static_cast<float>(width);
         const float width_pos = ledProgress * numLeds;
         const float height_pos = static_cast<float>(row) + alpha;
@@ -63,7 +64,7 @@ Corkscrew::Corkscrew(const Corkscrew::Input &input) : mInput(input) {
     fl::generateState(mInput, &mState);
 }
 
-vec2f Corkscrew::at_no_wrap(uint16_t i) const {
+vec2f Corkscrew::at_no_wrap(fl::u16 i) const {
     if (i >= mInput.numLeds) {
         // Handle out-of-bounds access, possibly by returning a default value
         return vec2f(0, 0);
@@ -75,7 +76,7 @@ vec2f Corkscrew::at_no_wrap(uint16_t i) const {
     
     // // Apply inversion if requested
     // if (mInput.invert) {
-    //     uint16_t invertedIndex = mInput.numLeds - 1 - i;
+    //     fl::u16 invertedIndex = mInput.numLeds - 1 - i;
     //     position = calculateLedPositionExtended(invertedIndex, mInput.numLeds, mInput.totalTurns, 
     //                                    mInput.gapParams, mState.width, mState.height);
     // }
@@ -86,7 +87,7 @@ vec2f Corkscrew::at_no_wrap(uint16_t i) const {
     return position;
 }
 
-vec2f Corkscrew::at_exact(uint16_t i) const {
+vec2f Corkscrew::at_exact(fl::u16 i) const {
     // Get the unwrapped position
     vec2f position = at_no_wrap(i);
     
@@ -111,12 +112,12 @@ Tile2x2_u8 Corkscrew::at_splat_extrapolate(float i) const {
     float i_ceil = ceilf(i);
     if (ALMOST_EQUAL_FLOAT(i_floor, i_ceil)) {
         // If the index is the same, just return the splat of that index
-        vec2f position = at_no_wrap(static_cast<uint16_t>(i_floor));
+        vec2f position = at_no_wrap(static_cast<fl::u16>(i_floor));
         return splat(position);
     } else {
         // Interpolate between the two points and return the splat of the result
-        vec2f pos1 = at_no_wrap(static_cast<uint16_t>(i_floor));
-        vec2f pos2 = at_no_wrap(static_cast<uint16_t>(i_ceil));
+        vec2f pos1 = at_no_wrap(static_cast<fl::u16>(i_floor));
+        vec2f pos2 = at_no_wrap(static_cast<fl::u16>(i_ceil));
         float t = i - i_floor;
         vec2f interpolated_pos = map_range(t, 0.0f, 1.0f, pos1, pos2);
         return splat(interpolated_pos);
@@ -236,7 +237,7 @@ void Corkscrew::readFrom(const fl::Grid<CRGB>& source_grid, bool use_multi_sampl
     // Iterate through each LED in the corkscrew
     for (size_t led_idx = 0; led_idx < mInput.numLeds; ++led_idx) {
         // Get the rectangular coordinates for this corkscrew LED
-        vec2f rect_pos = at_no_wrap(static_cast<uint16_t>(led_idx));
+        vec2f rect_pos = at_no_wrap(static_cast<fl::u16>(led_idx));
         
         // Convert to integer coordinates for indexing
         vec2i16 coord(static_cast<int16_t>(rect_pos.x + 0.5f), 
@@ -324,7 +325,7 @@ void Corkscrew::readFromMulti(const fl::Grid<CRGB>& source_grid) const {
 
 // Iterator implementation
 vec2f CorkscrewState::iterator::operator*() const {
-    return corkscrew_->at_no_wrap(static_cast<uint16_t>(position_));
+    return corkscrew_->at_no_wrap(static_cast<fl::u16>(position_));
 }
 
 fl::ScreenMap Corkscrew::toScreenMap(float diameter) const {
@@ -332,7 +333,7 @@ fl::ScreenMap Corkscrew::toScreenMap(float diameter) const {
     fl::ScreenMap screenMap(mInput.numLeds, diameter);
     
     // For each LED index, calculate its position and set it in the ScreenMap
-    for (uint16_t i = 0; i < mInput.numLeds; ++i) {
+    for (fl::u16 i = 0; i < mInput.numLeds; ++i) {
         // Get the wrapped 2D position for this LED index in the cylindrical mapping
         vec2f position = at_exact(i);
         

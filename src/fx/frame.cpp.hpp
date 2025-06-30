@@ -9,6 +9,7 @@
 #include "fl/warn.h"
 #include "fl/xymap.h"
 #include "frame.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -39,11 +40,11 @@ void Frame::draw(CRGB *leds, DrawMode draw_mode) const {
 }
 
 void Frame::drawXY(CRGB *leds, const XYMap &xyMap, DrawMode draw_mode) const {
-    const uint16_t width = xyMap.getWidth();
-    const uint16_t height = xyMap.getHeight();
+    const fl::u16 width = xyMap.getWidth();
+    const fl::u16 height = xyMap.getHeight();
     uint32_t count = 0;
-    for (uint16_t h = 0; h < height; ++h) {
-        for (uint16_t w = 0; w < width; ++w) {
+    for (fl::u16 h = 0; h < height; ++h) {
+        for (fl::u16 w = 0; w < width; ++w) {
             uint32_t in_idx = xyMap(w, h);
             uint32_t out_idx = count++;
             if (in_idx >= mPixelsCount) {

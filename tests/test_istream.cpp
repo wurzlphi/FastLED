@@ -1,6 +1,7 @@
 #include "fl/istream.h"
 #include "test.h"
 #include <cstring>
+#include "fl/int.h"
 
 // Test that fl::cin and fl::istream compile without errors
 
@@ -54,7 +55,7 @@ TEST_CASE("fl::istream input operators compile") {
     int8_t int8_val;
     uint8_t uint8_val;
     int16_t int16_val;
-    uint16_t uint16_val;
+    fl::u16 uint16_val;
     int32_t int32_val;
     uint32_t uint32_val;
     float float_val;
@@ -574,7 +575,7 @@ TEST_CASE("fl::istream mixed data type parsing") {
         
         fl::istream test_stream;
         Str width_label, height_label, fps_label;
-        uint16_t width = 0, height = 0;
+        fl::u16 width = 0, height = 0;
         float fps = 0.0f;
         
         test_stream >> width_label >> width >> height_label >> height >> fps_label >> fps;

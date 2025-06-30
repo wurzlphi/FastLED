@@ -24,6 +24,7 @@
 #include "cpixel_ledcontroller.h"
 #include "pixel_iterator.h"
 #include "fl/vector.h"
+#include "fl/int.h"
 
 #ifndef FASTLED_OBJECTFLED_LATCH_DELAY
 #define FASTLED_OBJECTFLED_LATCH_DELAY 300  // WS2812-5VB
@@ -34,7 +35,7 @@ namespace fl {
 class ObjectFled {
   public:
     static void SetOverclock(float overclock);
-    static void SetLatchDelay(uint16_t latchDelayUs);
+    static void SetLatchDelay(fl::u16 latchDelayUs);
     void beginShowLeds(int data_pin, int nleds);
     void showPixels(uint8_t data_pin, PixelIterator& pixel_iterator);
     void endShowLeds();
@@ -59,7 +60,7 @@ class ClocklessController_ObjectFLED_WS2812
         }
     }
     void init() override {}
-    virtual uint16_t getMaxRefreshRate() const { return 800; }
+    virtual fl::u16 getMaxRefreshRate() const { return 800; }
 
   protected:
     // Wait until the last draw is complete, if necessary.

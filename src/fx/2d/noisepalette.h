@@ -13,6 +13,7 @@
 #include "fx/time.h"
 #include "lib8tion/random8.h"
 #include "noise.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -46,21 +47,21 @@ class NoisePalette : public Fx2d {
     uint8_t getPalettePresetCount() const { return 12; }
     uint8_t getPalettePreset() const { return currentPaletteIndex; }
     void setPalettePreset(int paletteIndex);
-    void setPalette(const CRGBPalette16 &palette, uint16_t speed,
-                    uint16_t scale, bool colorLoop) {
+    void setPalette(const CRGBPalette16 &palette, fl::u16 speed,
+                    fl::u16 scale, bool colorLoop) {
         currentPalette = palette;
         this->speed = speed;
         this->scale = scale;
         this->colorLoop = colorLoop;
     }
-    void setSpeed(uint16_t speed) { this->speed = speed; }
-    void setScale(uint16_t scale) { this->scale = scale; }
+    void setSpeed(fl::u16 speed) { this->speed = speed; }
+    void setScale(fl::u16 scale) { this->scale = scale; }
 
   private:
-    uint16_t mX, mY, mZ;
-    uint16_t width, height;
-    uint16_t speed = 0;
-    uint16_t scale = 0;
+    fl::u16 mX, mY, mZ;
+    fl::u16 width, height;
+    fl::u16 speed = 0;
+    fl::u16 scale = 0;
     fl::vector<uint8_t, fl::allocator_psram<uint8_t>> noise;
     CRGBPalette16 currentPalette;
     bool colorLoop = 0;
@@ -69,7 +70,7 @@ class NoisePalette : public Fx2d {
 
     void fillnoise8();
 
-    uint16_t XY(uint8_t x, uint8_t y) const { return mXyMap.mapToIndex(x, y); }
+    fl::u16 XY(uint8_t x, uint8_t y) const { return mXyMap.mapToIndex(x, y); }
 
     void SetupRandomPalette() {
         CRGBPalette16 newPalette;

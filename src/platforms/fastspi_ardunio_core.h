@@ -4,6 +4,7 @@
 
 #include "fl/namespace.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #if defined(ARDUNIO_CORE_SPI)
 #endif
@@ -43,7 +44,7 @@ public:
 	}
 
 	// write a word out via SPI (returns immediately on writing register)
-	void inline writeWord(uint16_t w) __attribute__((always_inline)) {
+	void inline writeWord(fl::u16 w) __attribute__((always_inline)) {
 		_SPIObject.transfer16(w);
 	}
 

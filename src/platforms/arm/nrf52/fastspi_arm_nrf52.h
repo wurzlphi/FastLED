@@ -5,6 +5,7 @@
 #ifndef FASTLED_FORCE_SOFTWARE_SPI
 
     #include <nrf_spim.h>
+#include "fl/int.h"
 
     #define FASTLED_ALL_PINS_HARDWARE_SPI
 
@@ -207,7 +208,7 @@
         }
 
         /// write a word out via SPI (returns immediately on writing register)
-        static void writeWord(uint16_t w) {
+        static void writeWord(fl::u16 w) {
             wait();
             // cannot use pointer to stack, so copy to m_buffer[]
             uint8_t i = (s_BufferIndex ? 1u : 0u);

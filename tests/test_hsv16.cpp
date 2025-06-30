@@ -5,6 +5,7 @@
 #include "fl/hsv16.h"
 #include "fl/math.h"
 #include "lib8tion/intmap.h"
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -280,18 +281,18 @@ TEST_CASE("Exhaustive round trip") {
 #define TEST_VIDEO_RGB_HUE_PRESERVATION(color, hue_tolerance) \
     do { \
         HSV16 hsv_original(color); \
-        uint16_t original_hue = hsv_original.h; \
+        fl::u16 original_hue = hsv_original.h; \
         \
         CRGB video_result = hsv_original.colorBoost(); \
         HSV16 hsv_video_result(video_result); \
-        uint16_t result_hue = hsv_video_result.h; \
+        fl::u16 result_hue = hsv_video_result.h; \
         /* Special handling for hue around 0 (red) - check for wraparound */ \
-        uint16_t hue_diff = (original_hue > result_hue) \
+        fl::u16 hue_diff = (original_hue > result_hue) \
                                 ? (original_hue - result_hue) \
                                 : (result_hue - original_hue); \
         /* Also check wraparound case (difference near 65535) */ \
-        uint16_t hue_diff_wraparound = 65535 - hue_diff; \
-        uint16_t min_hue_diff = \
+        fl::u16 hue_diff_wraparound = 65535 - hue_diff; \
+        fl::u16 min_hue_diff = \
             (hue_diff < hue_diff_wraparound) ? hue_diff : hue_diff_wraparound; \
         \
         uint8_t hue_diff_8bit = map16_to_8(min_hue_diff); \

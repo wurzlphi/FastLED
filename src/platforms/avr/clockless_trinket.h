@@ -5,6 +5,7 @@
 #include "../../lib8tion.h"
 #include <avr/interrupt.h> // for cli/se definitions
 #include "../../fl/force_inline.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -153,7 +154,7 @@ public:
 		FastPin<DATA_PIN>::setOutput();
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {
@@ -192,7 +193,7 @@ protected:
             // Now convert microseconds to 256ths of a second, approximately like this:
             // 250ths = (us/4)
             // 256ths = 250ths * (263/256);
-            uint16_t x256ths = microsTaken >> 2;
+            fl::u16 x256ths = microsTaken >> 2;
             x256ths += scale16by8(x256ths,7);
 
             x256ths += gTimeErrorAccum256ths;
@@ -213,8 +214,8 @@ protected:
         // see a clock difference due to the approximation there.
 		uint32_t microsTaken = nLeds;
 		microsTaken *= CLKS_TO_MICROS(24 * (T1 + T2 + T3));
-		//uint16_t microsTaken = (uint32_t)nLeds * (uint32_t)CLKS_TO_MICROS((24) * (T1 + T2 + T3));
-        MS_COUNTER += static_cast<uint16_t>(microsTaken >> 10);
+		//fl::u16 microsTaken = (uint32_t)nLeds * (uint32_t)CLKS_TO_MICROS((24) * (T1 + T2 + T3));
+        MS_COUNTER += static_cast<fl::u16>(microsTaken >> 10);
 #endif
 
 #endif
@@ -442,7 +443,7 @@ protected:
 
 		// even though advanceBy is only an int8, we cast it to int16 for sign extension in case it's negative.
 		int16_t advanceBy = pixels.advanceBy();
-		uint16_t count = pixels.mLen;
+		fl::u16 count = pixels.mLen;
 
 		uint8_t s0 = pixels.mColorAdjustment.premixed.raw[RO(0)];
 		uint8_t s1 = pixels.mColorAdjustment.premixed.raw[RO(1)];

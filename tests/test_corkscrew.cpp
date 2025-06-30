@@ -10,6 +10,7 @@
 #include "fl/grid.h" 
 #include "fl/screenmap.h"
 #include "fl/tile2x2.h" // Ensure this header is included for Tile2x2_u8
+#include "fl/int.h"
 
 #define NUM_LEDS 288
 
@@ -55,7 +56,7 @@ TEST_CASE("Corkscrew Circle10 test") {
     float max_height = 0.0f;
     float min_height = 999.0f;
     Corkscrew corkscrew_festival(input_festival);
-    for (uint16_t i = 0; i < corkscrew_festival.size(); ++i) {
+    for (fl::u16 i = 0; i < corkscrew_festival.size(); ++i) {
         vec2f pos = corkscrew_festival.at_no_wrap(i);
         max_height = MAX(max_height, pos.y);
         min_height = MIN(min_height, pos.y);
@@ -74,7 +75,7 @@ TEST_CASE("Corkscrew LED distribution test") {
     
     // Count how many LEDs map to each row
     fl::vector<int> row_counts(output.height, 0);
-    for (uint16_t i = 0; i < corkscrew.size(); ++i) {
+    for (fl::u16 i = 0; i < corkscrew.size(); ++i) {
         vec2f pos = corkscrew.at_no_wrap(i);
         int row = static_cast<int>(pos.y);
         if (row >= 0 && row < output.height) {
@@ -149,15 +150,15 @@ TEST_CASE("Constexpr corkscrew dimension calculation") {
     // Test constexpr functions at compile time
     
     // FestivalStick case: 19 turns, 288 LEDs
-    constexpr uint16_t festival_width = fl::calculateCorkscrewWidth(19.0f, 288);
-    constexpr uint16_t festival_height = fl::calculateCorkscrewHeight(19.0f, 288);
+    constexpr fl::u16 festival_width = fl::calculateCorkscrewWidth(19.0f, 288);
+    constexpr fl::u16 festival_height = fl::calculateCorkscrewHeight(19.0f, 288);
     
     static_assert(festival_width == 16, "FestivalStick width should be 16");
     static_assert(festival_height == 18, "FestivalStick height should be 18");
     
     // Default case: 19 turns, 144 LEDs
-    constexpr uint16_t default_width = fl::calculateCorkscrewWidth(19.0f, 144);
-    constexpr uint16_t default_height = fl::calculateCorkscrewHeight(19.0f, 144);
+    constexpr fl::u16 default_width = fl::calculateCorkscrewWidth(19.0f, 144);
+    constexpr fl::u16 default_height = fl::calculateCorkscrewHeight(19.0f, 144);
     
     static_assert(default_width == 8, "Default width should be 8");
     static_assert(default_height == 18, "Default height should be 18");
@@ -170,8 +171,8 @@ TEST_CASE("Constexpr corkscrew dimension calculation") {
     REQUIRE_EQ(festival_height, runtime_output.height);
     
     // Test simple perfect case: 100 LEDs, 10 turns = 10x10 grid
-    constexpr uint16_t simple_width = fl::calculateCorkscrewWidth(10.0f, 100);
-    constexpr uint16_t simple_height = fl::calculateCorkscrewHeight(10.0f, 100);
+    constexpr fl::u16 simple_width = fl::calculateCorkscrewWidth(10.0f, 100);
+    constexpr fl::u16 simple_height = fl::calculateCorkscrewHeight(10.0f, 100);
     
     static_assert(simple_width == 10, "Simple width should be 10");
     static_assert(simple_height == 10, "Simple height should be 10");
@@ -183,8 +184,8 @@ TEST_CASE("TestCorkscrewBufferFunctionality") {
     fl::Corkscrew corkscrew(input);
     
     // Get the rectangular buffer dimensions
-    uint16_t width = corkscrew.cylinder_width();
-    uint16_t height = corkscrew.cylinder_height();
+    fl::u16 width = corkscrew.cylinder_width();
+    fl::u16 height = corkscrew.cylinder_height();
     
     // Get the buffer and verify it's lazily initialized
     fl::vector<CRGB>& buffer = corkscrew.getBuffer();
@@ -248,8 +249,8 @@ TEST_CASE("Corkscrew readFrom with bilinear interpolation") {
     Corkscrew corkscrew(input);
     
     // Create a source grid - simple 3x4 pattern
-    const uint16_t width = 3;
-    const uint16_t height = 4;
+    const fl::u16 width = 3;
+    const fl::u16 height = 4;
     fl::Grid<CRGB> source_grid(width, height);
     
     // Grid initializes to black by default, but let's be explicit
@@ -373,7 +374,7 @@ TEST_CASE("Corkscrew ScreenMap functionality") {
     REQUIRE_EQ(screenMapCustom.getDiameter(), 1.2f);
     
     // Verify that each LED index maps to the same position as at_exact() (wrapped)
-    for (uint16_t i = 0; i < 8; ++i) {
+    for (fl::u16 i = 0; i < 8; ++i) {
         vec2f corkscrewPos = corkscrew.at_exact(i);
         vec2f screenMapPos = screenMap[i];
         
@@ -384,7 +385,7 @@ TEST_CASE("Corkscrew ScreenMap functionality") {
     
     // Test that different LED indices have different positions (at least some of them)
     bool positions_differ = false;
-    for (uint16_t i = 1; i < 8; ++i) {
+    for (fl::u16 i = 1; i < 8; ++i) {
         vec2f pos0 = screenMap[0];
         vec2f posI = screenMap[i];
         if (!ALMOST_EQUAL_FLOAT(pos0.x, posI.x) || !ALMOST_EQUAL_FLOAT(pos0.y, posI.y)) {
@@ -408,7 +409,7 @@ TEST_CASE("Corkscrew ScreenMap functionality") {
     REQUIRE_EQ(screenMap_large.getDiameter(), 0.8f);
     
     // Verify all positions are valid (non-negative)
-    for (uint16_t i = 0; i < 288; ++i) {
+    for (fl::u16 i = 0; i < 288; ++i) {
         vec2f pos = screenMap_large[i];
         REQUIRE(pos.x >= 0.0f);
         REQUIRE(pos.y >= 0.0f);
@@ -483,8 +484,8 @@ TEST_CASE("Corkscrew Enhanced Gap - Specific user test: 2 LEDs, 1 turn, 1.0f gap
     Corkscrew corkscrew(input);
     
     // Get dimensions - accept whatever height the algorithm produces
-    uint16_t width = corkscrew.cylinder_width();
-    uint16_t height = corkscrew.cylinder_height();
+    fl::u16 width = corkscrew.cylinder_width();
+    fl::u16 height = corkscrew.cylinder_height();
     
     FL_WARN("User test dimensions: width=" << width << " height=" << height);
     

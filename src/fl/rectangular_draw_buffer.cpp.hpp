@@ -3,10 +3,11 @@
 #include "fl/allocator.h"
 #include "fl/namespace.h"
 #include "rgbw.h"
+#include "fl/int.h"
 
 namespace fl {
 
-DrawItem::DrawItem(uint8_t pin, uint16_t numLeds, bool is_rgbw)
+DrawItem::DrawItem(uint8_t pin, fl::u16 numLeds, bool is_rgbw)
     : mPin(pin), mIsRgbw(is_rgbw) {
     if (is_rgbw) {
         numLeds = Rgbw::size_as_rgb(numLeds);

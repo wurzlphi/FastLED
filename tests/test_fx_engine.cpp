@@ -10,6 +10,7 @@
 #include "fx/fx2d.h"
 #include "fl/vector.h"
 #include "FastLED.h"
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -18,11 +19,11 @@ FASTLED_SMART_PTR(MockFx);
 
 class MockFx : public Fx {
 public:
-    MockFx(uint16_t numLeds, CRGB color) : Fx(numLeds), mColor(color) {}
+    MockFx(fl::u16 numLeds, CRGB color) : Fx(numLeds), mColor(color) {}
 
     void draw(DrawContext ctx) override {
         mLastDrawTime = ctx.now;
-        for (uint16_t i = 0; i < mNumLeds; ++i) {
+        for (fl::u16 i = 0; i < mNumLeds; ++i) {
             ctx.leds[i] = mColor;
         }
     }
@@ -35,7 +36,7 @@ private:
 };
 
 TEST_CASE("test_fx_engine") {
-    constexpr uint16_t NUM_LEDS = 10;
+    constexpr fl::u16 NUM_LEDS = 10;
     FxEngine engine(NUM_LEDS, false);
     CRGB leds[NUM_LEDS];
 
@@ -53,7 +54,7 @@ TEST_CASE("test_fx_engine") {
         CHECK(currId == id0);
         const bool ok = engine.draw(0, leds);
         CHECK(ok);
-        for (uint16_t i = 0; i < NUM_LEDS; ++i) {
+        for (fl::u16 i = 0; i < NUM_LEDS; ++i) {
             // CHECK(leds[i] == CRGB::Red);
             bool is_red = leds[i] == CRGB::Red;
             if (!is_red) {
@@ -80,13 +81,13 @@ TEST_CASE("test_fx_engine") {
         // Start of transition
         ok = engine.draw(0, leds);
         REQUIRE(ok);
-        for (uint16_t i = 0; i < NUM_LEDS; ++i) {
+        for (fl::u16 i = 0; i < NUM_LEDS; ++i) {
             REQUIRE(leds[i] == CRGB::Red);
         }
 
         // Middle of transition
         REQUIRE(engine.draw(500, leds));
-        for (uint16_t i = 0; i < NUM_LEDS; ++i) {
+        for (fl::u16 i = 0; i < NUM_LEDS; ++i) {
             REQUIRE(leds[i].r == 128);
             REQUIRE(leds[i].g == 0);
             REQUIRE(leds[i].b == 127);
@@ -94,7 +95,7 @@ TEST_CASE("test_fx_engine") {
 
         // End of transition
         REQUIRE(engine.draw(1000, leds));
-        for (uint16_t i = 0; i < NUM_LEDS; ++i) {
+        for (fl::u16 i = 0; i < NUM_LEDS; ++i) {
             CHECK(leds[i] == CRGB::Blue);
         }
     }
@@ -102,7 +103,7 @@ TEST_CASE("test_fx_engine") {
     SUBCASE("Transition with 0 time duration") {
         engine.nextFx(0);
         engine.draw(0, leds);
-        for (uint16_t i = 0; i < NUM_LEDS; ++i) {
+        for (fl::u16 i = 0; i < NUM_LEDS; ++i) {
             CHECK(leds[i] == CRGB::Blue);
         }
     }

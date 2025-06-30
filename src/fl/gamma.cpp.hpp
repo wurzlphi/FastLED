@@ -1,10 +1,11 @@
 #include "fl/gamma.h"
 #include "crgb.h"
 #include "fastled_progmem.h"
+#include "fl/int.h"
 
 namespace fl {
 
-// static const uint16_t PROGMEM _gamma_2_8[256] = {
+// static const fl::u16 PROGMEM _gamma_2_8[256] = {
 //     0,     0,     0,     1,     1,     2,     4,     6,     8,     11,    14,
 //     18,    23,    29,    35,    41,    49,    57,    67,    77,    88,    99,
 //     112,   126,   141,   156,   173,   191,   210,   230,   251,   274,   297,

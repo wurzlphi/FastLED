@@ -3,6 +3,7 @@
 #include "FastLED.h"
 
 #include "pixeltypes.h"
+#include "fl/int.h"
 
 /// @file power_mgt.h
 /// Functions to limit the power used by FastLED
@@ -51,7 +52,7 @@ void show_at_max_brightness_for_power();
 /// Similar to CFastLED::delay(), but pre-adjusts brightness to keep below the power
 /// threshold.
 /// @deprecated This is now a part of CFastLED::delay()
-void delay_at_max_brightness_for_power( uint16_t ms);
+void delay_at_max_brightness_for_power( fl::u16 ms);
 
 /// @} PowerShowDelay
 
@@ -65,7 +66,7 @@ void delay_at_max_brightness_for_power( uint16_t ms);
 /// @param ledbuffer the LED data to check
 /// @param numLeds the number of LEDs in the data array
 /// @returns the number of milliwatts the LED data would consume at max brightness
-uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds);
+uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, fl::u16 numLeds);
 
 /// Determines the highest brightness level you can use and still stay under
 /// the specified power budget for a given set of LEDs.
@@ -75,7 +76,7 @@ uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds);
 /// @param max_power_mW the max power draw desired, in milliwatts
 /// @returns a limited brightness value. No higher than the target brightness,
 /// but may be lower depending on the power limit.
-uint8_t calculate_max_brightness_for_power_mW(const CRGB* ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_mW);
+uint8_t calculate_max_brightness_for_power_mW(const CRGB* ledbuffer, fl::u16 numLeds, uint8_t target_brightness, uint32_t max_power_mW);
 
 /// @copybrief calculate_max_brightness_for_power_mW()
 /// @param ledbuffer the LED data to check
@@ -85,7 +86,7 @@ uint8_t calculate_max_brightness_for_power_mW(const CRGB* ledbuffer, uint16_t nu
 /// @param max_power_mA the max power in milliamps
 /// @returns a limited brightness value. No higher than the target brightness,
 /// but may be lower depending on the power limit.
-uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_V, uint32_t max_power_mA);
+uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, fl::u16 numLeds, uint8_t target_brightness, uint32_t max_power_V, uint32_t max_power_mA);
 
 /// Determines the highest brightness level you can use and still stay under
 /// the specified power budget for all sets of LEDs. 

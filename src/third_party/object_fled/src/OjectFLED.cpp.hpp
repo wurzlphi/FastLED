@@ -61,6 +61,7 @@ GOIO9List = { 2, 3, 4, 5, 29, 33, 48, 49, 50, 51, 52, 53, 54 }  //6 top, 7 botto
 // Do nothing for other platforms.
 #else
 #include "ObjectFLED.h"
+#include "fl/int.h"
 
 #ifndef MIN
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -88,7 +89,7 @@ DMAChannel ObjectFLED::dma3;
 volatile bool dma_first;
 
 
-ObjectFLED::ObjectFLED(uint16_t numLEDs, void *drawBuf, uint8_t config, uint8_t numPins, \
+ObjectFLED::ObjectFLED(fl::u16 numLEDs, void *drawBuf, uint8_t config, uint8_t numPins, \
 					const uint8_t *pinList, uint8_t serpentine) {
 	serpNumber = serpentine;
 	drawBuffer = drawBuf;
@@ -118,20 +119,20 @@ static volatile uint32_t *standard_gpio_addr(volatile uint32_t *fastgpio) {
 }
 
 
-void ObjectFLED::begin(uint16_t latchDelay) {
+void ObjectFLED::begin(fl::u16 latchDelay) {
 	LATCH_DELAY = latchDelay;
 	begin();
 }
 
 
-void ObjectFLED::begin(double OCF, uint16_t latchDelay) {
+void ObjectFLED::begin(double OCF, fl::u16 latchDelay) {
 	OC_FACTOR = (float)OCF;
 	LATCH_DELAY = latchDelay;
 	begin();
 }
 
 
-void ObjectFLED::begin(uint16_t period, uint16_t t0h, uint16_t t1h, uint16_t latchDelay) {
+void ObjectFLED::begin(fl::u16 period, fl::u16 t0h, fl::u16 t1h, fl::u16 latchDelay) {
 	TH_TL = period;
 	T0H = t0h;
 	T1H = t1h;
@@ -174,9 +175,9 @@ void ObjectFLED::begin(void) {
 	arm_dcache_flush_delete(bitmask, sizeof(bitmask));			//can't DMA from cached memory
 
 	// Set up 3 timers to create waveform timing events
-	comp1load[0] = (uint16_t)((float)F_BUS_ACTUAL / 1000000000.0 * (float)TH_TL / OC_FACTOR );
-	comp1load[1] = (uint16_t)((float)F_BUS_ACTUAL / 1000000000.0 * (float)T0H / OC_FACTOR );
-	comp1load[2] = (uint16_t)((float)F_BUS_ACTUAL / 1000000000.0 * (float)T1H / (1.0 + ((OC_FACTOR - 1.0)/3)) );
+	comp1load[0] = (fl::u16)((float)F_BUS_ACTUAL / 1000000000.0 * (float)TH_TL / OC_FACTOR );
+	comp1load[1] = (fl::u16)((float)F_BUS_ACTUAL / 1000000000.0 * (float)T0H / OC_FACTOR );
+	comp1load[2] = (fl::u16)((float)F_BUS_ACTUAL / 1000000000.0 * (float)T1H / (1.0 + ((OC_FACTOR - 1.0)/3)) );
 	TMR4_ENBL &= ~7;
 	TMR4_SCTRL0 = TMR_SCTRL_OEN | TMR_SCTRL_FORCE | TMR_SCTRL_MSTR;
 	TMR4_CSCTRL0 = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN;
@@ -296,7 +297,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 	if (serp == 0) {	// use faster loops if no serp
 		switch (params & 0x3F) {
 		case CORDER_RGBW:		// R,G,B = R,G,B - MIN(R,G,B); W = MIN(R,G,B)
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 4) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 4) {
 				uint8_t minRGB = MIN(*((uint8_t*)drawBuffer + j) * rLevel / 65025, \
 					*((uint8_t*)drawBuffer + j + 1) * rLevel / 65025);
 				minRGB = MIN(minRGB, *((uint8_t*)drawBuffer + j + 2) * rLevel / 65025);
@@ -308,7 +309,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_GBR:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				*(frameBuffer + i + 2) = *((uint8_t*)drawBuffer + j) * rLevel / 65025;
 				*(frameBuffer + i) = *((uint8_t*)drawBuffer + j + 1) * gLevel / 65025;
 				*(frameBuffer + i + 1) = *((uint8_t*)drawBuffer + j + 2) * bLevel / 65025;
@@ -316,7 +317,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_BGR:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				*(frameBuffer + i + 2) = *((uint8_t*)drawBuffer + j) * rLevel / 65025;
 				*(frameBuffer + i + 1) = *((uint8_t*)drawBuffer + j + 1) * gLevel / 65025;
 				*(frameBuffer + i) = *((uint8_t*)drawBuffer + j + 2) * bLevel / 65025;
@@ -324,7 +325,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_BRG:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				*(frameBuffer + i + 1) = *((uint8_t*)drawBuffer + j) * rLevel / 65025;
 				*(frameBuffer + i + 2) = *((uint8_t*)drawBuffer + j + 1) * gLevel / 65025;
 				*(frameBuffer + i) = *((uint8_t*)drawBuffer + j + 2) * bLevel / 65025;
@@ -332,7 +333,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_GRB:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				*(frameBuffer + i + 1) = *((uint8_t*)drawBuffer + j) * rLevel / 65025;
 				*(frameBuffer + i) = *((uint8_t*)drawBuffer + j + 1) * gLevel / 65025;
 				*(frameBuffer + i + 2) = *((uint8_t*)drawBuffer + j + 2) * bLevel / 65025;
@@ -341,7 +342,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			break;
 		case CORDER_RGB:
 		default:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				*(frameBuffer + i) = *((uint8_t*)drawBuffer + j) * rLevel / 65025;
 				*(frameBuffer + i + 1) = *((uint8_t*)drawBuffer + j + 1) * gLevel / 65025;
 				*(frameBuffer + i + 2) = *((uint8_t*)drawBuffer + j + 2) * bLevel / 65025;
@@ -351,7 +352,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 	} else {	//serpentine
 		switch (params & 0x3F) {
 		case CORDER_RGBW:		// R,G,B = R,G,B - MIN(R,G,B); W = MIN(R,G,B)
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 4) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 4) {
 				uint8_t minRGB = MIN(*((uint8_t*)drawBuffer + j) * rLevel / 65025, \
 					* ((uint8_t*)drawBuffer + j + 1) * rLevel / 65025);
 				minRGB = MIN(minRGB, *((uint8_t*)drawBuffer + j + 2) * rLevel / 65025);
@@ -367,7 +368,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_GBR:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				if (i % (serp * 3) == 0) {
 					if (jChange < 0) { j = i; jChange = 3; }
 					else { j = i + (serp - 1) * 3; jChange = -3; }
@@ -379,7 +380,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_BGR:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				if (i % (serp * 3) == 0) {
 					if (jChange < 0) { j = i; jChange = 3; }
 					else { j = i + (serp - 1) * 3; jChange = -3; }
@@ -391,7 +392,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_BRG:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				if (i % (serp * 3) == 0) {
 					if (jChange < 0) { j = i; jChange = 3; }
 					else { j = i + (serp - 1) * 3; jChange = -3; }
@@ -403,7 +404,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			}	//for(leds in drawbuffer)
 			break;
 		case CORDER_GRB:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				if (i % (serp * 3) == 0) {
 					if (jChange < 0) { j = i; jChange = 3; }
 					else { j = i + (serp - 1) * 3; jChange = -3; }
@@ -416,7 +417,7 @@ void ObjectFLED::genFrameBuffer(uint32_t serp) {
 			break;
 		case CORDER_RGB:
 		default:
-			for (uint16_t i = 0; i < (numbytes * numpins); i += 3) {
+			for (fl::u16 i = 0; i < (numbytes * numpins); i += 3) {
 				if (i % (serp * 3) == 0) {
 					if (jChange < 0) { j = i; jChange = 3; }
 					else { j = i + (serp - 1) * 3; jChange = -3; }
@@ -465,7 +466,7 @@ void ObjectFLED::show(void) {
 	genFrameBuffer(serpNumber);
 
 	// disable timers
-	uint16_t enable = TMR4_ENBL;
+	fl::u16 enable = TMR4_ENBL;
 	TMR4_ENBL = enable & ~7;
 
 	// force all timer outputs to logic low
@@ -600,7 +601,7 @@ void ObjectFLED::setBalance(uint32_t balMask) {
 
 
 //Fades CRGB array towards the background color by amount.
-void fadeToColorBy(void* leds, uint16_t count, uint32_t color, uint8_t fadeAmt) {
+void fadeToColorBy(void* leds, fl::u16 count, uint32_t color, uint8_t fadeAmt) {
 	for (uint32_t x = 0; x < count * 3; x += 3) {
 		//fade red
 		*((uint8_t*)leds + x) = ((  *((uint8_t*)leds + x)  * (1 + (255 - fadeAmt))) >> 8) + \
@@ -616,7 +617,7 @@ void fadeToColorBy(void* leds, uint16_t count, uint32_t color, uint8_t fadeAmt) 
 
 
 // Safely draws box even if partially offscreen on 2D CRGB array
-void drawSquare(void* leds, uint16_t planeY, uint16_t planeX, int yCorner, int xCorner, uint32_t size, uint32_t color) {
+void drawSquare(void* leds, fl::u16 planeY, fl::u16 planeX, int yCorner, int xCorner, uint32_t size, uint32_t color) {
 	if (size != 0) { size--; }
 	else { return; }
 	for (int x = xCorner; x <= xCorner + (int)size; x++) {

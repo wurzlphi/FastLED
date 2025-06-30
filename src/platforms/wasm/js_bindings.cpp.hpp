@@ -45,6 +45,7 @@
 #include "fl/math.h"
 #include "fl/screenmap.h"
 #include "fl/json.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -112,9 +113,9 @@ EMSCRIPTEN_KEEPALIVE void jsFillInMissingScreenMaps(ActiveStripData &active_stri
                 uint32_t side = sqrt(pixel_count);
                 // This is a square matrix, let's assume it's a square matrix
                 // and generate a screenmap for it.
-                for (uint16_t i = 0; i < side; i++) {
-                    for (uint16_t j = 0; j < side; j++) {
-                        uint16_t index = i * side + j;
+                for (fl::u16 i = 0; i < side; i++) {
+                    for (fl::u16 j = 0; j < side; j++) {
+                        fl::u16 index = i * side + j;
                         vec2f p = {
                             static_cast<float>(i),
                             static_cast<float>(j)

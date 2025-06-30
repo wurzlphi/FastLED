@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_CLOCKLESS_ARM_GIGA
 #define __INC_CLOCKLESS_ARM_GIGA
 
@@ -30,7 +31,7 @@ public:
 		mPort = FastPin<DATA_PIN>::port();
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {

@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_FASTSPI_AVR_H
 #define __INC_FASTSPI_AVR_H
 
@@ -73,7 +74,7 @@ public:
 	}
 	static void waitFully() __attribute__((always_inline)) { wait(); }
 
-	static void writeWord(uint16_t w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
+	static void writeWord(fl::u16 w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
 
 	static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); UDR1=b;  shouldWait(true); }
 	static void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { UDR1=b; shouldWait(true); wait(); }
@@ -219,7 +220,7 @@ public:
 	}
 	static void waitFully() __attribute__((always_inline)) { wait(); }
 
-	static void writeWord(uint16_t w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
+	static void writeWord(fl::u16 w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
 
 	static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); UDR0=b;  shouldWait(true); }
 	static void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { UDR0=b; shouldWait(true); wait(); }
@@ -380,7 +381,7 @@ public:
 	}
 	static void waitFully() __attribute__((always_inline)) { wait(); }
 
-	static void writeWord(uint16_t w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
+	static void writeWord(fl::u16 w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
 
 	static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); SPI0_DATA=b;  shouldWait(true); }
 	static void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { SPI0_DATA=b; shouldWait(true); wait(); }
@@ -559,7 +560,7 @@ public:
 	static void wait() __attribute__((always_inline)) { if(shouldWait()) { while(!(SPSR & (1<<SPIF))); } }
 	static void waitFully() __attribute__((always_inline)) { wait(); }
 
-	static void writeWord(uint16_t w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
+	static void writeWord(fl::u16 w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
 
 	static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); SPDR=b;  shouldWait(true); }
 	static void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { SPDR=b; shouldWait(true); wait(); }
@@ -737,7 +738,7 @@ public:
 	static void wait() __attribute__((always_inline)) { if(shouldWait()) { while(!(SPSR0 & (1<<SPIF))); } }
 	static void waitFully() __attribute__((always_inline)) { wait(); }
 
-	static void writeWord(uint16_t w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
+	static void writeWord(fl::u16 w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w&0xFF); }
 
 	static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); SPDR0=b;  shouldWait(true); }
 	static void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { SPDR0=b; shouldWait(true); wait(); }

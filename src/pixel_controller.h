@@ -24,6 +24,7 @@
 
 
 #include "FastLED.h"  // Problematic.
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -522,13 +523,13 @@ struct PixelController {
 
     // WS2816B has native 16 bit/channel color and internal 4 bit gamma correction.
     // So we don't do gamma here, and we don't bother with dithering.
-    FASTLED_FORCE_INLINE void loadAndScale_WS2816_HD(uint16_t *s0_out, uint16_t *s1_out, uint16_t *s2_out) {
+    FASTLED_FORCE_INLINE void loadAndScale_WS2816_HD(fl::u16 *s0_out, fl::u16 *s1_out, fl::u16 *s2_out) {
         // Note that the WS2816 has a 4 bit gamma correction built in. To improve things this algorithm may
         // change in the future with a partial gamma correction that is completed by the chipset gamma
         // correction.
-        uint16_t r16 = map8_to_16(mData[0]);
-        uint16_t g16 = map8_to_16(mData[1]);
-        uint16_t b16 = map8_to_16(mData[2]);
+        fl::u16 r16 = map8_to_16(mData[0]);
+        fl::u16 g16 = map8_to_16(mData[1]);
+        fl::u16 b16 = map8_to_16(mData[2]);
         if (r16 || g16 || b16) {
     #if FASTLED_HD_COLOR_MIXING
             uint8_t brightness = mColorAdjustment.brightness;
@@ -552,7 +553,7 @@ struct PixelController {
                 b16 = scale16by8(b16, brightness);
             }
         }
-        uint16_t rgb16[3] = {r16, g16, b16};
+        fl::u16 rgb16[3] = {r16, g16, b16};
         const uint8_t s0_index = RGB_BYTE0(RGB_ORDER);
         const uint8_t s1_index = RGB_BYTE1(RGB_ORDER);
         const uint8_t s2_index = RGB_BYTE2(RGB_ORDER);

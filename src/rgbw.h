@@ -8,6 +8,7 @@
 #include "fl/force_inline.h"
 #include "fl/namespace.h"
 #include "eorder.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -26,12 +27,12 @@ enum {
 };
 
 struct Rgbw {
-    explicit Rgbw(uint16_t white_color_temp = kRGBWDefaultColorTemp,
+    explicit Rgbw(fl::u16 white_color_temp = kRGBWDefaultColorTemp,
                   RGBW_MODE rgbw_mode = kRGBWExactColors,
                   EOrderW _w_placement = WDefault)
         : white_color_temp(white_color_temp), w_placement(_w_placement),
           rgbw_mode(rgbw_mode) {}
-    uint16_t white_color_temp = kRGBWDefaultColorTemp;
+    fl::u16 white_color_temp = kRGBWDefaultColorTemp;
     EOrderW w_placement = WDefault;
     RGBW_MODE rgbw_mode = kRGBWExactColors;
     FASTLED_FORCE_INLINE bool active() const {
@@ -83,7 +84,7 @@ struct RgbwWhiteIsOff : public Rgbw {
     }
 };
 
-typedef void (*rgb_2_rgbw_function)(uint16_t w_color_temperature, uint8_t r,
+typedef void (*rgb_2_rgbw_function)(fl::u16 w_color_temperature, uint8_t r,
                                     uint8_t g, uint8_t b, uint8_t r_scale,
                                     uint8_t g_scale, uint8_t b_scale,
                                     uint8_t *out_r, uint8_t *out_g,
@@ -102,7 +103,7 @@ typedef void (*rgb_2_rgbw_function)(uint16_t w_color_temperature, uint8_t r,
 /// RGB(255, 255, 255) -> RGBW(0, 0, 0, 85)
 /// RGB(255, 0, 0) -> RGBW(255, 0, 0, 0)
 /// ```
-void rgb_2_rgbw_exact(uint16_t w_color_temperature, uint8_t r, uint8_t g,
+void rgb_2_rgbw_exact(fl::u16 w_color_temperature, uint8_t r, uint8_t g,
                       uint8_t b, uint8_t r_scale, uint8_t g_scale,
                       uint8_t b_scale, uint8_t *out_r, uint8_t *out_g,
                       uint8_t *out_b, uint8_t *out_w);
@@ -115,7 +116,7 @@ void rgb_2_rgbw_exact(uint16_t w_color_temperature, uint8_t r, uint8_t g,
 /// RGB(255, 255, 255) -> RGBW(255, 255, 255, 255)
 /// RGB(1, 0, 0) -> RGBW(1, 0, 0, 1)
 /// ```
-void rgb_2_rgbw_max_brightness(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_max_brightness(fl::u16 w_color_temperature, uint8_t r,
                                uint8_t g, uint8_t b, uint8_t r_scale,
                                uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
                                uint8_t *out_g, uint8_t *out_b, uint8_t *out_w);
@@ -125,19 +126,19 @@ void rgb_2_rgbw_max_brightness(uint16_t w_color_temperature, uint8_t r,
 /// ```
 /// RGB(255, 255, 255) -> RGBW(255, 255, 255, 0)
 /// ```
-void rgb_2_rgbw_null_white_pixel(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_null_white_pixel(fl::u16 w_color_temperature, uint8_t r,
                                  uint8_t g, uint8_t b, uint8_t r_scale,
                                  uint8_t g_scale, uint8_t b_scale,
                                  uint8_t *out_r, uint8_t *out_g, uint8_t *out_b,
                                  uint8_t *out_w);
 
 /// @brief Converts RGB to RGBW with a boosted white channel.
-void rgb_2_rgbw_white_boosted(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_white_boosted(fl::u16 w_color_temperature, uint8_t r,
                               uint8_t g, uint8_t b, uint8_t r_scale,
                               uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
                               uint8_t *out_g, uint8_t *out_b, uint8_t *out_w);
 
-void rgb_2_rgbw_user_function(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_user_function(fl::u16 w_color_temperature, uint8_t r,
                               uint8_t g, uint8_t b, uint8_t r_scale,
                               uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
                               uint8_t *out_g, uint8_t *out_b, uint8_t *out_w);
@@ -148,7 +149,7 @@ void set_rgb_2_rgbw_function(rgb_2_rgbw_function func);
 /// @details Dynamic version of the rgb_w_rgbw function with less chance for
 ///          the compiler to optimize.
 FASTLED_FORCE_INLINE void rgb_2_rgbw(
-    RGBW_MODE mode, uint16_t w_color_temperature, uint8_t r, uint8_t g,
+    RGBW_MODE mode, fl::u16 w_color_temperature, uint8_t r, uint8_t g,
     uint8_t b, uint8_t r_scale, uint8_t g_scale, uint8_t b_scale,
     uint8_t *out_r, uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {
     switch (mode) {
@@ -182,7 +183,7 @@ FASTLED_FORCE_INLINE void rgb_2_rgbw(
 // @brief Converts RGB to RGBW using one of the functions.
 template <RGBW_MODE MODE>
 FASTLED_FORCE_INLINE void
-rgb_2_rgbw(uint16_t w_color_temperature, uint8_t r, uint8_t g, uint8_t b,
+rgb_2_rgbw(fl::u16 w_color_temperature, uint8_t r, uint8_t g, uint8_t b,
            uint8_t r_scale, uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
            uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {
     // We trust that the compiler will inline all of this.

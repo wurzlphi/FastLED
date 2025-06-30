@@ -10,6 +10,7 @@
 #include "rgbw.h"
 
 #include "crgb.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -39,7 +40,7 @@ struct PixelControllerVtable {
 
   #endif
 
-  static void loadAndScale_WS2816_HD(void* pixel_controller, uint16_t *s0_out, uint16_t* s1_out, uint16_t* s2_out) {
+  static void loadAndScale_WS2816_HD(void* pixel_controller, fl::u16 *s0_out, fl::u16* s1_out, fl::u16* s2_out) {
     PixelControllerT* pc = static_cast<PixelControllerT*>(pixel_controller);
     pc->loadAndScale_WS2816_HD(s0_out, s1_out, s2_out);
   }
@@ -77,7 +78,7 @@ typedef void (*loadAndScaleRGBFunction)(void* pixel_controller, uint8_t* r_out, 
 #if FASTLED_PIXEL_ITERATOR_HAS_APA102_HD
 typedef void (*loadAndScale_APA102_HDFunction)(void* pixel_controller, uint8_t* b0_out, uint8_t* b1_out, uint8_t* b2_out, uint8_t* brightness_out);
 #endif
-typedef void (*loadAndScale_WS2816_HDFunction)(void* pixel_controller, uint16_t* b0_out, uint16_t* b1_out, uint16_t* b2_out);
+typedef void (*loadAndScale_WS2816_HDFunction)(void* pixel_controller, fl::u16* b0_out, fl::u16* b1_out, fl::u16* b2_out);
 typedef void (*stepDitheringFunction)(void* pixel_controller);
 typedef void (*advanceDataFunction)(void* pixel_controller);
 typedef int (*sizeFunction)(void* pixel_controller);
@@ -149,7 +150,7 @@ class PixelIterator {
       mLoadAndScale_APA102_HD(mPixelController, b0_out, b1_out, b2_out, brightness_out);
     }
     #endif
-    void loadAndScale_WS2816_HD(uint16_t *s0_out, uint16_t *s1_out, uint16_t *s2_out) {
+    void loadAndScale_WS2816_HD(fl::u16 *s0_out, fl::u16 *s1_out, fl::u16 *s2_out) {
       mLoadAndScale_WS2816_HD(mPixelController, s0_out, s1_out, s2_out);
     }
     void stepDithering() { mStepDithering(mPixelController); }

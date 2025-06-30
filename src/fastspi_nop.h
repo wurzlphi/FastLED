@@ -10,6 +10,7 @@
 #if FASTLED_DOXYGEN // Guard against the arduino ide idiotically including every header file
 
 #include "FastLED.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -48,7 +49,7 @@ public:
 	/// write a byte out via SPI (returns immediately on writing register)
 	void writeByte(uint8_t b) { /* TODO */ }
 	/// write a word out via SPI (returns immediately on writing register)
-	void writeWord(uint16_t w) { /* TODO */ }
+	void writeWord(fl::u16 w) { /* TODO */ }
 
 	/// A raw set of writing byte values, assumes setup/init/waiting done elsewhere (static for use by adjustment classes)
 	static void writeBytesValueRaw(uint8_t value, int len) { /* TODO */ }

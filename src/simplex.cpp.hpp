@@ -3,6 +3,7 @@
 
 #define FASTLED_INTERNAL
 #include "FastLED.h"
+#include "fl/int.h"
 
 // This file implements simplex noise, which is an improved Perlin noise. This
 // implementation is a fixed-point version that avoids all uses of floating
@@ -103,7 +104,7 @@ static int32_t grad(uint8_t hash, int32_t x, int32_t y, int32_t z, int32_t t) {
 }
 
 // 1D simplex noise.
-uint16_t snoise16(uint32_t x) {
+fl::u16 snoise16(uint32_t x) {
     uint32_t i0 = x >> 12;
     uint32_t i1 = i0 + 1;
     int32_t x0 = x & 0xfff;   // .12
@@ -122,11 +123,11 @@ uint16_t snoise16(uint32_t x) {
     int32_t n = n0 + n1;   // .15
     n += 2503;             // .15: fix offset, adjust to +0.03
     n = (n * 26694) >> 16; // .15: fix scale to fit in [-1,1]
-    return uint16_t(n) + 0x8000;
+    return fl::u16(n) + 0x8000;
 }
 
 // 2D simplex noise.
-uint16_t snoise16(uint32_t x, uint32_t y) {
+fl::u16 snoise16(uint32_t x, uint32_t y) {
     const uint64_t F2 = 1572067135; // .32: F2 = 0.5*(sqrt(3.0)-1.0)
     const uint64_t G2 = 907633384;  // .32: G2 = (3.0-Math.sqrt(3.0))/6.0
 
@@ -189,11 +190,11 @@ uint16_t snoise16(uint32_t x, uint32_t y) {
     // The result is scaled to return values in the interval [-1,1].
     int32_t n = n0 + n1 + n2;    // .30
     n = ((n >> 8) * 23163) >> 16; // fix scale to fit exactly in an int16
-    return (uint16_t)n + 0x8000;
+    return (fl::u16)n + 0x8000;
 }
 
 // 3D simplex noise.
-uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
+fl::u16 snoise16(uint32_t x, uint32_t y, uint32_t z) {
     // Simple skewing factors for the 3D case
     const uint64_t F3 = 1431655764; // .32: 0.333333333
     const uint64_t G3 = 715827884;  // .32: 0.166666667
@@ -321,11 +322,11 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
     // The result is scaled to stay just inside [-1,1]
     int32_t n = n0 + n1 + n2 + n3; // .30
     n = ((n >> 8) * 16748) >> 16 ; // fix scale to fit exactly in an int16
-    return (uint16_t)n + 0x8000;
+    return (fl::u16)n + 0x8000;
 }
 
 // 4D simplex noise.
-uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
+fl::u16 snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
     // The skewing and unskewing factors are hairy again for the 4D case
     const uint64_t F4 = 331804471; // .30: (Math.sqrt(5.0)-1.0)/4.0 = 0.30901699437494745
     const uint64_t G4 = 593549882; // .32: (5.0-Math.sqrt(5.0))/20.0 = 0.1381966011250105
@@ -463,7 +464,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
 
     int32_t n = n0 + n1 + n2 + n3 + n4;  // .30
 	n = ((n >> 8) * 13832) >> 16; // fix scale
-	return uint16_t(n) + 0x8000;
+	return fl::u16(n) + 0x8000;
 }
 
 FASTLED_NAMESPACE_END

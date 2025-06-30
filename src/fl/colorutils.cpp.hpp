@@ -13,6 +13,7 @@
 #include "fl/colorutils.h"
 #include "fl/unused.h"
 #include "fl/xymap.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -48,9 +49,9 @@ CRGB &nblend(CRGB &existing, const CRGB &overlay, fract8 amountOfOverlay) {
     return existing;
 }
 
-void nblend(CRGB *existing, const CRGB *overlay, uint16_t count,
+void nblend(CRGB *existing, const CRGB *overlay, fl::u16 count,
             fract8 amountOfOverlay) {
-    for (uint16_t i = count; i; --i) {
+    for (fl::u16 i = count; i; --i) {
         nblend(*existing, *overlay, amountOfOverlay);
         ++existing;
         ++overlay;
@@ -63,9 +64,9 @@ CRGB blend(const CRGB &p1, const CRGB &p2, fract8 amountOfP2) {
     return nu;
 }
 
-CRGB *blend(const CRGB *src1, const CRGB *src2, CRGB *dest, uint16_t count,
+CRGB *blend(const CRGB *src1, const CRGB *src2, CRGB *dest, fl::u16 count,
             fract8 amountOfsrc2) {
-    for (uint16_t i = 0; i < count; ++i) {
+    for (fl::u16 i = 0; i < count; ++i) {
         dest[i] = blend(src1[i], src2[i], amountOfsrc2);
     }
     return dest;
@@ -118,11 +119,11 @@ CHSV &nblend(CHSV &existing, const CHSV &overlay, fract8 amountOfOverlay,
     return existing;
 }
 
-void nblend(CHSV *existing, const CHSV *overlay, uint16_t count,
+void nblend(CHSV *existing, const CHSV *overlay, fl::u16 count,
             fract8 amountOfOverlay, TGradientDirectionCode directionCode) {
     if (existing == overlay)
         return;
-    for (uint16_t i = count; i; --i) {
+    for (fl::u16 i = count; i; --i) {
         nblend(*existing, *overlay, amountOfOverlay, directionCode);
         ++existing;
         ++overlay;
@@ -136,49 +137,49 @@ CHSV blend(const CHSV &p1, const CHSV &p2, fract8 amountOfP2,
     return nu;
 }
 
-CHSV *blend(const CHSV *src1, const CHSV *src2, CHSV *dest, uint16_t count,
+CHSV *blend(const CHSV *src1, const CHSV *src2, CHSV *dest, fl::u16 count,
             fract8 amountOfsrc2, TGradientDirectionCode directionCode) {
-    for (uint16_t i = 0; i < count; ++i) {
+    for (fl::u16 i = 0; i < count; ++i) {
         dest[i] = blend(src1[i], src2[i], amountOfsrc2, directionCode);
     }
     return dest;
 }
 
-void nscale8_video(CRGB *leds, uint16_t num_leds, uint8_t scale) {
-    for (uint16_t i = 0; i < num_leds; ++i) {
+void nscale8_video(CRGB *leds, fl::u16 num_leds, uint8_t scale) {
+    for (fl::u16 i = 0; i < num_leds; ++i) {
         leds[i].nscale8_video(scale);
     }
 }
 
-void fade_video(CRGB *leds, uint16_t num_leds, uint8_t fadeBy) {
+void fade_video(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy) {
     nscale8_video(leds, num_leds, 255 - fadeBy);
 }
 
-void fadeLightBy(CRGB *leds, uint16_t num_leds, uint8_t fadeBy) {
+void fadeLightBy(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy) {
     nscale8_video(leds, num_leds, 255 - fadeBy);
 }
 
-void fadeToBlackBy(CRGB *leds, uint16_t num_leds, uint8_t fadeBy) {
+void fadeToBlackBy(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy) {
     nscale8(leds, num_leds, 255 - fadeBy);
 }
 
-void fade_raw(CRGB *leds, uint16_t num_leds, uint8_t fadeBy) {
+void fade_raw(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy) {
     nscale8(leds, num_leds, 255 - fadeBy);
 }
 
-void nscale8(CRGB *leds, uint16_t num_leds, uint8_t scale) {
-    for (uint16_t i = 0; i < num_leds; ++i) {
+void nscale8(CRGB *leds, fl::u16 num_leds, uint8_t scale) {
+    for (fl::u16 i = 0; i < num_leds; ++i) {
         leds[i].nscale8(scale);
     }
 }
 
-void fadeUsingColor(CRGB *leds, uint16_t numLeds, const CRGB &colormask) {
+void fadeUsingColor(CRGB *leds, fl::u16 numLeds, const CRGB &colormask) {
     uint8_t fr, fg, fb;
     fr = colormask.r;
     fg = colormask.g;
     fb = colormask.b;
 
-    for (uint16_t i = 0; i < numLeds; ++i) {
+    for (fl::u16 i = 0; i < numLeds; ++i) {
         leds[i].r = scale8_LEAVING_R1_DIRTY(leds[i].r, fr);
         leds[i].g = scale8_LEAVING_R1_DIRTY(leds[i].g, fg);
         leds[i].b = scale8(leds[i].b, fb);
@@ -249,7 +250,7 @@ inline uint8_t lsrX4(uint8_t dividend) {
     return dividend;
 }
 
-CRGB ColorFromPaletteExtended(const CRGBPalette32 &pal, uint16_t index,
+CRGB ColorFromPaletteExtended(const CRGBPalette32 &pal, fl::u16 index,
                               uint8_t brightness, TBlendType blendType) {
     // Extract the five most significant bits of the index as a palette index.
     uint8_t index_5bit = (index >> 11);
@@ -386,7 +387,7 @@ CRGB ColorFromPalette(const CRGBPalette16 &pal, uint8_t index,
     return CRGB(red1, green1, blue1);
 }
 
-CRGB ColorFromPaletteExtended(const CRGBPalette16 &pal, uint16_t index,
+CRGB ColorFromPaletteExtended(const CRGBPalette16 &pal, fl::u16 index,
                               uint8_t brightness, TBlendType blendType) {
     // Extract the four most significant bits of the index as a palette index.
     uint8_t index_4bit = index >> 12;
@@ -720,7 +721,7 @@ CRGB ColorFromPalette(const CRGBPalette256 &pal, uint8_t index,
     return CRGB(red, green, blue);
 }
 
-CRGB ColorFromPaletteExtended(const CRGBPalette256 &pal, uint16_t index,
+CRGB ColorFromPaletteExtended(const CRGBPalette256 &pal, fl::u16 index,
                               uint8_t brightness, TBlendType blendType) {
     // Extract the eight most significant bits of the index as a palette index.
     uint8_t index_8bit = index >> 8;
@@ -1092,15 +1093,15 @@ CRGB &napplyGamma_video(CRGB &rgb, float gammaR, float gammaG, float gammaB) {
     return rgb;
 }
 
-void napplyGamma_video(CRGB *rgbarray, uint16_t count, float gamma) {
-    for (uint16_t i = 0; i < count; ++i) {
+void napplyGamma_video(CRGB *rgbarray, fl::u16 count, float gamma) {
+    for (fl::u16 i = 0; i < count; ++i) {
         rgbarray[i] = applyGamma_video(rgbarray[i], gamma);
     }
 }
 
-void napplyGamma_video(CRGB *rgbarray, uint16_t count, float gammaR,
+void napplyGamma_video(CRGB *rgbarray, fl::u16 count, float gammaR,
                        float gammaG, float gammaB) {
-    for (uint16_t i = 0; i < count; ++i) {
+    for (fl::u16 i = 0; i < count; ++i) {
         rgbarray[i] = applyGamma_video(rgbarray[i], gammaR, gammaG, gammaB);
     }
 }

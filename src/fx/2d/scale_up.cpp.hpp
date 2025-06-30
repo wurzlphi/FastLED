@@ -12,6 +12,7 @@
 
 // Include here so that #define PI used in Arduino.h does not produce a warning.
 #include "scale_up.h"
+#include "fl/int.h"
 
 // Optimized for 2^n grid sizes in terms of both memory and performance.
 // If you are somehow running this on AVR then you probably want this if
@@ -49,10 +50,10 @@ void ScaleUp::draw(DrawContext context) {
     delegateContext.leds = mSurface.data();
     mDelegate->draw(delegateContext);
 
-    uint16_t in_w = mDelegate->getWidth();
-    uint16_t in_h = mDelegate->getHeight();
-    uint16_t out_w = getWidth();
-    uint16_t out_h = getHeight();
+    fl::u16 in_w = mDelegate->getWidth();
+    fl::u16 in_h = mDelegate->getHeight();
+    fl::u16 out_w = getWidth();
+    fl::u16 out_h = getHeight();
     ;
     if (in_w == out_w && in_h == out_h) {
         noExpand(mSurface.data(), context.leds, in_w, in_h);
@@ -61,8 +62,8 @@ void ScaleUp::draw(DrawContext context) {
     }
 }
 
-void ScaleUp::expand(const CRGB *input, CRGB *output, uint16_t width,
-                     uint16_t height, XYMap mXyMap) {
+void ScaleUp::expand(const CRGB *input, CRGB *output, fl::u16 width,
+                     fl::u16 height, XYMap mXyMap) {
 #if FASTLED_SCALE_UP == FASTLED_SCALE_UP_ALWAYS_POWER_OF_2
     fl::upscalePowerOf2(input, output, static_cast<uint8_t>(width), static_cast<uint8_t>(height), mXyMap);
 #elif FASTLED_SCALE_UP == FASTLED_SCALE_UP_HIGH_PRECISION
@@ -76,12 +77,12 @@ void ScaleUp::expand(const CRGB *input, CRGB *output, uint16_t width,
 #endif
 }
 
-void ScaleUp::noExpand(const CRGB *input, CRGB *output, uint16_t width,
-                       uint16_t height) {
-    uint16_t n = mXyMap.getTotal();
-    for (uint16_t w = 0; w < width; w++) {
-        for (uint16_t h = 0; h < height; h++) {
-            uint16_t idx = mXyMap.mapToIndex(w, h);
+void ScaleUp::noExpand(const CRGB *input, CRGB *output, fl::u16 width,
+                       fl::u16 height) {
+    fl::u16 n = mXyMap.getTotal();
+    for (fl::u16 w = 0; w < width; w++) {
+        for (fl::u16 h = 0; h < height; h++) {
+            fl::u16 idx = mXyMap.mapToIndex(w, h);
             if (idx < n) {
                 output[idx] = input[w * height + h];
             }

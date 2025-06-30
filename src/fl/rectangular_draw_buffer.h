@@ -8,12 +8,13 @@
 #include "fl/scoped_ptr.h"
 #include "fl/span.h"
 #include "fl/vector.h"
+#include "fl/int.h"
 
 namespace fl {
 
 struct DrawItem {
     DrawItem() = default;
-    DrawItem(uint8_t pin, uint16_t numLeds, bool is_rgbw);
+    DrawItem(uint8_t pin, fl::u16 numLeds, bool is_rgbw);
     
     // Rule of 5 for POD data
     DrawItem(const DrawItem &other) = default;

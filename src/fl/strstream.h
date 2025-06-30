@@ -2,6 +2,7 @@
 
 #include "crgb.h"
 #include "str.h"
+#include "fl/int.h"
 
 #ifndef FASTLED_STRSTREAM_USES_SIZE_T
 #if defined(__AVR__) || defined(ESP8266) || defined(ESP32)
@@ -24,11 +25,11 @@ template <> struct StrStreamHelper<int> {
 };
 
 template <> struct StrStreamHelper<uint8_t> {
-    static void append(string &str, const uint8_t &n) { str.append(uint16_t(n)); }
+    static void append(string &str, const uint8_t &n) { str.append(fl::u16(n)); }
 };
 
 template <> struct StrStreamHelper<char> {
-    static void append(string &str, const char &n) { str.append(uint16_t(n)); }
+    static void append(string &str, const char &n) { str.append(fl::u16(n)); }
 };
 
 template <> struct StrStreamHelper<unsigned int> {
@@ -60,7 +61,7 @@ class StrStream {
 
     StrStream &operator<<(const Tile2x2_u8 &subpixel);
 
-    StrStream &operator=(const uint16_t &n) {
+    StrStream &operator=(const fl::u16 &n) {
         mStr.clear();
         (*this) << n;
         return *this;
@@ -124,14 +125,14 @@ class StrStream {
 
     StrStream &operator<<(const uint8_t &n) {
         if (mTreatCharAsInt) {
-            mStr.append(uint16_t(n));
+            mStr.append(fl::u16(n));
         } else {
             mStr.append(n);
         }
         return *this;
     }
 
-    StrStream &operator<<(const uint16_t &n) {
+    StrStream &operator<<(const fl::u16 &n) {
         mStr.append(n);
         return *this;
     }
@@ -194,14 +195,14 @@ class FakeStrStream {
 #endif
 
     FakeStrStream &operator<<(uint8_t) { return *this; }
-    FakeStrStream &operator<<(uint16_t) { return *this; }
+    FakeStrStream &operator<<(fl::u16) { return *this; }
     FakeStrStream &operator<<(int16_t) { return *this; }
     FakeStrStream &operator<<(uint32_t) { return *this; }
     FakeStrStream &operator<<(int32_t) { return *this; }
 
     FakeStrStream &operator=(const string &) { return *this; }
     FakeStrStream &operator=(const CRGB &) { return *this; }
-    FakeStrStream &operator=(uint16_t) { return *this; }
+    FakeStrStream &operator=(fl::u16) { return *this; }
     FakeStrStream &operator=(uint8_t) { return *this; }
     FakeStrStream &operator=(char) { return *this; }
 };

@@ -11,6 +11,7 @@
 #include <string>
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_USING_NAMESPACE
 
@@ -84,7 +85,7 @@ DEFINE_PRINT_HELPER(float, "%f");
 DEFINE_PRINT_HELPER(const char *, "%s");
 DEFINE_PRINT_HELPER(uint64_t, "%lu");
 DEFINE_PRINT_HELPER(uint32_t, "%u");
-DEFINE_PRINT_HELPER(uint16_t, "%u");
+DEFINE_PRINT_HELPER(fl::u16, "%u");
 DEFINE_PRINT_HELPER(uint8_t, "%u");
 DEFINE_PRINT_HELPER(int64_t, "%ld");
 DEFINE_PRINT_HELPER(int32_t, "%d");

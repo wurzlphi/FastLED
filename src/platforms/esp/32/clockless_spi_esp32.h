@@ -11,6 +11,7 @@
 #include "spi_ws2812/strip_spi.h"
 #include "fl/scoped_ptr.h"
 #include "fl/assert.h"
+#include "fl/int.h"
 
 template <int DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 5>
 class ClocklessSpiWs2812Controller : public CPixelLEDController<RGB_ORDER>
@@ -24,7 +25,7 @@ public:
     ClocklessSpiWs2812Controller() = default;
 
     void init() override { }
-    virtual uint16_t getMaxRefreshRate() const { return 800; }
+    virtual fl::u16 getMaxRefreshRate() const { return 800; }
 
 protected:
     // Prepares data for the draw.
@@ -45,7 +46,7 @@ protected:
         auto output_iterator = mLedStrip->outputIterator();
         if (is_rgbw) {
             uint8_t r, g, b, w;
-            for (uint16_t i = 0; iterator.has(1); i++) {
+            for (fl::u16 i = 0; iterator.has(1); i++) {
                 iterator.loadAndScaleRGBW(&r, &g, &b, &w);
                 output_iterator(r);
                 output_iterator(g);
@@ -56,7 +57,7 @@ protected:
             }
         } else {
             uint8_t r, g, b;
-            for (uint16_t i = 0; iterator.has(1); i++) {
+            for (fl::u16 i = 0; iterator.has(1); i++) {
                 iterator.loadAndScaleRGB(&r, &g, &b);
                 output_iterator(r);
                 output_iterator(g);

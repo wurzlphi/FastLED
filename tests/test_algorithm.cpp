@@ -9,6 +9,7 @@
 #include "fl/map.h"
 #include "fl/random.h"
 #include "test.h"
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -878,21 +879,21 @@ TEST_CASE("fl::fl_random basic functionality") {
         
         // Test random16()
         for (int i = 0; i < 50; ++i) {
-            uint16_t val = rng.random16();
+            fl::u16 val = rng.random16();
             CHECK_GE(val, 0);
             CHECK_LE(val, 65535);
         }
         
         // Test random16(n)
         for (int i = 0; i < 50; ++i) {
-            uint16_t val = rng.random16(1000);
+            fl::u16 val = rng.random16(1000);
             CHECK_GE(val, 0);
             CHECK_LT(val, 1000);
         }
         
         // Test random16(min, max)
         for (int i = 0; i < 50; ++i) {
-            uint16_t val = rng.random16(500, 1500);
+            fl::u16 val = rng.random16(500, 1500);
             CHECK_GE(val, 500);
             CHECK_LT(val, 1500);
         }

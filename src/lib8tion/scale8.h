@@ -5,6 +5,7 @@
 #include "fl/namespace.h"
 #include "fastled_config.h"
 #include "lib8static.h"
+#include "fl/int.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -41,9 +42,9 @@ FASTLED_NAMESPACE_BEGIN
 LIB8STATIC_ALWAYS_INLINE uint8_t scale8(uint8_t i, fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
-    return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
+    return (((fl::u16)i) * (1 + (fl::u16)(scale))) >> 8;
 #else
-    return ((uint16_t)i * (uint16_t)(scale)) >> 8;
+    return ((fl::u16)i * (fl::u16)(scale)) >> 8;
 #endif
 #elif SCALE8_AVRASM == 1
 #if defined(LIB8_ATTINY)
@@ -109,7 +110,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8(uint8_t i, fract8 scale) {
 }
 
 constexpr uint8_t scale8_constexpr(uint8_t i, fract8 scale) {
-    return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
+    return (((fl::u16)i) * (1 + (fl::u16)(scale))) >> 8;
 }
 
 /// The "video" version of scale8() guarantees that the output will
@@ -178,7 +179,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8_LEAVING_R1_DIRTY(uint8_t i,
                                                          fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
-    return (((uint16_t)i) * ((uint16_t)(scale) + 1)) >> 8;
+    return (((fl::u16)i) * ((fl::u16)(scale) + 1)) >> 8;
 #else
     return ((int)i * (int)(scale)) >> 8;
 #endif
@@ -225,7 +226,7 @@ LIB8STATIC_ALWAYS_INLINE void nscale8_LEAVING_R1_DIRTY(uint8_t &i,
                                                        fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
-    i = (((uint16_t)i) * ((uint16_t)(scale) + 1)) >> 8;
+    i = (((fl::u16)i) * ((fl::u16)(scale) + 1)) >> 8;
 #else
     i = ((int)i * (int)(scale)) >> 8;
 #endif
@@ -364,10 +365,10 @@ constexpr CRGB nscale8x3_constexpr(uint8_t r, uint8_t g, uint8_t b, fract8 scale
 LIB8STATIC void nscale8x3(uint8_t &r, uint8_t &g, uint8_t &b, fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
-    uint16_t scale_fixed = scale + 1;
-    r = (((uint16_t)r) * scale_fixed) >> 8;
-    g = (((uint16_t)g) * scale_fixed) >> 8;
-    b = (((uint16_t)b) * scale_fixed) >> 8;
+    fl::u16 scale_fixed = scale + 1;
+    r = (((fl::u16)r) * scale_fixed) >> 8;
+    g = (((fl::u16)g) * scale_fixed) >> 8;
+    b = (((fl::u16)b) * scale_fixed) >> 8;
 #else
     r = ((int)r * (int)(scale)) >> 8;
     g = ((int)g * (int)(scale)) >> 8;
@@ -424,12 +425,12 @@ LIB8STATIC void nscale8x3_video(uint8_t &r, uint8_t &g, uint8_t &b,
 LIB8STATIC void nscale8x2(uint8_t &i, uint8_t &j, fract8 scale) {
 #if SCALE8_C == 1
 #if FASTLED_SCALE8_FIXED == 1
-    uint16_t scale_fixed = scale + 1;
-    i = (((uint16_t)i) * scale_fixed) >> 8;
-    j = (((uint16_t)j) * scale_fixed) >> 8;
+    fl::u16 scale_fixed = scale + 1;
+    i = (((fl::u16)i) * scale_fixed) >> 8;
+    j = (((fl::u16)j) * scale_fixed) >> 8;
 #else
-    i = ((uint16_t)i * (uint16_t)(scale)) >> 8;
-    j = ((uint16_t)j * (uint16_t)(scale)) >> 8;
+    i = ((fl::u16)i * (fl::u16)(scale)) >> 8;
+    j = ((fl::u16)j * (fl::u16)(scale)) >> 8;
 #endif
 #elif SCALE8_AVRASM == 1
     i = scale8_LEAVING_R1_DIRTY(i, scale);
@@ -472,13 +473,13 @@ LIB8STATIC void nscale8x2_video(uint8_t &i, uint8_t &j, fract8 scale) {
 /// @param i input value to scale
 /// @param scale scale factor, in n/256 units
 /// @returns scaled value
-LIB8STATIC_ALWAYS_INLINE uint16_t scale16by8(uint16_t i, fract8 scale) {
+LIB8STATIC_ALWAYS_INLINE fl::u16 scale16by8(fl::u16 i, fract8 scale) {
     if (scale == 0) {
         return 0; // Fixes non zero output when scale == 0 and
                   // FASTLED_SCALE8_FIXED==1
     }
 #if SCALE16BY8_C == 1
-    uint16_t result;
+    fl::u16 result;
 #if FASTLED_SCALE8_FIXED == 1
     result = (((uint32_t)(i) * (1 + ((uint32_t)scale))) >> 8);
 #else
@@ -487,7 +488,7 @@ LIB8STATIC_ALWAYS_INLINE uint16_t scale16by8(uint16_t i, fract8 scale) {
     return result;
 #elif SCALE16BY8_AVRASM == 1
 #if FASTLED_SCALE8_FIXED == 1
-    uint16_t result = 0;
+    fl::u16 result = 0;
     asm volatile(
         // result.A = HighByte( (i.A x scale) + i.A )
         "  mul %A[i], %[scale]                 \n\t"
@@ -513,7 +514,7 @@ LIB8STATIC_ALWAYS_INLINE uint16_t scale16by8(uint16_t i, fract8 scale) {
         : "r0", "r1");
     return result;
 #else
-    uint16_t result = 0;
+    fl::u16 result = 0;
     asm volatile(
         // result.A = HighByte(i.A x j )
         "  mul %A[i], %[scale]                 \n\t"
@@ -545,9 +546,9 @@ LIB8STATIC_ALWAYS_INLINE uint16_t scale16by8(uint16_t i, fract8 scale) {
 /// @param i input value to scale
 /// @param scale scale factor, in n/65536 units
 /// @returns scaled value
-LIB8STATIC uint16_t scale16(uint16_t i, fract16 scale) {
+LIB8STATIC fl::u16 scale16(fl::u16 i, fract16 scale) {
 #if SCALE16_C == 1
-    uint16_t result;
+    fl::u16 result;
 #if FASTLED_SCALE8_FIXED == 1
     result = ((uint32_t)(i) * (1 + (uint32_t)(scale))) / 65536;
 #else

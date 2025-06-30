@@ -5,6 +5,7 @@
 #include "fl/template_magic.h"
 #include "fl/stdint.h"
 #include <string.h>
+#include "fl/int.h"
 
 namespace fl {
 
@@ -119,7 +120,7 @@ template <typename T> struct FastHash<vec2<T>> {
                          (static_cast<uint32_t>(key.y) << 8);
             return fast_hash32(x);
         }
-        if (sizeof(T) == sizeof(uint16_t)) {
+        if (sizeof(T) == sizeof(fl::u16)) {
             uint32_t x = static_cast<uint32_t>(key.x) +
                          (static_cast<uint32_t>(key.y) << 16);
             return fast_hash32(x);
@@ -175,7 +176,7 @@ template <typename T> struct Hash<Ptr<T>> {
     };
 
 FASTLED_DEFINE_FAST_HASH(uint8_t)
-FASTLED_DEFINE_FAST_HASH(uint16_t)
+FASTLED_DEFINE_FAST_HASH(fl::u16)
 FASTLED_DEFINE_FAST_HASH(uint32_t)
 FASTLED_DEFINE_FAST_HASH(int8_t)
 FASTLED_DEFINE_FAST_HASH(int16_t)

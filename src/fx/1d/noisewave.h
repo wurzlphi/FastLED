@@ -4,6 +4,7 @@
 #include "fl/namespace.h"
 #include "fx/fx1d.h"
 #include "noisegen.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -11,7 +12,7 @@ FASTLED_SMART_PTR(NoiseWave);
 
 class NoiseWave : public Fx1d {
   public:
-    NoiseWave(uint16_t num_leds)
+    NoiseWave(fl::u16 num_leds)
         : Fx1d(num_leds), noiseGeneratorRed(500, 14),
           noiseGeneratorBlue(500, 10) {}
 

@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_CLOCKLESS_APOLLO3_H
 #define __INC_CLOCKLESS_APOLLO3_H
 
@@ -72,7 +73,7 @@ public:
 		SysTick_Config(0xFFFFFFUL); // The LOAD value needs to be 24-bit
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {

@@ -2,6 +2,7 @@
 
 #include "fl/stdint.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -25,7 +26,7 @@ public:
     /// Multiply the fractional int by a value
     uint32_t operator*(uint32_t v) { return (v*i) + ((v*f)>>F); }
     /// @copydoc operator*(uint32_t)
-    uint16_t operator*(uint16_t v) { return (v*i) + ((v*f)>>F); }
+    fl::u16 operator*(fl::u16 v) { return (v*i) + ((v*f)>>F); }
     /// @copydoc operator*(uint32_t)
     int32_t operator*(int32_t v) { return (v*i) + ((v*f)>>F); }
     /// @copydoc operator*(uint32_t)
@@ -37,7 +38,7 @@ public:
 };
 
 template<class T, int F, int I> static uint32_t operator*(uint32_t v, qfx<T,F,I> & q) { return q * v; }
-template<class T, int F, int I> static uint16_t operator*(uint16_t v, qfx<T,F,I> & q) { return q * v; }
+template<class T, int F, int I> static fl::u16 operator*(fl::u16 v, qfx<T,F,I> & q) { return q * v; }
 template<class T, int F, int I> static int32_t operator*(int32_t v, qfx<T,F,I> & q) { return q * v; }
 template<class T, int F, int I> static int16_t operator*(int16_t v, qfx<T,F,I> & q) { return q * v; }
 #if defined(FASTLED_ARM) | defined(FASTLED_RISCV) | defined(FASTLED_APOLLO3)
@@ -49,9 +50,9 @@ typedef qfx<uint8_t, 4,4> q44;
 /// A 6.2 integer (6 bits integer, 2 bits fraction)
 typedef qfx<uint8_t, 6,2> q62;
 /// A 8.8 integer (8 bits integer, 8 bits fraction)
-typedef qfx<uint16_t, 8,8> q88;
+typedef qfx<fl::u16, 8,8> q88;
 /// A 12.4 integer (12 bits integer, 4 bits fraction)
-typedef qfx<uint16_t, 12,4> q124;
+typedef qfx<fl::u16, 12,4> q124;
 
 /// @} FractionalTypes
 

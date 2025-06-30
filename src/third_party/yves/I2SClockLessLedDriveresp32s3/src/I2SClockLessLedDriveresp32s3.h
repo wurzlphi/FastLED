@@ -144,6 +144,7 @@
 // #include "pixelslib.h"
 #else
 #include "___pixeltypes.h"
+#include "fl/int.h"
 #endif
 
 #define LCD_DRIVER_PSRAM_DATA_ALIGNMENT 64
@@ -203,7 +204,7 @@ volatile xSemaphoreHandle I2SClocklessLedDriverS3_sem = NULL;
 volatile bool isDisplaying = false;
 volatile bool iswaiting = false;
 
-static void IRAM_ATTR transpose16x1_noinline2(unsigned char *A, uint16_t *B) {
+static void IRAM_ATTR transpose16x1_noinline2(unsigned char *A, fl::u16 *B) {
 
     uint32_t x, y, x1, y1, t;
 
@@ -258,20 +259,20 @@ static void IRAM_ATTR transpose16x1_noinline2(unsigned char *A, uint16_t *B) {
     y1 = ((x1 << 4) & FF) | (y1 & FF2);
     x1 = t;
 
-    *((uint16_t *)(B)) =
-        (uint16_t)(((x & 0xff000000) >> 8 | ((x1 & 0xff000000))) >> 16);
-    *((uint16_t *)(B + 3)) =
-        (uint16_t)(((x & 0xff0000) >> 16 | ((x1 & 0xff0000) >> 8)));
-    *((uint16_t *)(B + 6)) =
-        (uint16_t)(((x & 0xff00) | ((x1 & 0xff00) << 8)) >> 8);
-    *((uint16_t *)(B + 9)) = (uint16_t)((x & 0xff) | ((x1 & 0xff) << 8));
-    *((uint16_t *)(B + 12)) =
-        (uint16_t)(((y & 0xff000000) >> 8 | ((y1 & 0xff000000))) >> 16);
-    *((uint16_t *)(B + 15)) =
-        (uint16_t)(((y & 0xff0000) | ((y1 & 0xff0000) << 8)) >> 16);
-    *((uint16_t *)(B + 18)) =
-        (uint16_t)(((y & 0xff00) | ((y1 & 0xff00) << 8)) >> 8);
-    *((uint16_t *)(B + 21)) = (uint16_t)((y & 0xff) | ((y1 & 0xff) << 8));
+    *((fl::u16 *)(B)) =
+        (fl::u16)(((x & 0xff000000) >> 8 | ((x1 & 0xff000000))) >> 16);
+    *((fl::u16 *)(B + 3)) =
+        (fl::u16)(((x & 0xff0000) >> 16 | ((x1 & 0xff0000) >> 8)));
+    *((fl::u16 *)(B + 6)) =
+        (fl::u16)(((x & 0xff00) | ((x1 & 0xff00) << 8)) >> 8);
+    *((fl::u16 *)(B + 9)) = (fl::u16)((x & 0xff) | ((x1 & 0xff) << 8));
+    *((fl::u16 *)(B + 12)) =
+        (fl::u16)(((y & 0xff000000) >> 8 | ((y1 & 0xff000000))) >> 16);
+    *((fl::u16 *)(B + 15)) =
+        (fl::u16)(((y & 0xff0000) | ((y1 & 0xff0000) << 8)) >> 16);
+    *((fl::u16 *)(B + 18)) =
+        (fl::u16)(((y & 0xff00) | ((y1 & 0xff00) << 8)) >> 8);
+    *((fl::u16 *)(B + 21)) = (fl::u16)((y & 0xff) | ((y1 & 0xff) << 8));
 }
 
 esp_lcd_panel_io_handle_t led_io_handle = NULL;
@@ -280,9 +281,9 @@ class I2SClocklessLedDriveresp32S3 {
 
   public:
     int testcount;
-    uint16_t *buffers[2];
-    uint16_t *led_output = NULL;
-    uint16_t *led_output2 = NULL;
+    fl::u16 *buffers[2];
+    fl::u16 *led_output = NULL;
+    fl::u16 *led_output2 = NULL;
     uint8_t *ledsbuff = NULL;
     int num_leds_per_strip;
     int _numstrips;
@@ -400,7 +401,7 @@ class I2SClocklessLedDriveresp32S3 {
         }
         // esp_lcd_panel_io_handle_t init_lcd_driver(unsigned int
         // FASTLED_ESP32S3_I2S_CLOCK_HZ, size_t _nb_components) {
-        led_output = (uint16_t *)heap_caps_aligned_alloc(
+        led_output = (fl::u16 *)heap_caps_aligned_alloc(
             LCD_DRIVER_PSRAM_DATA_ALIGNMENT,
             8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                 __OFFSET_END,
@@ -409,7 +410,7 @@ class I2SClocklessLedDriveresp32S3 {
                8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                    __OFFSET_END);
 
-        led_output2 = (uint16_t *)heap_caps_aligned_alloc(
+        led_output2 = (fl::u16 *)heap_caps_aligned_alloc(
             LCD_DRIVER_PSRAM_DATA_ALIGNMENT,
             8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                 __OFFSET_END,
@@ -437,13 +438,13 @@ class I2SClocklessLedDriveresp32S3 {
         _initled(leds, pins, numstrip, NUM_LED_PER_STRIP);
     }
 
-    void transposeAll(uint16_t *ledoutput) {
+    void transposeAll(fl::u16 *ledoutput) {
 
-        uint16_t ledToDisplay = 0;
+        fl::u16 ledToDisplay = 0;
         Lines secondPixel[_nb_components];
-        uint16_t *buff =
+        fl::u16 *buff =
             ledoutput + 2; //+1 pour le premier empty +1 pour le 1 systématique
-        uint16_t jump = num_leds_per_strip * _nb_components;
+        fl::u16 jump = num_leds_per_strip * _nb_components;
         for (int j = 0; j < num_leds_per_strip; j++) {
             uint8_t *poli = ledsbuff + ledToDisplay * _nb_components;
             for (int i = 0; i < _numstrips; i++) {

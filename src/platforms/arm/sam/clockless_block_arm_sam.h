@@ -1,3 +1,4 @@
+#include "fl/int.h"
  #ifndef __INC_BLOCK_CLOCKLESS_H
 #define __INC_BLOCK_CLOCKLESS_H
 
@@ -80,7 +81,7 @@ public:
         mPort = FastPin<FIRST_PIN>::port();
     }
 
-    virtual uint16_t getMaxRefreshRate() const { return 400; }
+    virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
     virtual void showPixels(PixelController<RGB_ORDER, LANES, PORT_MASK> & pixels) {
         mWait.wait();

@@ -113,7 +113,7 @@
 ///      @endcode
 ///
 ///  - Fast 16-bit approximations of sin and cos.
-///    Input angle is a uint16_t from 0-65535.
+///    Input angle is a fl::u16 from 0-65535.
 ///    Output is a signed int16_t from -32767 to 32767.
 ///      @code
 ///      sin16( x)  == sin( (x/32768.0) * pi) * 32767
@@ -155,7 +155,7 @@
 ///    faster and five times smaller than Arduino's built-in
 ///    generic 32-bit sqrt routine.
 ///      @code
-///      sqrt16( uint16_t x ) == sqrt( x)
+///      sqrt16( fl::u16 x ) == sqrt( x)
 ///      @endcode
 ///
 ///  - Dimming and brightening functions for 8-bit
@@ -227,6 +227,7 @@
 #include "lib8tion/scale8.h"
 #include "lib8tion/random8.h"
 #include "lib8tion/trig8.h"
+#include "fl/int.h"
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -297,16 +298,16 @@ LIB8STATIC uint8_t lerp8by8( uint8_t a, uint8_t b, fract8 frac)
 
 /// Linear interpolation between two unsigned 16-bit values,
 /// with 16-bit fraction
-LIB8STATIC uint16_t lerp16by16( uint16_t a, uint16_t b, fract16 frac)
+LIB8STATIC fl::u16 lerp16by16( fl::u16 a, fl::u16 b, fract16 frac)
 {
-    uint16_t result;
+    fl::u16 result;
     if( b > a ) {
-        uint16_t delta = b - a;
-        uint16_t scaled = scale16(delta, frac);
+        fl::u16 delta = b - a;
+        fl::u16 scaled = scale16(delta, frac);
         result = a + scaled;
     } else {
-        uint16_t delta = a - b;
-        uint16_t scaled = scale16( delta, frac);
+        fl::u16 delta = a - b;
+        fl::u16 scaled = scale16( delta, frac);
         result = a - scaled;
     }
     return result;
@@ -314,16 +315,16 @@ LIB8STATIC uint16_t lerp16by16( uint16_t a, uint16_t b, fract16 frac)
 
 /// Linear interpolation between two unsigned 16-bit values,
 /// with 8-bit fraction
-LIB8STATIC uint16_t lerp16by8( uint16_t a, uint16_t b, fract8 frac)
+LIB8STATIC fl::u16 lerp16by8( fl::u16 a, fl::u16 b, fract8 frac)
 {
-    uint16_t result;
+    fl::u16 result;
     if( b > a) {
-        uint16_t delta = b - a;
-        uint16_t scaled = scale16by8( delta, frac);
+        fl::u16 delta = b - a;
+        fl::u16 scaled = scale16by8( delta, frac);
         result = a + scaled;
     } else {
-        uint16_t delta = a - b;
-        uint16_t scaled = scale16by8( delta, frac);
+        fl::u16 delta = a - b;
+        fl::u16 scaled = scale16by8( delta, frac);
         result = a - scaled;
     }
     return result;
@@ -335,12 +336,12 @@ LIB8STATIC int16_t lerp15by8( int16_t a, int16_t b, fract8 frac)
 {
     int16_t result;
     if( b > a) {
-        uint16_t delta = b - a;
-        uint16_t scaled = scale16by8( delta, frac);
+        fl::u16 delta = b - a;
+        fl::u16 scaled = scale16by8( delta, frac);
         result = a + scaled;
     } else {
-        uint16_t delta = a - b;
-        uint16_t scaled = scale16by8( delta, frac);
+        fl::u16 delta = a - b;
+        fl::u16 scaled = scale16by8( delta, frac);
         result = a - scaled;
     }
     return result;
@@ -352,12 +353,12 @@ LIB8STATIC int16_t lerp15by16( int16_t a, int16_t b, fract16 frac)
 {
     int16_t result;
     if( b > a) {
-        uint16_t delta = b - a;
-        uint16_t scaled = scale16( delta, frac);
+        fl::u16 delta = b - a;
+        fl::u16 scaled = scale16( delta, frac);
         result = a + scaled;
     } else {
-        uint16_t delta = a - b;
-        uint16_t scaled = scale16( delta, frac);
+        fl::u16 delta = a - b;
+        fl::u16 scaled = scale16( delta, frac);
         result = a - scaled;
     }
     return result;
@@ -448,25 +449,25 @@ LIB8STATIC uint8_t ease8InOutQuad(uint8_t val) {
 #error "No implementation for ease8InOutQuad available."
 #endif
 
-LIB8STATIC uint16_t ease16InOutQuad( uint16_t i)
+LIB8STATIC fl::u16 ease16InOutQuad( fl::u16 i)
 {
     // This is the legacy version, there is a slightly more accurate version in fl/ease.cpp
     // with fl::easeInOutQuad16. However the difference is minimal.
     //
     // 16-bit quadratic ease-in / ease-out function
-    uint16_t j = i;
+    fl::u16 j = i;
     if (j & 0x8000) {
         j = 65535 - j;
     }
-    uint16_t jj = scale16(j, j);
-    uint16_t jj2 = jj << 1;
+    fl::u16 jj = scale16(j, j);
+    fl::u16 jj2 = jj << 1;
     if (i & 0x8000) {
         jj2 = 65535 - jj2;
     }
     return jj2;
 }
 
-LIB8STATIC uint16_t ease16InOutCubic(uint16_t i)  {
+LIB8STATIC fl::u16 ease16InOutCubic(fl::u16 i)  {
     // This function produces wrong results, use fl::easeInOutCubic16 instead
     //
     // 16-bit cubic ease-in / ease-out function
@@ -485,7 +486,7 @@ LIB8STATIC uint16_t ease16InOutCubic(uint16_t i)  {
     if (r1 > 65535) {
         return 65535;
     }
-    return (uint16_t)r1;
+    return (fl::u16)r1;
 }
 
 
@@ -496,7 +497,7 @@ LIB8STATIC fract8 ease8InOutCubic( fract8 i)
     uint8_t ii  = scale8_LEAVING_R1_DIRTY(  i, i);
     uint8_t iii = scale8_LEAVING_R1_DIRTY( ii, i);
 
-    uint16_t r1 = (3 * (uint16_t)(ii)) - ( 2 * (uint16_t)(iii));
+    fl::u16 r1 = (3 * (fl::u16)(ii)) - ( 2 * (fl::u16)(iii));
 
     /* the code generated for the above *'s automatically
        cleans up R1, so there's no need to explicitily call
@@ -746,7 +747,7 @@ uint32_t get_millisecond_timer();
 /// @warning The BPM parameter **MUST** be provided in Q8.8 format! E.g.
 /// for 120 BPM it would be 120*256 = 30720. If you just want to specify
 /// "120", use beat16() or beat8().
-LIB8STATIC uint16_t beat88( accum88 beats_per_minute_88, uint32_t timebase = 0)
+LIB8STATIC fl::u16 beat88( accum88 beats_per_minute_88, uint32_t timebase = 0)
 {
     // BPM is 'beats per minute', or 'beats per 60000ms'.
     // To avoid using the (slower) division operator, we
@@ -762,7 +763,7 @@ LIB8STATIC uint16_t beat88( accum88 beats_per_minute_88, uint32_t timebase = 0)
 /// Generates a 16-bit "sawtooth" wave at a given BPM
 /// @param beats_per_minute the frequency of the wave, in decimal
 /// @param timebase the time offset of the wave from the millis() timer
-LIB8STATIC uint16_t beat16( accum88 beats_per_minute, uint32_t timebase = 0)
+LIB8STATIC fl::u16 beat16( accum88 beats_per_minute, uint32_t timebase = 0)
 {
     // Convert simple 8-bit BPM's to full Q8.8 accum88's if needed
     if( beats_per_minute < 256) beats_per_minute <<= 8;
@@ -788,14 +789,14 @@ LIB8STATIC uint8_t beat8( accum88 beats_per_minute, uint32_t timebase = 0)
 /// @warning The BPM parameter **MUST** be provided in Q8.8 format! E.g.
 /// for 120 BPM it would be 120*256 = 30720. If you just want to specify
 /// "120", use beatsin16() or beatsin8().
-LIB8STATIC uint16_t beatsin88( accum88 beats_per_minute_88, uint16_t lowest = 0, uint16_t highest = 65535,
-                              uint32_t timebase = 0, uint16_t phase_offset = 0)
+LIB8STATIC fl::u16 beatsin88( accum88 beats_per_minute_88, fl::u16 lowest = 0, fl::u16 highest = 65535,
+                              uint32_t timebase = 0, fl::u16 phase_offset = 0)
 {
-    uint16_t beat = beat88( beats_per_minute_88, timebase);
-    uint16_t beatsin = (sin16( beat + phase_offset) + 32768);
-    uint16_t rangewidth = highest - lowest;
-    uint16_t scaledbeat = scale16( beatsin, rangewidth);
-    uint16_t result = lowest + scaledbeat;
+    fl::u16 beat = beat88( beats_per_minute_88, timebase);
+    fl::u16 beatsin = (sin16( beat + phase_offset) + 32768);
+    fl::u16 rangewidth = highest - lowest;
+    fl::u16 scaledbeat = scale16( beatsin, rangewidth);
+    fl::u16 result = lowest + scaledbeat;
     return result;
 }
 
@@ -806,14 +807,14 @@ LIB8STATIC uint16_t beatsin88( accum88 beats_per_minute_88, uint16_t lowest = 0,
 /// @param highest the highest output value of the sine wave
 /// @param timebase the time offset of the wave from the millis() timer
 /// @param phase_offset phase offset of the wave from the current position
-LIB8STATIC uint16_t beatsin16( accum88 beats_per_minute, uint16_t lowest = 0, uint16_t highest = 65535,
-                               uint32_t timebase = 0, uint16_t phase_offset = 0)
+LIB8STATIC fl::u16 beatsin16( accum88 beats_per_minute, fl::u16 lowest = 0, fl::u16 highest = 65535,
+                               uint32_t timebase = 0, fl::u16 phase_offset = 0)
 {
-    uint16_t beat = beat16( beats_per_minute, timebase);
-    uint16_t beatsin = (sin16( beat + phase_offset) + 32768);
-    uint16_t rangewidth = highest - lowest;
-    uint16_t scaledbeat = scale16( beatsin, rangewidth);
-    uint16_t result = lowest + scaledbeat;
+    fl::u16 beat = beat16( beats_per_minute, timebase);
+    fl::u16 beatsin = (sin16( beat + phase_offset) + 32768);
+    fl::u16 rangewidth = highest - lowest;
+    fl::u16 scaledbeat = scale16( beatsin, rangewidth);
+    fl::u16 result = lowest + scaledbeat;
     return result;
 }
 
@@ -847,20 +848,20 @@ LIB8STATIC uint8_t beatsin8( accum88 beats_per_minute, uint8_t lowest = 0, uint8
 
 /// Return the current seconds since boot in a 16-bit value.  Used as part of the
 /// "every N time-periods" mechanism
-LIB8STATIC uint16_t seconds16()
+LIB8STATIC fl::u16 seconds16()
 {
     uint32_t ms = GET_MILLIS();
-    uint16_t s16;
+    fl::u16 s16;
     s16 = ms / 1000;
     return s16;
 }
 
 /// Return the current minutes since boot in a 16-bit value.  Used as part of the
 /// "every N time-periods" mechanism
-LIB8STATIC uint16_t minutes16()
+LIB8STATIC fl::u16 minutes16()
 {
     uint32_t ms = GET_MILLIS();
-    uint16_t m16;
+    fl::u16 m16;
     m16 = (ms / (60000L)) & 0xFFFF;
     return m16;
 }
@@ -889,9 +890,9 @@ LIB8STATIC uint8_t hours8()
 /// just six shifts (vs 40), and no loop overhead.
 /// Used to convert millis to "binary seconds" aka bseconds:
 /// one bsecond == 1024 millis.
-LIB8STATIC uint16_t div1024_32_16( uint32_t in32)
+LIB8STATIC fl::u16 div1024_32_16( uint32_t in32)
 {
-    uint16_t out16;
+    fl::u16 out16;
 #if defined(__AVR__)
     asm volatile (
         "  lsr %D[in]  \n\t"
@@ -914,10 +915,10 @@ LIB8STATIC uint16_t div1024_32_16( uint32_t in32)
 /// Returns the current time-since-boot in
 /// "binary seconds", which are actually 1024/1000 of a
 /// second long.
-LIB8STATIC uint16_t bseconds16()
+LIB8STATIC fl::u16 bseconds16()
 {
     uint32_t ms = GET_MILLIS();
-    uint16_t s16;
+    fl::u16 s16;
     s16 = div1024_32_16( ms);
     return s16;
 }
@@ -1020,13 +1021,13 @@ public:
 INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNMillis,uint32_t,GET_MILLIS);
 
 /// Create the CEveryNSeconds class for second intervals
-INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNSeconds,uint16_t,seconds16);
+INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNSeconds,fl::u16,seconds16);
 
 /// Create the CEveryNBSeconds class for bsecond intervals
-INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNBSeconds,uint16_t,bseconds16);
+INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNBSeconds,fl::u16,bseconds16);
 
 /// Create the CEveryNMinutes class for minutes intervals
-INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNMinutes,uint16_t,minutes16);
+INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNMinutes,fl::u16,minutes16);
 
 /// Create the CEveryNHours class for hours intervals
 INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNHours,uint8_t,hours8);
@@ -1133,10 +1134,10 @@ public:
 
     operator bool() { return ready(); }
 };
-typedef CEveryNTimePeriods<uint16_t,seconds16> CEveryNSeconds;
-typedef CEveryNTimePeriods<uint16_t,bseconds16> CEveryNBSeconds;
+typedef CEveryNTimePeriods<fl::u16,seconds16> CEveryNSeconds;
+typedef CEveryNTimePeriods<fl::u16,bseconds16> CEveryNBSeconds;
 typedef CEveryNTimePeriods<uint32_t,millis> CEveryNMillis;
-typedef CEveryNTimePeriods<uint16_t,minutes16> CEveryNMinutes;
+typedef CEveryNTimePeriods<fl::u16,minutes16> CEveryNMinutes;
 typedef CEveryNTimePeriods<uint8_t,hours8> CEveryNHours;
 #endif
 

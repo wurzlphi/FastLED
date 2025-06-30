@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_FASTSPI_NRF_H
 #define __INC_FASTSPI_NRF_H
 
@@ -78,7 +79,7 @@ public:
     static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); NRF_SPI0->TXD = b; NRF_SPI0->INTENCLR; shouldWait(true); }
 
     // write a word out via SPI (returns immediately on writing register)
-    static void writeWord(uint16_t w) __attribute__((always_inline)){ writeByte(w>>8); writeByte(w & 0xFF);  }
+    static void writeWord(fl::u16 w) __attribute__((always_inline)){ writeByte(w>>8); writeByte(w & 0xFF);  }
 
     // A raw set of writing byte values, assumes setup/init/waiting done elsewhere (static for use by adjustment classes)
     static void writeBytesValueRaw(uint8_t value, int len) { while(len--) { writeByte(value);  } }

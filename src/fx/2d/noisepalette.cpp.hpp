@@ -12,6 +12,7 @@
 #include "noise.h"
 
 #include "noisepalette.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -108,8 +109,8 @@ void NoisePalette::setPalettePreset(int paletteIndex) {
 void NoisePalette::mapNoiseToLEDsUsingPalette(CRGB *leds) {
     static uint8_t ihue = 0;
 
-    for (uint16_t i = 0; i < width; i++) {
-        for (uint16_t j = 0; j < height; j++) {
+    for (fl::u16 i = 0; i < width; i++) {
+        for (fl::u16 j = 0; j < height; j++) {
             // We use the value at the (i,j) coordinate in the noise
             // array for our brightness, and the flipped value from (j,i)
             // for our pixel's index into the color palette.
@@ -148,9 +149,9 @@ void NoisePalette::fillnoise8() {
         dataSmoothing = 200 - (speed * 4);
     }
 
-    for (uint16_t i = 0; i < width; i++) {
+    for (fl::u16 i = 0; i < width; i++) {
         int ioffset = scale * i;
-        for (uint16_t j = 0; j < height; j++) {
+        for (fl::u16 j = 0; j < height; j++) {
             int joffset = scale * j;
 
             uint8_t data = inoise8(mX + ioffset, mY + joffset, mZ);

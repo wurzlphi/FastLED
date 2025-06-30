@@ -13,6 +13,7 @@
 #include "platforms/ui_defs.h"
 #include "sensors/button.h"
 #include "fl/virtual_if_not_avr.h"
+#include "fl/int.h"
 
 #define FL_NO_COPY(CLASS)                                                      \
     CLASS(const CLASS &) = delete;                                             \
@@ -56,7 +57,7 @@ class UISlider : public UIElement {
     void setValue(float value);
     operator float() const { return mImpl.value(); }
     operator uint8_t() const { return static_cast<uint8_t>(mImpl.value()); }
-    operator uint16_t() const { return static_cast<uint16_t>(mImpl.value()); }
+    operator fl::u16() const { return static_cast<fl::u16>(mImpl.value()); }
     operator int() const { return static_cast<int>(mImpl.value()); }
     template <typename T> T as() const {
         return static_cast<T>(mImpl.value());

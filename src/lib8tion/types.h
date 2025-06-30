@@ -5,6 +5,7 @@
 
 #include "fl/stdint.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -43,7 +44,7 @@ typedef int8_t    sfract7;
 /// ANSI: unsigned _Fract.
 /// Range is 0 to 0.99998474121 in steps of 0.00001525878.  
 /// Should be interpreted as unsigned 65536ths.
-typedef uint16_t  fract16;
+typedef fl::u16  fract16;
 
 typedef int32_t   sfract31; ///< ANSI: signed long _Fract. 31 bits int, 1 bit fraction
 
@@ -55,11 +56,11 @@ typedef uint32_t  fract32;   ///< ANSI: unsigned long _Fract. 32 bits int, 32 bi
 typedef int16_t   sfract15;
 
 
-typedef uint16_t  accum88;    ///< ANSI: unsigned short _Accum. 8 bits int, 8 bits fraction
+typedef fl::u16  accum88;    ///< ANSI: unsigned short _Accum. 8 bits int, 8 bits fraction
 typedef int16_t   saccum78;   ///< ANSI: signed   short _Accum. 7 bits int, 8 bits fraction
 typedef uint32_t  accum1616;  ///< ANSI: signed         _Accum. 16 bits int, 16 bits fraction
 typedef int32_t   saccum1516; ///< ANSI: signed         _Accum. 15 bits int, 16 bits fraction
-typedef uint16_t  accum124;   ///< no direct ANSI counterpart. 12 bits int, 4 bits fraction
+typedef fl::u16  accum124;   ///< no direct ANSI counterpart. 12 bits int, 4 bits fraction
 typedef int32_t   saccum114;  ///< no direct ANSI counterpart. 1 bit int, 14 bits fraction
 
 

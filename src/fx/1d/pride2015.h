@@ -3,6 +3,7 @@
 #include "FastLED.h"
 #include "fl/namespace.h"
 #include "fx/fx1d.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -18,15 +19,15 @@ FASTLED_SMART_PTR(Pride2015);
 
 class Pride2015 : public Fx1d {
   public:
-    Pride2015(uint16_t num_leds) : Fx1d(num_leds) {}
+    Pride2015(fl::u16 num_leds) : Fx1d(num_leds) {}
 
     void draw(Fx::DrawContext context) override;
     fl::string fxName() const override { return "Pride2015"; }
 
   private:
-    uint16_t mPseudotime = 0;
-    uint16_t mLastMillis = 0;
-    uint16_t mHue16 = 0;
+    fl::u16 mPseudotime = 0;
+    fl::u16 mLastMillis = 0;
+    fl::u16 mHue16 = 0;
 };
 
 // This function draws rainbows with an ever-changing,
@@ -38,34 +39,34 @@ void Pride2015::draw(Fx::DrawContext ctx) {
 
     uint8_t sat8 = beatsin88(87, 220, 250);
     uint8_t brightdepth = beatsin88(341, 96, 224);
-    uint16_t brightnessthetainc16 = beatsin88(203, (25 * 256), (40 * 256));
+    fl::u16 brightnessthetainc16 = beatsin88(203, (25 * 256), (40 * 256));
     uint8_t msmultiplier = beatsin88(147, 23, 60);
 
-    uint16_t hue16 = mHue16;
-    uint16_t hueinc16 = beatsin88(113, 1, 3000);
+    fl::u16 hue16 = mHue16;
+    fl::u16 hueinc16 = beatsin88(113, 1, 3000);
 
-    uint16_t ms = millis();
-    uint16_t deltams = ms - mLastMillis;
+    fl::u16 ms = millis();
+    fl::u16 deltams = ms - mLastMillis;
     mLastMillis = ms;
     mPseudotime += deltams * msmultiplier;
     mHue16 += deltams * beatsin88(400, 5, 9);
-    uint16_t brightnesstheta16 = mPseudotime;
+    fl::u16 brightnesstheta16 = mPseudotime;
 
     // set master brightness control
-    for (uint16_t i = 0; i < mNumLeds; i++) {
+    for (fl::u16 i = 0; i < mNumLeds; i++) {
         hue16 += hueinc16;
         uint8_t hue8 = hue16 / 256;
 
         brightnesstheta16 += brightnessthetainc16;
-        uint16_t b16 = sin16(brightnesstheta16) + 32768;
+        fl::u16 b16 = sin16(brightnesstheta16) + 32768;
 
-        uint16_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
+        fl::u16 bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
         uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536;
         bri8 += (255 - brightdepth);
 
         CRGB newcolor = CHSV(hue8, sat8, bri8);
 
-        uint16_t pixelnumber = (mNumLeds - 1) - i;
+        fl::u16 pixelnumber = (mNumLeds - 1) - i;
 
         nblend(ctx.leds[pixelnumber], newcolor, 64);
     }

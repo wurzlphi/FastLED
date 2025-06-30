@@ -17,6 +17,7 @@
 #include "fl/convert.h"  // for convert_fastled_timings_to_timedeltas(...)
 #include "fl/namespace.h"
 #include "strip_rmt.h"
+#include "fl/int.h"
 
 
 #define IDF5_RMT_TAG "idf5_rmt.cpp"
@@ -51,7 +52,7 @@ static IRmtStrip::DmaMode convertDmaMode(RmtController5::DmaMode dma_mode) {
 void RmtController5::loadPixelData(PixelIterator &pixels) {
     const bool is_rgbw = pixels.get_rgbw().active();
     if (!mLedStrip) {
-        uint16_t t0h, t0l, t1h, t1l;
+        fl::u16 t0h, t0l, t1h, t1l;
         convert_fastled_timings_to_timedeltas(mT1, mT2, mT3, &t0h, &t0l, &t1h, &t1l);
         mLedStrip = IRmtStrip::Create(
             mPin, pixels.size(),
@@ -65,7 +66,7 @@ void RmtController5::loadPixelData(PixelIterator &pixels) {
     }
     if (is_rgbw) {
         uint8_t r, g, b, w;
-        for (uint16_t i = 0; pixels.has(1); i++) {
+        for (fl::u16 i = 0; pixels.has(1); i++) {
             pixels.loadAndScaleRGBW(&r, &g, &b, &w);
             mLedStrip->setPixelRGBW(i, r, g, b, w); // Tested to be faster than memcpy of direct bytes.
             pixels.advanceData();
@@ -73,7 +74,7 @@ void RmtController5::loadPixelData(PixelIterator &pixels) {
         }
     } else {
         uint8_t r, g, b;
-        for (uint16_t i = 0; pixels.has(1); i++) {
+        for (fl::u16 i = 0; pixels.has(1); i++) {
             pixels.loadAndScaleRGB(&r, &g, &b);
             mLedStrip->setPixel(i, r, g, b); // Tested to be faster than memcpy of direct bytes.
             pixels.advanceData();

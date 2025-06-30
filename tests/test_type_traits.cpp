@@ -4,6 +4,7 @@
 #include "test.h"
 
 #include "fl/type_traits.h"
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -37,7 +38,7 @@ TEST_CASE("is_integral<T> value") {
     REQUIRE(is_integral<int8_t>::value);
     REQUIRE(is_integral<uint8_t>::value);
     REQUIRE(is_integral<int16_t>::value);
-    REQUIRE(is_integral<uint16_t>::value);
+    REQUIRE(is_integral<fl::u16>::value);
     REQUIRE(is_integral<int32_t>::value);
     REQUIRE(is_integral<uint32_t>::value);
     REQUIRE(is_integral<int64_t>::value);
@@ -235,8 +236,8 @@ TEST_CASE("common_type_impl behavior") {
                       "int8_t + int should return int");
         static_assert(fl::is_same<fl::common_type_t<int, int8_t>, int>::value,
                       "int + int8_t should return int");
-        static_assert(fl::is_same<fl::common_type_t<uint16_t, int>, int>::value,
-                      "uint16_t + int should return int");
+        static_assert(fl::is_same<fl::common_type_t<fl::u16, int>, int>::value,
+                      "fl::u16 + int should return int");
         static_assert(
             fl::is_same<fl::common_type_t<short, int32_t>, int32_t>::value,
             "short + int32_t should return int32_t");
@@ -267,18 +268,18 @@ TEST_CASE("common_type_impl behavior") {
             fl::is_same<fl::common_type_t<int16_t, uint32_t>, uint32_t>::value,
             "int16_t + uint32_t should return uint32_t");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, int32_t>, int32_t>::value,
-            "uint16_t + int32_t should return int32_t");
+            fl::is_same<fl::common_type_t<fl::u16, int32_t>, int32_t>::value,
+            "fl::u16 + int32_t should return int32_t");
     }
 
     SUBCASE("mixed signedness same size with sized types") {
         // Test partial specialization with sized types
         static_assert(
-            fl::is_same<fl::common_type_t<int16_t, uint16_t>, int16_t>::value,
-            "int16_t + uint16_t should return int16_t");
+            fl::is_same<fl::common_type_t<int16_t, fl::u16>, int16_t>::value,
+            "int16_t + fl::u16 should return int16_t");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, int16_t>, int16_t>::value,
-            "uint16_t + int16_t should return int16_t");
+            fl::is_same<fl::common_type_t<fl::u16, int16_t>, int16_t>::value,
+            "fl::u16 + int16_t should return int16_t");
         static_assert(
             fl::is_same<fl::common_type_t<int32_t, uint32_t>, int32_t>::value,
             "int32_t + uint32_t should return int32_t");
@@ -312,7 +313,7 @@ TEST_CASE("type promotion helper templates") {
                         uint32_t>::value,
             "choose_by_size should pick larger type regardless of signedness");
         static_assert(
-            fl::is_same<fl::choose_by_size<uint16_t, int64_t>::type,
+            fl::is_same<fl::choose_by_size<fl::u16, int64_t>::type,
                         int64_t>::value,
             "choose_by_size should pick larger type regardless of signedness");
     }
@@ -344,11 +345,11 @@ TEST_CASE("type promotion helper templates") {
     SUBCASE("choose_by_signedness helper tests") {
         // Test signedness selection
         static_assert(
-            fl::is_same<fl::choose_by_signedness<int16_t, uint16_t>::type,
+            fl::is_same<fl::choose_by_signedness<int16_t, fl::u16>::type,
                         int16_t>::value,
             "choose_by_signedness should pick signed type");
         static_assert(
-            fl::is_same<fl::choose_by_signedness<uint16_t, int16_t>::type,
+            fl::is_same<fl::choose_by_signedness<fl::u16, int16_t>::type,
                         int16_t>::value,
             "choose_by_signedness should pick signed type (reversed)");
         static_assert(
@@ -366,8 +367,8 @@ TEST_CASE("type promotion helper templates") {
                         int16_t>::value,
             "choose_by_signedness should pick first when both signed");
         static_assert(
-            fl::is_same<fl::choose_by_signedness<uint16_t, uint32_t>::type,
-                        uint16_t>::value,
+            fl::is_same<fl::choose_by_signedness<fl::u16, uint32_t>::type,
+                        fl::u16>::value,
             "choose_by_signedness should pick first when both unsigned");
     }
 
@@ -380,7 +381,7 @@ TEST_CASE("type promotion helper templates") {
                         int32_t>::value,
             "integer_promotion_impl should use size for different sizes");
         static_assert(
-            fl::is_same<fl::integer_promotion_impl<uint16_t, int64_t>::type,
+            fl::is_same<fl::integer_promotion_impl<fl::u16, int64_t>::type,
                         int64_t>::value,
             "integer_promotion_impl should use size for different sizes");
 
@@ -399,7 +400,7 @@ TEST_CASE("type promotion helper templates") {
         // Path 3: Same size, same rank, different signedness (should use
         // choose_by_signedness)
         static_assert(
-            fl::is_same<fl::integer_promotion_impl<int16_t, uint16_t>::type,
+            fl::is_same<fl::integer_promotion_impl<int16_t, fl::u16>::type,
                         int16_t>::value,
             "integer_promotion_impl should use signedness for same size same "
             "rank");
@@ -430,11 +431,11 @@ TEST_CASE("comprehensive type promotion edge cases") {
             fl::is_same<fl::common_type_t<uint8_t, int16_t>, int16_t>::value,
             "uint8_t + int16_t should work");
         static_assert(
-            fl::is_same<fl::common_type_t<int8_t, uint16_t>, uint16_t>::value,
-            "int8_t + uint16_t should work");
+            fl::is_same<fl::common_type_t<int8_t, fl::u16>, fl::u16>::value,
+            "int8_t + fl::u16 should work");
         static_assert(
-            fl::is_same<fl::common_type_t<uint8_t, uint16_t>, uint16_t>::value,
-            "uint8_t + uint16_t should work");
+            fl::is_same<fl::common_type_t<uint8_t, fl::u16>, fl::u16>::value,
+            "uint8_t + fl::u16 should work");
     }
 
     SUBCASE("all integer size combinations") {
@@ -452,8 +453,8 @@ TEST_CASE("comprehensive type promotion edge cases") {
             "int8_t promotes to int64_t");
 
         static_assert(
-            fl::is_same<fl::common_type_t<uint8_t, uint16_t>, uint16_t>::value,
-            "uint8_t promotes to uint16_t");
+            fl::is_same<fl::common_type_t<uint8_t, fl::u16>, fl::u16>::value,
+            "uint8_t promotes to fl::u16");
         static_assert(
             fl::is_same<fl::common_type_t<uint8_t, uint32_t>, uint32_t>::value,
             "uint8_t promotes to uint32_t");
@@ -470,11 +471,11 @@ TEST_CASE("comprehensive type promotion edge cases") {
             "int16_t promotes to int64_t");
 
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, uint32_t>, uint32_t>::value,
-            "uint16_t promotes to uint32_t");
+            fl::is_same<fl::common_type_t<fl::u16, uint32_t>, uint32_t>::value,
+            "fl::u16 promotes to uint32_t");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, uint64_t>, uint64_t>::value,
-            "uint16_t promotes to uint64_t");
+            fl::is_same<fl::common_type_t<fl::u16, uint64_t>, uint64_t>::value,
+            "fl::u16 promotes to uint64_t");
 
         // 32-bit to larger
         static_assert(
@@ -490,8 +491,8 @@ TEST_CASE("comprehensive type promotion edge cases") {
 
         // Signed to unsigned larger
         static_assert(
-            fl::is_same<fl::common_type_t<int8_t, uint16_t>, uint16_t>::value,
-            "int8_t + uint16_t = uint16_t");
+            fl::is_same<fl::common_type_t<int8_t, fl::u16>, fl::u16>::value,
+            "int8_t + fl::u16 = fl::u16");
         static_assert(
             fl::is_same<fl::common_type_t<int8_t, uint32_t>, uint32_t>::value,
             "int8_t + uint32_t = uint32_t");
@@ -519,11 +520,11 @@ TEST_CASE("comprehensive type promotion edge cases") {
             fl::is_same<fl::common_type_t<uint8_t, int64_t>, int64_t>::value,
             "uint8_t + int64_t = int64_t");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, int32_t>, int32_t>::value,
-            "uint16_t + int32_t = int32_t");
+            fl::is_same<fl::common_type_t<fl::u16, int32_t>, int32_t>::value,
+            "fl::u16 + int32_t = int32_t");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, int64_t>, int64_t>::value,
-            "uint16_t + int64_t = int64_t");
+            fl::is_same<fl::common_type_t<fl::u16, int64_t>, int64_t>::value,
+            "fl::u16 + int64_t = int64_t");
         static_assert(
             fl::is_same<fl::common_type_t<uint32_t, int64_t>, int64_t>::value,
             "uint32_t + int64_t = int64_t");
@@ -541,8 +542,8 @@ TEST_CASE("comprehensive type promotion edge cases") {
             fl::is_same<fl::common_type_t<int16_t, float>, float>::value,
             "int16_t + float = float");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, float>, float>::value,
-            "uint16_t + float = float");
+            fl::is_same<fl::common_type_t<fl::u16, float>, float>::value,
+            "fl::u16 + float = float");
         static_assert(
             fl::is_same<fl::common_type_t<int32_t, float>, float>::value,
             "int32_t + float = float");
@@ -567,8 +568,8 @@ TEST_CASE("comprehensive type promotion edge cases") {
             fl::is_same<fl::common_type_t<int16_t, double>, double>::value,
             "int16_t + double = double");
         static_assert(
-            fl::is_same<fl::common_type_t<uint16_t, double>, double>::value,
-            "uint16_t + double = double");
+            fl::is_same<fl::common_type_t<fl::u16, double>, double>::value,
+            "fl::u16 + double = double");
         static_assert(
             fl::is_same<fl::common_type_t<int32_t, double>, double>::value,
             "int32_t + double = double");
@@ -629,8 +630,8 @@ TEST_CASE("comprehensive type promotion edge cases") {
             fl::is_same<fl::common_type_t<char, int16_t>, int16_t>::value,
             "char + int16_t = int16_t");
         static_assert(
-            fl::is_same<fl::common_type_t<char, uint16_t>, uint16_t>::value,
-            "char + uint16_t = uint16_t");
+            fl::is_same<fl::common_type_t<char, fl::u16>, fl::u16>::value,
+            "char + fl::u16 = fl::u16");
 
         // Test with long long
         static_assert(

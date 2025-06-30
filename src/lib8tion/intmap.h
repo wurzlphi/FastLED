@@ -6,6 +6,7 @@
 #include "fl/namespace.h"
 #include "lib8static.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -22,17 +23,17 @@ FASTLED_NAMESPACE_BEGIN
 ///
 /// @{
 
-LIB8STATIC_ALWAYS_INLINE uint16_t map8_to_16(uint8_t x) {
-    return uint16_t(x) * 0x101;
+LIB8STATIC_ALWAYS_INLINE fl::u16 map8_to_16(uint8_t x) {
+    return fl::u16(x) * 0x101;
 }
 
-LIB8STATIC_ALWAYS_INLINE uint32_t map16_to_32(uint16_t x) {
+LIB8STATIC_ALWAYS_INLINE uint32_t map16_to_32(fl::u16 x) {
     return uint32_t(x) * 0x10001;
 }
 
 // map16_to_8: map 16-bit values to 8-bit values
 //   This function maps 16-bit values to 8-bit values.
-LIB8STATIC_ALWAYS_INLINE uint8_t map16_to_8(uint16_t x) {
+LIB8STATIC_ALWAYS_INLINE uint8_t map16_to_8(fl::u16 x) {
     // Tested to be nearly identical to double precision floating point
     // doing this operation.
     if (x == 0) {
@@ -44,7 +45,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t map16_to_8(uint16_t x) {
     return uint8_t((x + 128) >> 8);
 }
 
-LIB8STATIC_ALWAYS_INLINE uint16_t map32_to_16(uint32_t x) {
+LIB8STATIC_ALWAYS_INLINE fl::u16 map32_to_16(uint32_t x) {
     // Tested to be nearly identical to double precision floating point
     // doing this operation.
     if (x == 0) {
@@ -53,7 +54,7 @@ LIB8STATIC_ALWAYS_INLINE uint16_t map32_to_16(uint32_t x) {
     if (x >= 0xffff0000) {
         return 0xffff;
     }
-    return uint16_t((x + 32768) >> 16);
+    return fl::u16((x + 32768) >> 16);
 }
 
 LIB8STATIC_ALWAYS_INLINE uint32_t map8_to_32(uint8_t x) {

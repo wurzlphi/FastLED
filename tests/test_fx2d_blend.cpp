@@ -11,6 +11,7 @@
 #include "test.h"
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 using namespace fl;
 using std::cout;
@@ -18,14 +19,14 @@ using std::cout;
 // Simple test effect that fills with a solid color
 class SolidColorFx2d : public fl::Fx2d {
   public:
-    SolidColorFx2d(uint16_t width, uint16_t height, CRGB color)
+    SolidColorFx2d(fl::u16 width, fl::u16 height, CRGB color)
         : fl::Fx2d(fl::XYMap::constructRectangularGrid(width, height)),
           mColor(color) {}
 
     fl::string fxName() const override { return "SolidColorFx2d"; }
 
     void draw(Fx::DrawContext context) override {
-        for (uint16_t i = 0; i < mXyMap.getTotal(); i++) {
+        for (fl::u16 i = 0; i < mXyMap.getTotal(); i++) {
             context.leds[i] = mColor;
         }
     }
@@ -36,14 +37,14 @@ class SolidColorFx2d : public fl::Fx2d {
 
 class TestFx2D : public fl::Fx2d {
   public:
-    TestFx2D(uint16_t width, uint16_t height)
+    TestFx2D(fl::u16 width, fl::u16 height)
         : fl::Fx2d(fl::XYMap::constructRectangularGrid(width, height)) {
         mLeds.reset(new CRGB[width * height]);
     }
 
-    void set(uint16_t x, uint16_t y, CRGB color) {
+    void set(fl::u16 x, fl::u16 y, CRGB color) {
         if (x < mXyMap.getWidth() && y < mXyMap.getHeight()) {
-            uint16_t index = mXyMap(x, y);
+            fl::u16 index = mXyMap(x, y);
             if (index < mXyMap.getTotal()) {
                 mLeds[index] = color;
             }
@@ -53,7 +54,7 @@ class TestFx2D : public fl::Fx2d {
     fl::string fxName() const override { return "TestFx2D"; }
 
     void draw(Fx::DrawContext context) override {
-        for (uint16_t i = 0; i < mXyMap.getTotal(); i++) {
+        for (fl::u16 i = 0; i < mXyMap.getTotal(); i++) {
             context.leds[i] = mLeds[i];
         }
     }
@@ -62,8 +63,8 @@ class TestFx2D : public fl::Fx2d {
 };
 
 TEST_CASE("Test FX2d Layered Blending") {
-    const uint16_t width = 1;
-    const uint16_t height = 1;
+    const fl::u16 width = 1;
+    const fl::u16 height = 1;
     XYMap xyMap = XYMap::constructRectangularGrid(width, height);
 
     // Create a red layer

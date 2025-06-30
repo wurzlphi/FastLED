@@ -8,6 +8,7 @@
 
 #include "fl/math_macros.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -23,7 +24,7 @@ struct NoiseGenerator {
 
     uint8_t Value(int32_t i, unsigned long time_ms) const {
         uint32_t input = iteration_scale * i + time_ms * time_multiplier;
-        uint16_t v1 = inoise16(input);
+        fl::u16 v1 = inoise16(input);
         return uint8_t(v1 >> 8);
     }
 

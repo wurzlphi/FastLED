@@ -4,6 +4,7 @@
 #include "eorder.h"
 #include "fl/namespace.h"
 #include "fl/register.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -36,7 +37,7 @@ public:
 		mPort = FastPin<DATA_PIN>::port();
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
 

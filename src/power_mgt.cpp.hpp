@@ -6,6 +6,7 @@
 #include "FastLED.h"
 #include "power_mgt.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -58,13 +59,13 @@ static const uint8_t gMCU_mW  =  25 * 5; // 25mA @ 5v = 125 mW
 static uint8_t  gMaxPowerIndicatorLEDPinNumber = 0; // default = Arduino onboard LED pin.  set to zero to skip this.
 
 
-uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds ) //25354
+uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, fl::u16 numLeds ) //25354
 {
     uint32_t red32 = 0, green32 = 0, blue32 = 0;
     const CRGB* firstled = &(ledbuffer[0]);
     uint8_t* p = (uint8_t*)(firstled);
 
-    uint16_t count = numLeds;
+    fl::u16 count = numLeds;
 
     // This loop might benefit from an AVR assembly version -MEK
     while( count) {
@@ -88,11 +89,11 @@ uint32_t calculate_unscaled_power_mW( const CRGB* ledbuffer, uint16_t numLeds ) 
 }
 
 
-uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_V, uint32_t max_power_mA) {
+uint8_t calculate_max_brightness_for_power_vmA(const CRGB* ledbuffer, fl::u16 numLeds, uint8_t target_brightness, uint32_t max_power_V, uint32_t max_power_mA) {
 	return calculate_max_brightness_for_power_mW(ledbuffer, numLeds, target_brightness, max_power_V * max_power_mA);
 }
 
-uint8_t calculate_max_brightness_for_power_mW(const CRGB* ledbuffer, uint16_t numLeds, uint8_t target_brightness, uint32_t max_power_mW) {
+uint8_t calculate_max_brightness_for_power_mW(const CRGB* ledbuffer, fl::u16 numLeds, uint8_t target_brightness, uint32_t max_power_mW) {
  	uint32_t total_mW = calculate_unscaled_power_mW( ledbuffer, numLeds);
 
 	uint32_t requested_power_mW = ((uint32_t)total_mW * target_brightness) / 256;
@@ -188,7 +189,7 @@ void show_at_max_brightness_for_power()
     FastLED.show();
 }
 
-void delay_at_max_brightness_for_power( uint16_t ms)
+void delay_at_max_brightness_for_power( fl::u16 ms)
 {
     FastLED.delay(ms);
 }

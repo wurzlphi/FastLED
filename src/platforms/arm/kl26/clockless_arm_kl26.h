@@ -4,6 +4,7 @@
 #include "../common/m0clockless.h"
 #include "fl/namespace.h"
 #include "eorder.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 #define FASTLED_HAS_CLOCKLESS 1
@@ -23,7 +24,7 @@ public:
     mPort = FastPinBB<DATA_PIN>::port();
   }
 
-  virtual uint16_t getMaxRefreshRate() const { return 400; }
+  virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
   virtual void showPixels(PixelController<RGB_ORDER> & pixels) {
     mWait.wait();

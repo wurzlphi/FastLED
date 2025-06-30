@@ -40,6 +40,7 @@
 #define ObjectFLED_h
 #include <WProgram.h>
 #include "DMAChannel.h"
+#include "fl/int.h"
 
 //Experimentally found DSE=3, SPEED=0 gave best LED overclocking
 //boot defaults DSE=6, SPEED=2.
@@ -107,7 +108,7 @@ public:
 	//    leds.show();
 	//    delay(100);
 	// }
-	ObjectFLED(uint16_t numLEDs, void* drawBuf, uint8_t config, uint8_t numPins, const uint8_t* pinList, \
+	ObjectFLED(fl::u16 numLEDs, void* drawBuf, uint8_t config, uint8_t numPins, const uint8_t* pinList, \
 				uint8_t serpentine = 0);
 
 	~ObjectFLED() { 
@@ -120,14 +121,14 @@ public:
 	void begin(void);
 
 	//begin(LED_Latch_Delay_uS) - sets the LED Latch Delay.
-	void begin(uint16_t);
+	void begin(fl::u16);
 
 	//begin(LED_Overclock_Factor, LED_Latch_Delay_uS) - divides default 1250 nS LED CLK (=800 KHz), 
 	// 300 nS T0H, 750 nS T1H; and optionally sets the LED Latch Delay.
-	void begin(double, uint16_t = 300);
+	void begin(double, fl::u16 = 300);
 
 	//begin(LED_CLK_nS, LED_T0H_nS, LED_T1H_nS, LED_Latch_Delay_uS) - specifies full LED waveform timing.
-	void begin(uint16_t, uint16_t, uint16_t, uint16_t = 300);
+	void begin(fl::u16, fl::u16, fl::u16, fl::u16 = 300);
 
 	void show(void);
 	void waitForDmaToFinish() {
@@ -170,16 +171,16 @@ private:
 	uint32_t gLevel = 65025;
 	uint32_t bLevel = 65025;
 	void* drawBuffer;
-	uint16_t stripLen;
+	fl::u16 stripLen;
 	uint8_t params;
 	uint8_t pinlist[NUM_DIGITAL_PINS];
-	uint16_t comp1load[3];
+	fl::u16 comp1load[3];
 	uint8_t serpNumber;
 	float OC_FACTOR = 1.0;			//used to reduce period of LED output
-	uint16_t TH_TL = 1250;			//nS- period of LED output
-	uint16_t T0H = 300;				//nS- duration of T0H
-	uint16_t T1H = 750;				//nS- duration of T1H
-	uint16_t LATCH_DELAY = 300;		//uS time to hold output low for LED latch.
+	fl::u16 TH_TL = 1250;			//nS- period of LED output
+	fl::u16 T0H = 300;				//nS- duration of T0H
+	fl::u16 T1H = 750;				//nS- duration of T1H
+	fl::u16 LATCH_DELAY = 300;		//uS time to hold output low for LED latch.
 
 	//for show context switch
 	uint32_t bitmaskLocal[4];
@@ -193,13 +194,13 @@ private:
 
 //fadeToColorBy(RGB_array, LED_count, Color, FadeAmount)
 //Fades an RGB array towards the background color by amount. 
-void fadeToColorBy(void*, uint16_t, uint32_t, uint8_t);
+void fadeToColorBy(void*, fl::u16, uint32_t, uint8_t);
 
 
 //drawSquare(RGB_Array, LED_Rows, LED_Cols, Y_Corner, X_Corner, square_Size)
 //Draws square in a 2D RGB array with lower left corner at (Y_Corner, X_Corner).
 //Safe to specify -Y, -X corner, safe to draw a box which partially fits on LED plane.
-void drawSquare(void*, uint16_t, uint16_t, int, int, uint32_t, uint32_t);
+void drawSquare(void*, fl::u16, fl::u16, int, int, uint32_t, uint32_t);
 
 }	// namespace fl
 

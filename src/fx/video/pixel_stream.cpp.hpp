@@ -2,6 +2,7 @@
 #include "fx/video/pixel_stream.h"
 #include "fl/dbg.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 #ifndef INT32_MAX
 #define INT32_MAX 0x7fffffff
@@ -171,7 +172,7 @@ PixelStream::Type PixelStream::getType() const {
 }
 
 size_t PixelStream::readBytes(uint8_t *dst, size_t len) {
-    uint16_t bytesRead = 0;
+    fl::u16 bytesRead = 0;
     if (mUsingByteStream) {
         while (bytesRead < len && mByteStream->available(len)) {
             // use pop_front()

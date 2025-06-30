@@ -5,6 +5,7 @@
 
 #include "test.h"
 #include "fl/map_range.h"
+#include "fl/int.h"
 
 
 using namespace fl;
@@ -20,12 +21,12 @@ TEST_CASE("map_range<uint8_t>") {
 }
 
 
-TEST_CASE("map_range<uint16_t>") {
-    CHECK_EQ(map_range<uint16_t>(0, 0, 65535, 0, 65535), 0);
-    CHECK_EQ(map_range<uint16_t>(65535, 0, 65535, 0, 65535), 65535);
-    CHECK_EQ(map_range<uint16_t>(32768, 0, 65535, 0, 65535), 32768);
-    CHECK_EQ(map_range<uint16_t>(32768, 0, 65535, 0, 32767), 16383);
-    CHECK_EQ(map_range<uint16_t>(32768, 0, 32767, 0, 32767), 32768);
+TEST_CASE("map_range<fl::u16>") {
+    CHECK_EQ(map_range<fl::u16>(0, 0, 65535, 0, 65535), 0);
+    CHECK_EQ(map_range<fl::u16>(65535, 0, 65535, 0, 65535), 65535);
+    CHECK_EQ(map_range<fl::u16>(32768, 0, 65535, 0, 65535), 32768);
+    CHECK_EQ(map_range<fl::u16>(32768, 0, 65535, 0, 32767), 16383);
+    CHECK_EQ(map_range<fl::u16>(32768, 0, 32767, 0, 32767), 32768);
 }
 
 

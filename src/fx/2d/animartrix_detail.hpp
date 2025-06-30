@@ -59,6 +59,7 @@ License CC BY-NC 3.0
 #include "fl/namespace.h"
 #include "fl/math.h"
 #include "fl/compiler_control.h"
+#include "fl/int.h"
 
 #ifndef FL_ANIMARTRIX_USES_FAST_MATH
 #define FL_ANIMARTRIX_USES_FAST_MATH 1
@@ -199,7 +200,7 @@ class ANIMartRIX {
 
     virtual ~ANIMartRIX() {}
 
-    virtual uint16_t xyMap(uint16_t x, uint16_t y) = 0;
+    virtual fl::u16 xyMap(fl::u16 x, fl::u16 y) = 0;
 
     uint32_t currentTime = 0;
     void setTime(uint32_t t) { currentTime = t; }

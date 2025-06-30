@@ -334,7 +334,7 @@ struct uint_<8> {
 };
 template <>
 struct uint_<16> {
-  typedef uint16_t type;
+  typedef fl::u16 type;
 };
 template <>
 struct uint_<32> {
@@ -6302,6 +6302,7 @@ ARDUINOJSON_END_PRIVATE_NAMESPACE
 #endif
 #if ARDUINOJSON_ENABLE_STD_STREAM
 #include <istream>
+#include "fl/int.h"
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 template <typename TSource>
 struct Reader<TSource, enable_if_t<is_base_of<std::istream, TSource>::value>> {
@@ -6430,16 +6431,16 @@ ARDUINOJSON_END_PRIVATE_NAMESPACE
 #endif
 ARDUINOJSON_BEGIN_PRIVATE_NAMESPACE
 namespace Utf16 {
-inline bool isHighSurrogate(uint16_t codeunit) {
+inline bool isHighSurrogate(fl::u16 codeunit) {
   return codeunit >= 0xD800 && codeunit < 0xDC00;
 }
-inline bool isLowSurrogate(uint16_t codeunit) {
+inline bool isLowSurrogate(fl::u16 codeunit) {
   return codeunit >= 0xDC00 && codeunit < 0xE000;
 }
 class Codepoint {
  public:
   Codepoint() : highSurrogate_(0), codepoint_(0) {}
-  bool append(uint16_t codeunit) {
+  bool append(fl::u16 codeunit) {
     if (isHighSurrogate(codeunit)) {
       highSurrogate_ = codeunit & 0x3FF;
       return false;
@@ -6456,7 +6457,7 @@ class Codepoint {
     return codepoint_;
   }
  private:
-  uint16_t highSurrogate_;
+  fl::u16 highSurrogate_;
   uint32_t codepoint_;
 };
 }  // namespace Utf16
@@ -6477,17 +6478,17 @@ inline void encodeCodepoint(uint32_t codepoint32, TStringBuilder& str) {
     char* p = buf;
     *(p++) = 0;
     *(p++) = char((codepoint32 | 0x80) & 0xBF);
-    uint16_t codepoint16 = uint16_t(codepoint32 >> 6);
+    fl::u16 codepoint16 = fl::u16(codepoint32 >> 6);
     if (codepoint16 < 0x20) {  // 0x800
       *(p++) = char(codepoint16 | 0xC0);
     } else {
       *(p++) = char((codepoint16 | 0x80) & 0xBF);
-      codepoint16 = uint16_t(codepoint16 >> 6);
+      codepoint16 = fl::u16(codepoint16 >> 6);
       if (codepoint16 < 0x10) {  // 0x10000
         *(p++) = char(codepoint16 | 0xE0);
       } else {
         *(p++) = char((codepoint16 | 0x80) & 0xBF);
-        codepoint16 = uint16_t(codepoint16 >> 6);
+        codepoint16 = fl::u16(codepoint16 >> 6);
         *(p++) = char(codepoint16 | 0xF0);
       }
     }
@@ -6977,7 +6978,7 @@ class JsonDeserializer {
         if (c == 'u') {
 #if ARDUINOJSON_DECODE_UNICODE
           move();
-          uint16_t codeunit;
+          fl::u16 codeunit;
           err = parseHex4(codeunit);
           if (err)
             return err;
@@ -7092,7 +7093,7 @@ class JsonDeserializer {
     }
     return DeserializationError::Ok;
   }
-  DeserializationError::Code parseHex4(uint16_t& result) {
+  DeserializationError::Code parseHex4(fl::u16& result) {
     result = 0;
     for (uint8_t i = 0; i < 4; ++i) {
       char digit = current();
@@ -7101,7 +7102,7 @@ class JsonDeserializer {
       uint8_t value = decodeHex(digit);
       if (value > 0x0F)
         return DeserializationError::InvalidInput;
-      result = uint16_t((result << 4) | value);
+      result = fl::u16((result << 4) | value);
       move();
     }
     return DeserializationError::Ok;
@@ -7966,7 +7967,7 @@ class MsgPackSerializer : public VariantDataVisitor<size_t> {
       writeByte(uint8_t(0x90 + n));
     } else if (n < 0x10000) {
       writeByte(0xDC);
-      writeInteger(uint16_t(n));
+      writeInteger(fl::u16(n));
     } else {
       writeByte(0xDD);
       writeInteger(uint32_t(n));
@@ -7985,7 +7986,7 @@ class MsgPackSerializer : public VariantDataVisitor<size_t> {
       writeByte(uint8_t(0x80 + n));
     } else if (n < 0x10000) {
       writeByte(0xDE);
-      writeInteger(uint16_t(n));
+      writeInteger(fl::u16(n));
     } else {
       writeByte(0xDF);
       writeInteger(uint32_t(n));
@@ -8011,7 +8012,7 @@ class MsgPackSerializer : public VariantDataVisitor<size_t> {
       writeInteger(uint8_t(n));
     } else if (n < 0x10000) {
       writeByte(0xDA);
-      writeInteger(uint16_t(n));
+      writeInteger(fl::u16(n));
     } else {
       writeByte(0xDB);
       writeInteger(uint32_t(n));
@@ -8060,7 +8061,7 @@ class MsgPackSerializer : public VariantDataVisitor<size_t> {
       writeInteger(uint8_t(value));
     } else if (value <= 0xFFFF) {
       writeByte(0xCD);
-      writeInteger(uint16_t(value));
+      writeInteger(fl::u16(value));
     }
 #if ARDUINOJSON_USE_LONG_LONG
     else if (value <= 0xFFFFFFFF)

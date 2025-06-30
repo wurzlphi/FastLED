@@ -5,6 +5,7 @@
 #include "lib8tion/lib8static.h"
 #include "intmap.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -151,9 +152,9 @@ LIB8STATIC_ALWAYS_INLINE uint8_t add8(uint8_t i, uint8_t j) {
 /// @param i first value to add, 8-bit
 /// @param j second value to add, 16-bit
 /// @returns the sum of i + j, 16-bit
-LIB8STATIC_ALWAYS_INLINE uint16_t add8to16(uint8_t i, uint16_t j) {
+LIB8STATIC_ALWAYS_INLINE fl::u16 add8to16(uint8_t i, fl::u16 j) {
 #if ADD8_C == 1
-    uint16_t t = i + j;
+    fl::u16 t = i + j;
     return t;
 #elif ADD8_AVRASM == 1
     // Add i(one byte) to j(two bytes)
@@ -209,12 +210,12 @@ LIB8STATIC_ALWAYS_INLINE uint8_t avg8(uint8_t i, uint8_t j) {
 }
 
 /// Calculate an integer average of two unsigned
-/// 16-bit integer values (uint16_t), rounded down.
+/// 16-bit integer values (fl::u16), rounded down.
 /// Fractional results are rounded down, e.g. avg16(20,41) = 30
 /// @param i first value to average
 /// @param j second value to average
 /// @returns mean average of i and j, rounded down
-LIB8STATIC_ALWAYS_INLINE uint16_t avg16(uint16_t i, uint16_t j) {
+LIB8STATIC_ALWAYS_INLINE fl::u16 avg16(fl::u16 i, fl::u16 j) {
 #if AVG16_C == 1
     return (uint32_t)((uint32_t)(i) + (uint32_t)(j)) >> 1;
 #elif AVG16_AVRASM == 1
@@ -264,12 +265,12 @@ LIB8STATIC_ALWAYS_INLINE uint8_t avg8r(uint8_t i, uint8_t j) {
 }
 
 /// Calculate an integer average of two unsigned
-/// 16-bit integer values (uint16_t), rounded up.
+/// 16-bit integer values (fl::u16), rounded up.
 /// Fractional results are rounded up, e.g. avg16r(20,41) = 31
 /// @param i first value to average
 /// @param j second value to average
 /// @returns mean average of i and j, rounded up
-LIB8STATIC_ALWAYS_INLINE uint16_t avg16r(uint16_t i, uint16_t j) {
+LIB8STATIC_ALWAYS_INLINE fl::u16 avg16r(fl::u16 i, fl::u16 j) {
 #if AVG16R_C == 1
     return (uint32_t)((uint32_t)(i) + (uint32_t)(j) + 1) >> 1;
 #elif AVG16R_AVRASM == 1
@@ -522,7 +523,7 @@ LIB8STATIC_ALWAYS_INLINE int8_t abs8(int8_t i) {
 /// Square root for 16-bit integers.
 /// About three times faster and five times smaller
 /// than Arduino's general `sqrt` on AVR.
-LIB8STATIC uint8_t sqrt16(uint16_t x) {
+LIB8STATIC uint8_t sqrt16(fl::u16 x) {
     if (x <= 1) {
         return x;
     }
@@ -538,7 +539,7 @@ LIB8STATIC uint8_t sqrt16(uint16_t x) {
 
     do {
         mid = (low + hi) >> 1;
-        if ((uint16_t)(mid * mid) > x) {
+        if ((fl::u16)(mid * mid) > x) {
             hi = mid - 1;
         } else {
             if (mid == 255) {
@@ -584,7 +585,7 @@ LIB8STATIC uint8_t blend8(uint8_t a, uint8_t b, uint8_t amountOfB) {
     //          (B-A)*(amountOfB)              ) / 256  // this is the version
     //          used in SCALE8_FIXED C below
 
-    uint16_t partial;
+    fl::u16 partial;
     uint8_t result;
 
 #if BLEND8_C == 1

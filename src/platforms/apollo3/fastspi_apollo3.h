@@ -6,6 +6,7 @@
 // It can run slightly faster than the default fastpin (bit banging).
 
 #include "FastLED.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -54,7 +55,7 @@ public:
 	}
 
 	// write a word out via SPI (returns immediately on writing register)
-	static void writeWord(uint16_t w) {
+	static void writeWord(fl::u16 w) {
 		writeByte((uint8_t)((w >> 8) & 0xff));
 		writeByte((uint8_t)(w & 0xff));
 	}

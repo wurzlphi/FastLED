@@ -38,6 +38,7 @@ extern "C"
 
 #include "platforms/esp/32/esp_log_control.h"  // Control ESP logging before including esp_log.h
 #include "esp_log.h"
+#include "fl/int.h"
 
 #ifdef __cplusplus
 }
@@ -99,7 +100,7 @@ private:
     // -- Buffer to hold all of the pulses. For the version that uses
     //    the RMT driver built into the ESP core.
     rmt_item32_t *mBuffer;
-    uint16_t mBufferSize; // bytes
+    fl::u16 mBufferSize; // bytes
     int mCurPulse;
     bool mBuiltInDriver;
 

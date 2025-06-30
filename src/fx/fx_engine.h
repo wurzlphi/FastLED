@@ -12,6 +12,7 @@
 #include "fx/time.h"
 #include "fx/video.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 // Forward declaration
 class TimeFunction;
@@ -38,7 +39,7 @@ class FxEngine {
      * @brief Constructs an FxEngine with the specified number of LEDs.
      * @param numLeds The number of LEDs in the strip.
      */
-    FxEngine(uint16_t numLeds, bool interpolate = true);
+    FxEngine(fl::u16 numLeds, bool interpolate = true);
 
     /**
      * @brief Destructor for FxEngine.
@@ -93,7 +94,7 @@ class FxEngine {
      * @param duration The duration of the transition in milliseconds.
      * @return True if the transition was initiated, false otherwise.
      */
-    bool nextFx(uint16_t transition_ms = 500);
+    bool nextFx(fl::u16 transition_ms = 500);
 
     /**
      * @brief Sets the next effect to transition to.
@@ -101,7 +102,7 @@ class FxEngine {
      * @param duration The duration of the transition in milliseconds.
      * @return True if the transition was set, false if the index was invalid.
      */
-    bool setNextFx(int index, uint16_t duration);
+    bool setNextFx(int index, fl::u16 duration);
 
     IntFxMap &_getEffects() { return mEffects; }
 
@@ -119,7 +120,7 @@ class FxEngine {
     IntFxMap mEffects;        ///< Collection of effects
     FxCompositor mCompositor; ///< Handles effect transitions and rendering
     int mCurrId;              ///< Id of the current effect
-    uint16_t mDuration = 0;   ///< Duration of the current transition
+    fl::u16 mDuration = 0;   ///< Duration of the current transition
     bool mDurationSet =
         false; ///< Flag indicating if a new transition has been set
     bool mInterpolate = true;

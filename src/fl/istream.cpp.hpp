@@ -6,6 +6,7 @@
 // We implement custom integer parsing functions instead
 
 #include "fl/math_macros.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -273,12 +274,12 @@ istream_real& istream_real::operator>>(int16_t& n) {
     return *this;
 }
 
-istream_real& istream_real::operator>>(uint16_t& n) {
+istream_real& istream_real::operator>>(fl::u16& n) {
     string token;
     if (readToken(token)) {
         uint32_t temp;
         if (parse_uint32(token.c_str(), temp) && temp <= 65535) {
-            n = static_cast<uint16_t>(temp);
+            n = static_cast<fl::u16>(temp);
         } else {
             failed_ = true;
         }

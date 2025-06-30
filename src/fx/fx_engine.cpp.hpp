@@ -1,9 +1,10 @@
 #include "fx_engine.h"
 #include "video.h"
+#include "fl/int.h"
 
 namespace fl {
 
-FxEngine::FxEngine(uint16_t numLeds, bool interpolate)
+FxEngine::FxEngine(fl::u16 numLeds, bool interpolate)
     : mTimeFunction(0), mCompositor(numLeds), mCurrId(0),
       mInterpolate(interpolate) {}
 
@@ -30,7 +31,7 @@ int FxEngine::addFx(FxPtr effect) {
     return mCounter++;
 }
 
-bool FxEngine::nextFx(uint16_t duration) {
+bool FxEngine::nextFx(fl::u16 duration) {
     bool ok = mEffects.next(mCurrId, &mCurrId, true);
     if (!ok) {
         return false;
@@ -39,7 +40,7 @@ bool FxEngine::nextFx(uint16_t duration) {
     return true;
 }
 
-bool FxEngine::setNextFx(int index, uint16_t duration) {
+bool FxEngine::setNextFx(int index, fl::u16 duration) {
     if (!mEffects.has(index)) {
         return false;
     }

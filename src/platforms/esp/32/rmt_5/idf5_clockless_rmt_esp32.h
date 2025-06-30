@@ -10,6 +10,7 @@
 #include "pixel_iterator.h"
 #include "idf5_rmt.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -35,7 +36,7 @@ public:
     }
 
     void init() override { }
-    virtual uint16_t getMaxRefreshRate() const { return 800; }
+    virtual fl::u16 getMaxRefreshRate() const { return 800; }
 
 protected:
 

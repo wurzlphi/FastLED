@@ -16,6 +16,7 @@
 #include "fx/fx2d.h"
 #include "lib8tion/random8.h"
 #include "noise.h"
+#include "fl/int.h"
 
 // Optimized for 2^n grid sizes in terms of both memory and performance.
 // If you are somehow running this on AVR then you probably want this if
@@ -46,15 +47,15 @@ class ScaleUp : public Fx2d {
     ScaleUp(XYMap xymap, Fx2dPtr fx);
     void draw(DrawContext context) override;
 
-    void expand(const CRGB *input, CRGB *output, uint16_t width,
-                uint16_t height, XYMap mXyMap);
+    void expand(const CRGB *input, CRGB *output, fl::u16 width,
+                fl::u16 height, XYMap mXyMap);
 
     fl::string fxName() const override { return "scale_up"; }
 
   private:
     // No expansion needed. Also useful for debugging.
-    void noExpand(const CRGB *input, CRGB *output, uint16_t width,
-                  uint16_t height);
+    void noExpand(const CRGB *input, CRGB *output, fl::u16 width,
+                  fl::u16 height);
     Fx2dPtr mDelegate;
     fl::vector<CRGB, fl::allocator_psram<CRGB>> mSurface;
 };

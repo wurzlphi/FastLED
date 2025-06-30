@@ -4,6 +4,7 @@
 #include "fl/namespace.h"
 #include "fl/str.h"
 #include "fx/fx1d.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -112,7 +113,7 @@ class TwinkleFox : public Fx1d {
     CRGBPalette16 targetPalette;
     CRGBPalette16 currentPalette;
 
-    TwinkleFox(uint16_t num_leds)
+    TwinkleFox(fl::u16 num_leds)
         : Fx1d(num_leds), backgroundColor(CRGB::Black),
           twinkleSpeed(TWINKLE_SPEED), twinkleDensity(TWINKLE_DENSITY),
           coolLikeIncandescent(COOL_LIKE_INCANDESCENT),
@@ -142,7 +143,7 @@ class TwinkleFox : public Fx1d {
         // It MUST be reset to the same starting value each time
         // this function is called, so that the sequence of 'random'
         // numbers that it generates is (paradoxically) stable.
-        uint16_t PRNG16 = 11337;
+        fl::u16 PRNG16 = 11337;
         uint32_t clock32 = millis();
 
         CRGB bg = backgroundColor;
@@ -161,10 +162,10 @@ class TwinkleFox : public Fx1d {
 
         uint8_t backgroundBrightness = bg.getAverageLight();
 
-        for (uint16_t i = 0; i < mNumLeds; i++) {
-            PRNG16 = (uint16_t)(PRNG16 * 2053) + 1384;
-            uint16_t myclockoffset16 = PRNG16;
-            PRNG16 = (uint16_t)(PRNG16 * 2053) + 1384;
+        for (fl::u16 i = 0; i < mNumLeds; i++) {
+            PRNG16 = (fl::u16)(PRNG16 * 2053) + 1384;
+            fl::u16 myclockoffset16 = PRNG16;
+            PRNG16 = (fl::u16)(PRNG16 * 2053) + 1384;
             uint8_t myspeedmultiplierQ5_3 =
                 ((((PRNG16 & 0xFF) >> 4) + (PRNG16 & 0x0F)) & 0x0F) + 0x08;
             uint32_t myclock30 =
@@ -187,9 +188,9 @@ class TwinkleFox : public Fx1d {
     }
 
     CRGB computeOneTwinkle(uint32_t ms, uint8_t salt) {
-        uint16_t ticks = ms >> (8 - twinkleSpeed);
+        fl::u16 ticks = ms >> (8 - twinkleSpeed);
         uint8_t fastcycle8 = ticks;
-        uint16_t slowcycle16 = (ticks >> 8) + salt;
+        fl::u16 slowcycle16 = (ticks >> 8) + salt;
         slowcycle16 += sin8(slowcycle16);
         slowcycle16 = (slowcycle16 * 2053) + 1384;
         uint8_t slowcycle8 = (slowcycle16 & 0xFF) + (slowcycle16 >> 8);

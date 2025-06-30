@@ -7,6 +7,7 @@
 #include "FastLED.h"
 
 #include "rgbw.h"
+#include "fl/int.h"
 
 
 FASTLED_NAMESPACE_BEGIN
@@ -29,7 +30,7 @@ inline uint8_t min3(uint8_t a, uint8_t b, uint8_t c) {
 }
 
 inline uint8_t divide_by_3(uint8_t x) {
-    uint16_t y = (uint16_t(x) * 85) >> 8;
+    fl::u16 y = (fl::u16(x) * 85) >> 8;
     return static_cast<uint8_t>(y);
 }
 } // namespace
@@ -37,7 +38,7 @@ inline uint8_t divide_by_3(uint8_t x) {
 // @brief Converts RGB to RGBW using a color transfer method
 // from color channels to 3x white.
 // @author Jonathanese
-void rgb_2_rgbw_exact(uint16_t w_color_temperature, uint8_t r, uint8_t g,
+void rgb_2_rgbw_exact(fl::u16 w_color_temperature, uint8_t r, uint8_t g,
                       uint8_t b, uint8_t r_scale, uint8_t g_scale,
                       uint8_t b_scale, uint8_t *out_r, uint8_t *out_g,
                       uint8_t *out_b, uint8_t *out_w) {
@@ -52,7 +53,7 @@ void rgb_2_rgbw_exact(uint16_t w_color_temperature, uint8_t r, uint8_t g,
     *out_w = min_component;
 }
 
-void rgb_2_rgbw_max_brightness(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_max_brightness(fl::u16 w_color_temperature, uint8_t r,
                                uint8_t g, uint8_t b, uint8_t r_scale,
                                uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
                                uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {
@@ -63,7 +64,7 @@ void rgb_2_rgbw_max_brightness(uint16_t w_color_temperature, uint8_t r,
     *out_w = min3(r, g, b);
 }
 
-void rgb_2_rgbw_null_white_pixel(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_null_white_pixel(fl::u16 w_color_temperature, uint8_t r,
                                  uint8_t g, uint8_t b, uint8_t r_scale,
                                  uint8_t g_scale, uint8_t b_scale,
                                  uint8_t *out_r, uint8_t *out_g, uint8_t *out_b,
@@ -75,7 +76,7 @@ void rgb_2_rgbw_null_white_pixel(uint16_t w_color_temperature, uint8_t r,
     *out_w = 0;
 }
 
-void rgb_2_rgbw_white_boosted(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_white_boosted(fl::u16 w_color_temperature, uint8_t r,
                               uint8_t g, uint8_t b, uint8_t r_scale,
                               uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
                               uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {
@@ -122,7 +123,7 @@ void set_rgb_2_rgbw_function(rgb_2_rgbw_function func) {
     g_user_function = func;
 }
 
-void rgb_2_rgbw_user_function(uint16_t w_color_temperature, uint8_t r,
+void rgb_2_rgbw_user_function(fl::u16 w_color_temperature, uint8_t r,
                               uint8_t g, uint8_t b, uint8_t r_scale,
                               uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
                               uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {

@@ -29,6 +29,7 @@
 
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -257,7 +258,7 @@ public:
     /// @param startcolor the starting color in the gradient
     /// @param endcolor the end color for the gradient
     /// @param directionCode the direction to travel around the color wheel
-    /// @see ::fill_gradient(T*, uint16_t, const CHSV&, const CHSV&, TGradientDirectionCode)
+    /// @see ::fill_gradient(T*, fl::u16, const CHSV&, const CHSV&, TGradientDirectionCode)
     inline CPixelView & fill_gradient(const CHSV & startcolor, const CHSV & endcolor, TGradientDirectionCode directionCode  = fl::SHORTEST_HUES) {
         if(dir >= 0) {
             FUNCTION_FILL_GRADIENT(leds,len,startcolor, endcolor, directionCode);
@@ -272,7 +273,7 @@ public:
     /// @param c2 the middle color for the gradient
     /// @param c3 the end color for the gradient
     /// @param directionCode the direction to travel around the color wheel
-    /// @see ::fill_gradient(T*, uint16_t, const CHSV&, const CHSV&, const CHSV&, TGradientDirectionCode)
+    /// @see ::fill_gradient(T*, fl::u16, const CHSV&, const CHSV&, const CHSV&, TGradientDirectionCode)
     inline CPixelView & fill_gradient(const CHSV & c1, const CHSV & c2, const CHSV &  c3, TGradientDirectionCode directionCode = fl::SHORTEST_HUES) {
         if(dir >= 0) {
             FUNCTION_FILL_GRADIENT3(leds, len, c1, c2, c3, directionCode);
@@ -288,7 +289,7 @@ public:
     /// @param c3 the second middle color for the gradient
     /// @param c4 the end color for the gradient
     /// @param directionCode the direction to travel around the color wheel
-    /// @see ::fill_gradient(T*, uint16_t, const CHSV&, const CHSV&, const CHSV&, const CHSV&, TGradientDirectionCode)
+    /// @see ::fill_gradient(T*, fl::u16, const CHSV&, const CHSV&, const CHSV&, const CHSV&, TGradientDirectionCode)
     inline CPixelView & fill_gradient(const CHSV & c1, const CHSV & c2, const CHSV & c3, const CHSV & c4, TGradientDirectionCode directionCode = fl::SHORTEST_HUES) {
         if(dir >= 0) {
             FUNCTION_FILL_GRADIENT4(leds, len, c1, c2, c3, c4, directionCode);
@@ -302,7 +303,7 @@ public:
     /// @param startcolor the starting color in the gradient
     /// @param endcolor the end color for the gradient
     /// @param directionCode the direction to travel around the color wheel
-    /// @see ::fill_gradient_RGB(CRGB*, uint16_t, const CRGB&, const CRGB&)
+    /// @see ::fill_gradient_RGB(CRGB*, fl::u16, const CRGB&, const CRGB&)
     inline CPixelView & fill_gradient_RGB(const PIXEL_TYPE & startcolor, const PIXEL_TYPE & endcolor, TGradientDirectionCode directionCode  = fl::SHORTEST_HUES) {
         FASTLED_UNUSED(directionCode); // TODO: why is this not used?
         if(dir >= 0) {
@@ -317,7 +318,7 @@ public:
     /// @param c1 the starting color in the gradient
     /// @param c2 the middle color for the gradient
     /// @param c3 the end color for the gradient
-    /// @see ::fill_gradient_RGB(CRGB*, uint16_t, const CRGB&, const CRGB&, const CRGB&)
+    /// @see ::fill_gradient_RGB(CRGB*, fl::u16, const CRGB&, const CRGB&, const CRGB&)
     inline CPixelView & fill_gradient_RGB(const PIXEL_TYPE & c1, const PIXEL_TYPE & c2, const PIXEL_TYPE &  c3) {
         if(dir >= 0) {
             FUNCTION_FILL_GRADIENT_RGB3(leds, len, c1, c2, c3);
@@ -332,7 +333,7 @@ public:
     /// @param c2 the first middle color for the gradient
     /// @param c3 the second middle color for the gradient
     /// @param c4 the end color for the gradient
-    /// @see ::fill_gradient_RGB(CRGB*, uint16_t, const CRGB&, const CRGB&, const CRGB&, const CRGB&)
+    /// @see ::fill_gradient_RGB(CRGB*, fl::u16, const CRGB&, const CRGB&, const CRGB&, const CRGB&)
     inline CPixelView & fill_gradient_RGB(const PIXEL_TYPE & c1, const PIXEL_TYPE & c2, const PIXEL_TYPE & c3, const PIXEL_TYPE & c4) {
         if(dir >= 0) {
             FUNCTION_FILL_GRADIENT_RGB4(leds, len, c1, c2, c3, c4);
@@ -357,7 +358,7 @@ public:
     /// One-dimensional blur filter
     /// @param blur_amount the amount of blur to apply
     /// @note Only bringing in a 1d blur, not sure 2d blur makes sense when looking at sub arrays
-    /// @see ::blur1d(CRGB*, uint16_t, fract8)
+    /// @see ::blur1d(CRGB*, fl::u16, fract8)
     inline CPixelView & blur1d(fract8 blur_amount) {
         if(dir >= 0) {
             FUNCTION_BLUR1D(leds, len, blur_amount);

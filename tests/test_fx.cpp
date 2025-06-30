@@ -19,13 +19,14 @@
 #include "fx/video.h"
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 FASTLED_USING_NAMESPACE
 
-uint16_t XY(uint8_t, uint8_t);  // declaration to fix compiler warning.
+fl::u16 XY(uint8_t, uint8_t);  // declaration to fix compiler warning.
 
-// To satisfy the linker, we must also define uint16_t XY( uint8_t, uint8_t);
+// To satisfy the linker, we must also define fl::u16 XY( uint8_t, uint8_t);
 // This should go away someday and only use functions supplied by the user.
-uint16_t XY(uint8_t, uint8_t) { return 0; }
+fl::u16 XY(uint8_t, uint8_t) { return 0; }
 
 TEST_CASE("Compile Test") {
     // Suceessful compilation test

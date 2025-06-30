@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_BLOCK_CLOCKLESS_ARM_MXRT1062_H
 #define __INC_BLOCK_CLOCKLESS_ARM_MXRT1062_H
 
@@ -93,7 +94,7 @@ public:
 
     }
 
-    virtual uint16_t getMaxRefreshRate() const { return 400; }
+    virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
     virtual void showPixels(PixelController<RGB_ORDER, LANES, __FL_T4_MASK> & pixels) {
         mWait.wait();
@@ -111,7 +112,7 @@ public:
   typedef union {
     uint8_t bytes[32];
     uint8_t bg[4][8];
-    uint16_t shorts[16];
+    fl::u16 shorts[16];
     uint32_t raw[8];
   } _outlines;
 

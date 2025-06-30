@@ -5,6 +5,7 @@
 #include "FastLED.h"
 #include "fl/ptr.h"
 #include "fx/fx2d.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -19,15 +20,15 @@ class RedSquare : public Fx2d {
     RedSquare(XYMap xymap) : Fx2d(xymap) {}
 
     void draw(DrawContext context) override {
-        uint16_t width = getWidth();
-        uint16_t height = getHeight();
-        uint16_t square_size = Math::min(width, height) / 2;
-        uint16_t start_x = (width - square_size) / 2;
-        uint16_t start_y = (height - square_size) / 2;
+        fl::u16 width = getWidth();
+        fl::u16 height = getHeight();
+        fl::u16 square_size = Math::min(width, height) / 2;
+        fl::u16 start_x = (width - square_size) / 2;
+        fl::u16 start_y = (height - square_size) / 2;
 
-        for (uint16_t x = 0; x < width; x++) {
-            for (uint16_t y = 0; y < height; y++) {
-                uint16_t idx = mXyMap.mapToIndex(x, y);
+        for (fl::u16 x = 0; x < width; x++) {
+            for (fl::u16 y = 0; y < height; y++) {
+                fl::u16 idx = mXyMap.mapToIndex(x, y);
                 if (idx < mXyMap.getTotal()) {
                     if (x >= start_x && x < start_x + square_size &&
                         y >= start_y && y < start_y + square_size) {

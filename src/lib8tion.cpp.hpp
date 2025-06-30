@@ -14,7 +14,7 @@
 
 /// @copydoc ::rand16seed
 #define RAND16_SEED  1337
-uint16_t rand16seed = RAND16_SEED;
+fl::u16 rand16seed = RAND16_SEED;
 
 
 
@@ -40,7 +40,7 @@ uint16_t rand16seed = RAND16_SEED;
 #if defined(__AVR__)
 extern "C" {
 //__attribute__ ((noinline))
-void * memset8 ( void * ptr, uint8_t val, uint16_t num )
+void * memset8 ( void * ptr, uint8_t val, fl::u16 num )
 {
     asm volatile(
          "  movw r26, %[ptr]        \n\t"
@@ -67,7 +67,7 @@ void * memset8 ( void * ptr, uint8_t val, uint16_t num )
 
 
 //__attribute__ ((noinline))
-void * memcpy8 ( void * dst, const void* src, uint16_t num )
+void * memcpy8 ( void * dst, const void* src, fl::u16 num )
 {
     asm volatile(
          "  movw r30, %[src]        \n\t"
@@ -95,7 +95,7 @@ void * memcpy8 ( void * dst, const void* src, uint16_t num )
 }
 
 //__attribute__ ((noinline))
-void * memmove8 ( void * dst, const void* src, uint16_t num )
+void * memmove8 ( void * dst, const void* src, fl::u16 num )
 {
     if( src > dst) {
         // if src > dst then we can use the forward-stepping memcpy8
@@ -142,6 +142,7 @@ void * memmove8 ( void * dst, const void* src, uint16_t num )
 // TEST / VERIFICATION CODE ONLY BELOW THIS POINT
 #include <Arduino.h>  // ok include
 #include "lib8tion.h"
+#include "fl/int.h"
 
 void test1abs( int8_t i)
 {

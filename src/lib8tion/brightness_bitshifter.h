@@ -4,6 +4,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 /// @addtogroup lib8tion
 /// @{
@@ -40,12 +41,12 @@ inline uint8_t brightness_bitshifter8(uint8_t *brightness_src, uint8_t *brightne
 
 // Return value is the number of shifts on the src. Multiply this by the number of steps to get the
 // the number of shifts on the dst.
-inline uint8_t brightness_bitshifter16(uint8_t *brightness_src, uint16_t *brightness_dst, uint8_t max_shifts, uint8_t steps=2) {
+inline uint8_t brightness_bitshifter16(uint8_t *brightness_src, fl::u16 *brightness_dst, uint8_t max_shifts, uint8_t steps=2) {
     uint8_t src = *brightness_src;
     if (*brightness_dst == 0 || src == 0) {
         return 0;
     }
-    uint16_t overflow_mask = 0b1000000000000000;
+    fl::u16 overflow_mask = 0b1000000000000000;
     for (uint8_t i = 1; i < steps; i++) {
         overflow_mask >>= 1;
         overflow_mask |= 0b1000000000000000;
@@ -54,7 +55,7 @@ inline uint8_t brightness_bitshifter16(uint8_t *brightness_src, uint16_t *bright
     // Steal brightness from brightness_src and give it to brightness_dst.
     // After this function concludes the multiplication of brightness_dst and brightness_src will remain
     // constant.
-    uint16_t curr = *brightness_dst;
+    fl::u16 curr = *brightness_dst;
     uint8_t shifts = 0;
     for (uint8_t i = 0; i < max_shifts; i++) {
         if (src & underflow_mask) {

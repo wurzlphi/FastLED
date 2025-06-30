@@ -4,6 +4,7 @@
 #include "fl/warn.h"
 #include "fl/str.h"
 #include <cstddef>  // for std::nullptr_t
+#include "fl/int.h"
 
 #if FASTLED_ENABLE_JSON
 
@@ -145,7 +146,7 @@ TEST_CASE("JSON is<T>() method - testing all primitive types") {
         doc["int64"] = int64_t(9223372036854775807LL);
         
         doc["uint8"] = uint8_t(255);
-        doc["uint16"] = uint16_t(65535);
+        doc["uint16"] = fl::u16(65535);
         doc["uint32"] = uint32_t(4294967295U);
         doc["uint64"] = uint64_t(18446744073709551615ULL);
         
@@ -156,7 +157,7 @@ TEST_CASE("JSON is<T>() method - testing all primitive types") {
         CHECK(doc["int64"].is<int64_t>());
         
         CHECK(doc["uint8"].is<uint8_t>());
-        CHECK(doc["uint16"].is<uint16_t>());
+        CHECK(doc["uint16"].is<fl::u16>());
         CHECK(doc["uint32"].is<uint32_t>());
         CHECK(doc["uint64"].is<uint64_t>());
         

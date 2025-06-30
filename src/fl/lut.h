@@ -11,6 +11,7 @@ LUT - Look up table implementation for various types.
 
 #include "fl/geometry.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -20,8 +21,8 @@ namespace fl {
 
 template <typename T> class LUT;
 
-typedef LUT<uint16_t> LUT16;
-typedef LUT<vec2<uint16_t>> LUTXY16;
+typedef LUT<fl::u16> LUT16;
+typedef LUT<vec2<fl::u16>> LUTXY16;
 typedef LUT<vec2f> LUTXYFLOAT;
 typedef LUT<vec3f> LUTXYZFLOAT;
 
@@ -47,7 +48,7 @@ template <typename T> class LUT : public fl::Referent {
 
     const T &operator[](uint32_t index) const { return data[index]; }
 
-    const T &operator[](uint16_t index) const { return data[index]; }
+    const T &operator[](fl::u16 index) const { return data[index]; }
 
     T *getDataMutable() { return data; }
 
@@ -76,7 +77,7 @@ template <typename T> class LUT : public fl::Referent {
         return a + (b - a) * blend / 255;
     }
 
-    T interp16(uint16_t alpha) {
+    T interp16(fl::u16 alpha) {
         if (length == 0)
             return T();
         if (alpha == 0)
@@ -89,7 +90,7 @@ template <typename T> class LUT : public fl::Referent {
         uint32_t pos = uint32_t(alpha) * maxIndex; // numerator
         uint32_t idx0 = pos / 65535;               // floor(position)
         uint32_t idx1 = idx0 < maxIndex ? idx0 + 1 : maxIndex;
-        uint16_t blend = pos % 65535; // fractional part
+        fl::u16 blend = pos % 65535; // fractional part
 
         const T &a = data[idx0];
         const T &b = data[idx1];

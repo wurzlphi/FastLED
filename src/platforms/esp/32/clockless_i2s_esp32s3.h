@@ -18,6 +18,7 @@
 // We need to do a check for the esp-idf version because very specific versions of the
 // esp-idf arduino core are broken.
 #include "platforms/esp/esp_version.h"
+#include "fl/int.h"
 // Broken in 3.0.2 (esp-idf 5.1.0)
 // Broken in 3.0.4 (esp-idf 5.1.0)
 // Broken in 3.0.7 (esp-idf 5.1.0)
@@ -64,7 +65,7 @@ class ClocklessController_I2S_Esp32_WS2812Base
   public:
     ClocklessController_I2S_Esp32_WS2812Base(int pin): mPin(pin) {}
     void init() override {}
-    virtual uint16_t getMaxRefreshRate() const { return 800; }
+    virtual fl::u16 getMaxRefreshRate() const { return 800; }
 
   protected:
     // Wait until the last draw is complete, if necessary.
@@ -100,7 +101,7 @@ class ClocklessController_I2S_Esp32_WS2812
   public:
     ClocklessController_I2S_Esp32_WS2812(): Base(DATA_PIN) {};
     void init() override {}
-    virtual uint16_t getMaxRefreshRate() const { return 800; }
+    virtual fl::u16 getMaxRefreshRate() const { return 800; }
 
 };
 

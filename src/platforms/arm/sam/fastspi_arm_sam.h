@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_FASTSPI_ARM_SAM_H
 #define __INC_FASTSPI_ARM_SAM_H
 
@@ -26,7 +27,7 @@ class SAMHardwareSPIOutput {
 		m_SPI->SPI_CSR[0] = SPI_CSR_NCPHA | SPI_CSR_CSAAT | (bits << SPI_CSR_BITS_Pos) | SPI_CSR_DLYBCT(1) | SPI_CSR_SCBR(_SPI_CLOCK_DIVIDER);
 	}
 
-	template<int BITS> static inline void writeBits(uint16_t w) {
+	template<int BITS> static inline void writeBits(fl::u16 w) {
 		waitForEmpty();
 		m_SPI->SPI_TDR = (uint32_t)w | SPI_PCS(0);
 	}
@@ -84,7 +85,7 @@ public:
 	}
 
 	// write a word out via SPI (returns immediately on writing register)
-	static void writeWord(uint16_t w) {
+	static void writeWord(fl::u16 w) {
 		writeBits<16>(w);
 	}
 

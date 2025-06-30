@@ -18,6 +18,7 @@
 #pragma GCC diagnostic pop
 
 #include "pio_gen.h"
+#include "fl/int.h"
 #endif
 
 /*
@@ -224,7 +225,7 @@ public:
 #endif // FASTLED_RP2040_CLOCKLESS_PIO
     }
 
-    virtual uint16_t getMaxRefreshRate() const { return 400; }
+    virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
     virtual void showPixels(PixelController<RGB_ORDER> & pixels) {
 #if FASTLED_RP2040_CLOCKLESS_PIO

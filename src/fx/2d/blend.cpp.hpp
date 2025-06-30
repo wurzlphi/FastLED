@@ -9,6 +9,7 @@ are blended by the the max luminance of the components.
 #include "pixelset.h"
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -74,8 +75,8 @@ void Blend2d::draw(DrawContext context) {
 
     if (mGlobalBlurAmount > 0) {
         // Apply the blur effect
-        uint16_t width = mXyMap.getWidth();
-        uint16_t height = mXyMap.getHeight();
+        fl::u16 width = mXyMap.getWidth();
+        fl::u16 height = mXyMap.getHeight();
         XYMap rect = XYMap::constructRectangularGrid(width, height);
         CRGB *rgb = mFrameTransform->rgb();
         uint8_t blur_passes = MAX(1, mGlobalBlurPasses);

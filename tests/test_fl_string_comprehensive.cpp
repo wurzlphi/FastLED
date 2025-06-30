@@ -5,6 +5,7 @@
 #include "fl/str.h"
 #include <cstring>
 #include <string>
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -563,7 +564,7 @@ TEST_CASE("fl::string - Integration with FastLED types") {
         s.clear();
         s.append(static_cast<int16_t>(32767));
         s.clear();
-        s.append(static_cast<uint16_t>(65535));
+        s.append(static_cast<fl::u16>(65535));
         s.clear();
         s.append(static_cast<int32_t>(2147483647));
         s.clear();

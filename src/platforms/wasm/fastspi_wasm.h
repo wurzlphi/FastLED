@@ -8,6 +8,7 @@
 #include "fl/stdint.h"
 #include "platforms/wasm/engine_listener.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 #define FASTLED_ALL_PINS_HARDWARE_SPI
 
@@ -28,7 +29,7 @@ class WasmSpiOutput : public fl::EngineEvents::Listener {
     void waitFully();
     void release();
     void writeByte(uint8_t byte);
-    void writeWord(uint16_t word);
+    void writeWord(fl::u16 word);
 
   private:
     CLEDController *tryFindOwner();

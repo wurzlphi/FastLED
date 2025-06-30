@@ -24,6 +24,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "fl/int.h"
 
 #ifndef F_CPU
 #warning "F_CPU not defined for millis timer"
@@ -45,7 +46,7 @@ ISR(TCA0_OVF_vect)
 static void init()
 {
     // Prescaler options for TCA0
-    uint16_t prescaler_values[] = {1, 2, 4, 8, 16, 64, 256, 1024};
+    fl::u16 prescaler_values[] = {1, 2, 4, 8, 16, 64, 256, 1024};
     uint8_t prescaler_gc_values[] = {
         TCA_SINGLE_CLKSEL_DIV1_gc,
         TCA_SINGLE_CLKSEL_DIV2_gc,
@@ -58,15 +59,15 @@ static void init()
     };
     uint8_t num_prescalers = sizeof(prescaler_values) / sizeof(prescaler_values[0]);
 
-    uint16_t prescaler = 0;
-    uint16_t period_counts = 0;
+    fl::u16 prescaler = 0;
+    fl::u16 period_counts = 0;
     uint8_t prescaler_index = 0;
 
     uint32_t min_error = 0xFFFFFFFF;
 
     for (uint8_t i = 0; i < num_prescalers; i++)
     {
-        uint16_t current_prescaler = prescaler_values[i];
+        fl::u16 current_prescaler = prescaler_values[i];
         uint32_t counts = (F_CPU / current_prescaler) / 1000;
         if (counts == 0 || counts > 65535)
             continue;

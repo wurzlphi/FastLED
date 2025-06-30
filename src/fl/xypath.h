@@ -4,7 +4,7 @@
 // This is a drawing/graphics related class.
 //
 // XYPath represents a parameterized (x,y) path. The input will always be
-// an alpha value between 0->1 (float) or 0->0xffff (uint16_t).
+// an alpha value between 0->1 (float) or 0->0xffff (fl::u16).
 // A look up table can be used to optimize path calculations when steps > 0.
 //
 // We provide common paths discovered throughout human history, for use in
@@ -17,6 +17,7 @@
 #include "fl/tile2x2.h"
 #include "fl/transform.h"
 #include "fl/xypath_impls.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -48,7 +49,7 @@ class XYPath : public Referent {
     // Cutmull allows for a path to be defined by a set of points. The path will
     // be a smooth curve through the points.
     static XYPathPtr NewCatmullRomPath(
-        uint16_t width = 0, uint16_t height = 0,
+        fl::u16 width = 0, fl::u16 height = 0,
         const Ptr<CatmullRomParams> &params = NewPtr<CatmullRomParams>());
 
     // Custom path using just a function.
@@ -59,22 +60,22 @@ class XYPath : public Referent {
                   const char *name = nullptr);
 
     static XYPathPtr NewCirclePath();
-    static XYPathPtr NewCirclePath(uint16_t width, uint16_t height);
+    static XYPathPtr NewCirclePath(fl::u16 width, fl::u16 height);
     static XYPathPtr NewHeartPath();
-    static XYPathPtr NewHeartPath(uint16_t width, uint16_t height);
-    static XYPathPtr NewArchimedeanSpiralPath(uint16_t width, uint16_t height);
+    static XYPathPtr NewHeartPath(fl::u16 width, fl::u16 height);
+    static XYPathPtr NewArchimedeanSpiralPath(fl::u16 width, fl::u16 height);
     static XYPathPtr NewArchimedeanSpiralPath();
 
     static XYPathPtr
-    NewRosePath(uint16_t width = 0, uint16_t height = 0,
+    NewRosePath(fl::u16 width = 0, fl::u16 height = 0,
                 const Ptr<RosePathParams> &params = NewPtr<RosePathParams>());
 
     static XYPathPtr NewPhyllotaxisPath(
-        uint16_t width = 0, uint16_t height = 0,
+        fl::u16 width = 0, fl::u16 height = 0,
         const Ptr<PhyllotaxisParams> &args = NewPtr<PhyllotaxisParams>());
 
     static XYPathPtr NewGielisCurvePath(
-        uint16_t width = 0, uint16_t height = 0,
+        fl::u16 width = 0, fl::u16 height = 0,
         const Ptr<GielisCurveParams> &params = NewPtr<GielisCurveParams>());
     // END pre-baked paths.
 
@@ -119,7 +120,7 @@ class XYPath : public Referent {
     // be centered on the width and height such that 0,0 -> maps to .5,.5,
     // which is convenient for drawing since each float pixel can be truncated
     // to an integer type.
-    void setDrawBounds(uint16_t width, uint16_t height);
+    void setDrawBounds(fl::u16 width, fl::u16 height);
     bool hasDrawBounds() const;
     TransformFloat &transform();
 

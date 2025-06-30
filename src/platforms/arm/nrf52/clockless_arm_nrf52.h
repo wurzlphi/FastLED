@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_CLOCKLESS_ARM_NRF52
 #define __INC_CLOCKLESS_ARM_NRF52
 
@@ -34,17 +35,17 @@ class ClocklessController : public CPixelLEDController<_RGB_ORDER> {
 
 private:
     static const bool     _INITIALIZE_PIN_HIGH = (_FLIP ? 1 : 0);
-    static const uint16_t _POLARITY_BIT        = (_FLIP ? 0 : 0x8000);
+    static const fl::u16 _POLARITY_BIT        = (_FLIP ? 0 : 0x8000);
 
     static const uint8_t  _BITS_PER_PIXEL   = (8 + _XTRA0) * 3; // NOTE: 3 means RGB only...
-    static const uint16_t _PWM_BUFFER_COUNT = (_BITS_PER_PIXEL * FASTLED_NRF52_MAXIMUM_PIXELS_PER_STRING);
-    static const uint8_t  _T0H = ((uint16_t)(_T1        ));
-    static const uint8_t  _T1H = ((uint16_t)(_T1+_T2    ));
-    static const uint8_t  _TOP = ((uint16_t)(_T1+_T2+_T3));
+    static const fl::u16 _PWM_BUFFER_COUNT = (_BITS_PER_PIXEL * FASTLED_NRF52_MAXIMUM_PIXELS_PER_STRING);
+    static const uint8_t  _T0H = ((fl::u16)(_T1        ));
+    static const uint8_t  _T1H = ((fl::u16)(_T1+_T2    ));
+    static const uint8_t  _TOP = ((fl::u16)(_T1+_T2+_T3));
 
     // may as well be static, as can only attach one LED string per _DATA_PIN....
-    static uint16_t s_SequenceBuffer[_PWM_BUFFER_COUNT];
-    static uint16_t s_SequenceBufferValidElements;
+    static fl::u16 s_SequenceBuffer[_PWM_BUFFER_COUNT];
+    static fl::u16 s_SequenceBufferValidElements;
     static volatile uint32_t s_SequenceBufferInUse;
     static CMinWait<_WAIT_TIME_MICROSECONDS> mWait;  // ensure data has time to latch
 
@@ -175,7 +176,7 @@ public:
         mWait.mark();
 
     }
-    virtual uint16_t getMaxRefreshRate() const { return 800; }
+    virtual fl::u16 getMaxRefreshRate() const { return 800; }
 
     virtual void showPixels(PixelController<_RGB_ORDER> & pixels) {
         // wait for the only sequence buffer to become available
@@ -188,13 +189,13 @@ public:
     }
 
     template<uint8_t _BIT>
-    FASTLED_NRF52_INLINE_ATTRIBUTE static void WriteBitToSequence(uint8_t byte, uint16_t * e) {
+    FASTLED_NRF52_INLINE_ATTRIBUTE static void WriteBitToSequence(uint8_t byte, fl::u16 * e) {
         *e = _POLARITY_BIT | (((byte & (1u << _BIT)) == 0) ? _T0H : _T1H);
     }
     FASTLED_NRF52_INLINE_ATTRIBUTE static void prepareSequenceBuffers(PixelController<_RGB_ORDER> & pixels) {
         s_SequenceBufferValidElements = 0;
         int32_t    remainingSequenceElements = _PWM_BUFFER_COUNT;
-        uint16_t * e = s_SequenceBuffer;
+        fl::u16 * e = s_SequenceBuffer;
         uint32_t size_needed = pixels.size(); // count of pixels
         size_needed *= (8 + _XTRA0);          // bits per pixel
         size_needed *= 2;                     // each bit takes two bytes
@@ -257,7 +258,7 @@ public:
     }
 
 
-    FASTLED_NRF52_INLINE_ATTRIBUTE static void startPwmPlayback(uint16_t bytesToSend) {
+    FASTLED_NRF52_INLINE_ATTRIBUTE static void startPwmPlayback(fl::u16 bytesToSend) {
         PWM_Arbiter<FASTLED_NRF52_PWM_ID>::acquire(isr_handler);
         NRF_PWM_Type * pwm = PWM_Arbiter<FASTLED_NRF52_PWM_ID>::getPWM();
 
@@ -274,22 +275,22 @@ public:
 
 
 #if 0
-    FASTLED_NRF52_INLINE_ATTRIBUTE static uint16_t* getRawSequenceBuffer() { return s_SequenceBuffer; }
-    FASTLED_NRF52_INLINE_ATTRIBUTE static uint16_t getRawSequenceBufferSize() { return _PWM_BUFFER_COUNT; }
-    FASTLED_NRF52_INLINE_ATTRIBUTE static uint16_t getSequenceBufferInUse() { return s_SequenceBufferInUse; }
-    FASTLED_NRF52_INLINE_ATTRIBUTE static void sendRawSequenceBuffer(uint16_t bytesToSend) {
+    FASTLED_NRF52_INLINE_ATTRIBUTE static fl::u16* getRawSequenceBuffer() { return s_SequenceBuffer; }
+    FASTLED_NRF52_INLINE_ATTRIBUTE static fl::u16 getRawSequenceBufferSize() { return _PWM_BUFFER_COUNT; }
+    FASTLED_NRF52_INLINE_ATTRIBUTE static fl::u16 getSequenceBufferInUse() { return s_SequenceBufferInUse; }
+    FASTLED_NRF52_INLINE_ATTRIBUTE static void sendRawSequenceBuffer(fl::u16 bytesToSend) {
         mWait.wait(); // ensure min time between updates
         startPwmPlayback(bytesToSend);
     }
-    FASTLED_NRF52_INLINE_ATTRIBUTE static void sendRawBytes(uint8_t * arrayOfBytes, uint16_t bytesToSend) {
+    FASTLED_NRF52_INLINE_ATTRIBUTE static void sendRawBytes(uint8_t * arrayOfBytes, fl::u16 bytesToSend) {
         // wait for sequence buffer to be available
         while (s_SequenceBufferInUse != 0);
 
         s_SequenceBufferValidElements = 0;
         int32_t    remainingSequenceElements = _PWM_BUFFER_COUNT;
-        uint16_t * e           = s_SequenceBuffer;
+        fl::u16 * e           = s_SequenceBuffer;
         uint8_t  * nextByte    = arrayOfBytes;
-        for (uint16_t bytesRemain = bytesToSend;
+        for (fl::u16 bytesRemain = bytesToSend;
             (remainingSequenceElements >= 8) && (bytesRemain > 0);
             --bytesRemain,
             remainingSequenceElements     -= 8,
@@ -319,11 +320,11 @@ public:
 };
 
 template <uint8_t _DATA_PIN, int _T1, int _T2, int _T3, EOrder _RGB_ORDER, int _XTRA0, bool _FLIP, int _WAIT_TIME_MICROSECONDS>
-uint16_t ClocklessController<_DATA_PIN, _T1, _T2, _T3, _RGB_ORDER, _XTRA0, _FLIP, _WAIT_TIME_MICROSECONDS>::s_SequenceBufferValidElements = 0;
+fl::u16 ClocklessController<_DATA_PIN, _T1, _T2, _T3, _RGB_ORDER, _XTRA0, _FLIP, _WAIT_TIME_MICROSECONDS>::s_SequenceBufferValidElements = 0;
 template <uint8_t _DATA_PIN, int _T1, int _T2, int _T3, EOrder _RGB_ORDER, int _XTRA0, bool _FLIP, int _WAIT_TIME_MICROSECONDS>
 uint32_t volatile ClocklessController<_DATA_PIN, _T1, _T2, _T3, _RGB_ORDER, _XTRA0, _FLIP, _WAIT_TIME_MICROSECONDS>::s_SequenceBufferInUse = 0;
 template <uint8_t _DATA_PIN, int _T1, int _T2, int _T3, EOrder _RGB_ORDER, int _XTRA0, bool _FLIP, int _WAIT_TIME_MICROSECONDS>
-uint16_t ClocklessController<_DATA_PIN, _T1, _T2, _T3, _RGB_ORDER, _XTRA0, _FLIP, _WAIT_TIME_MICROSECONDS>::s_SequenceBuffer[_PWM_BUFFER_COUNT];
+fl::u16 ClocklessController<_DATA_PIN, _T1, _T2, _T3, _RGB_ORDER, _XTRA0, _FLIP, _WAIT_TIME_MICROSECONDS>::s_SequenceBuffer[_PWM_BUFFER_COUNT];
 template <uint8_t _DATA_PIN, int _T1, int _T2, int _T3, EOrder _RGB_ORDER, int _XTRA0, bool _FLIP, int _WAIT_TIME_MICROSECONDS>
 CMinWait<_WAIT_TIME_MICROSECONDS> ClocklessController<_DATA_PIN, _T1, _T2, _T3, _RGB_ORDER, _XTRA0, _FLIP, _WAIT_TIME_MICROSECONDS>::mWait;
 

@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_FASTSPI_ARM_KL26_H
 #define __INC_FASTSPI_ARM_KL26_h
 
@@ -187,7 +188,7 @@ public:
   // write a byte out via SPI (returns immediately on writing register)
   static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); SPIX.DL = b; }
   // write a word out via SPI (returns immediately on writing register)
-  static void writeWord(uint16_t w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w & 0xFF); }
+  static void writeWord(fl::u16 w) __attribute__((always_inline)) { writeByte(w>>8); writeByte(w & 0xFF); }
 
   // A raw set of writing byte values, assumes setup/init/waiting done elsewhere (static for use by adjustment classes)
   static void writeBytesValueRaw(uint8_t value, int len) {

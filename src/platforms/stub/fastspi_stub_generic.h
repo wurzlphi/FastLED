@@ -7,6 +7,7 @@
 #include "fl/stdint.h"
 #include "fl/namespace.h"
 #include "fl/unused.h"
+#include "fl/int.h"
 
 // Signal to the engine that all pins are hardware SPI
 #define FASTLED_ALL_PINS_HARDWARE_SPI
@@ -21,7 +22,7 @@ public:
     void waitFully() {}
     void release() {}
     void writeByte(uint8_t byte) { FASTLED_UNUSED(byte); }
-    void writeWord(uint16_t word) { FASTLED_UNUSED(word); }
+    void writeWord(fl::u16 word) { FASTLED_UNUSED(word); }
 };
 
 

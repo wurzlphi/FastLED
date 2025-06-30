@@ -19,6 +19,7 @@
 
 #define ANIMARTRIX_INTERNAL
 #include "animartrix_detail.hpp"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -139,7 +140,7 @@ class FastLEDANIMartRIX : public animartrix_detail::ANIMartRIX {
         setPixelColor(x, y, CRGB(pixel.red, pixel.green, pixel.blue));
     }
 
-    uint16_t xyMap(uint16_t x, uint16_t y) override {
+    fl::u16 xyMap(fl::u16 x, fl::u16 y) override {
         return data->xyMap(x, y);
     }
 

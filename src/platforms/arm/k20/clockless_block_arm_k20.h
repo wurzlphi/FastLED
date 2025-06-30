@@ -17,6 +17,7 @@
 #define USED_LANES ((FIRST_PIN==2) ? MIN(LANES,8) : MIN(LANES,12))
 
 #include <kinetis.h>
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -76,11 +77,11 @@ public:
 		mPort = FastPin<FIRST_PIN>::port();
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 	typedef union {
 		uint8_t bytes[12];
-		uint16_t shorts[6];
+		fl::u16 shorts[6];
 		uint32_t raw[3];
 	} Lines;
 
@@ -242,7 +243,7 @@ public:
 
 	typedef union {
 		uint8_t bytes[16];
-		uint16_t shorts[8];
+		fl::u16 shorts[8];
 		uint32_t raw[4];
 	} Lines;
 

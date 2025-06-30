@@ -13,6 +13,7 @@
 #include "fl/fill.h"
 #include "fl/xymap.h"
 #include "lib8tion/memmove.h"
+#include "fl/int.h"
 
 // #include "pixeltypes.h"  // pulls in FastLED.h, beware.
 
@@ -40,27 +41,27 @@ namespace fl {
 /// @param leds a pointer to the LED array to fade
 /// @param num_leds the number of LEDs to fade
 /// @param fadeBy how much to fade each LED
-void fadeLightBy(CRGB *leds, uint16_t num_leds, uint8_t fadeBy);
+void fadeLightBy(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy);
 
 /// @copydoc fadeLightBy()
-void fade_video(CRGB *leds, uint16_t num_leds, uint8_t fadeBy);
+void fade_video(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy);
 
 /// Scale the brightness of an array of pixels all at once.
 /// Guaranteed to never fade all the way to black.
 /// @param leds a pointer to the LED array to scale
 /// @param num_leds the number of LEDs to scale
 /// @param scale how much to scale each LED
-void nscale8_video(CRGB *leds, uint16_t num_leds, uint8_t scale);
+void nscale8_video(CRGB *leds, fl::u16 num_leds, uint8_t scale);
 
 /// Reduce the brightness of an array of pixels all at once.
 /// This function will eventually fade all the way to black.
 /// @param leds a pointer to the LED array to fade
 /// @param num_leds the number of LEDs to fade
 /// @param fadeBy how much to fade each LED
-void fadeToBlackBy(CRGB *leds, uint16_t num_leds, uint8_t fadeBy);
+void fadeToBlackBy(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy);
 
 /// @copydoc fadeToBlackBy()
-void fade_raw(CRGB *leds, uint16_t num_leds, uint8_t fadeBy);
+void fade_raw(CRGB *leds, fl::u16 num_leds, uint8_t fadeBy);
 
 /// Scale the brightness of an array of pixels all at once.
 /// This function will eventually fade all the way to black, even
@@ -68,7 +69,7 @@ void fade_raw(CRGB *leds, uint16_t num_leds, uint8_t fadeBy);
 /// @param leds a pointer to the LED array to scale
 /// @param num_leds the number of LEDs to scale
 /// @param scale how much to scale each LED
-void nscale8(CRGB *leds, uint16_t num_leds, uint8_t scale);
+void nscale8(CRGB *leds, fl::u16 num_leds, uint8_t scale);
 
 /// Reduce the brightness of an array of pixels as thought it were seen through
 /// a transparent filter with the specified color.
@@ -81,7 +82,7 @@ void nscale8(CRGB *leds, uint16_t num_leds, uint8_t scale);
 /// @param leds a pointer to the LED array to fade
 /// @param numLeds the number of LEDs to fade
 /// @param colormask the color mask to fade with
-void fadeUsingColor(CRGB *leds, uint16_t numLeds, const CRGB &colormask);
+void fadeUsingColor(CRGB *leds, fl::u16 numLeds, const CRGB &colormask);
 
 /// @} ColorFades
 
@@ -109,12 +110,12 @@ CHSV blend(const CHSV &p1, const CHSV &p2, fract8 amountOfP2,
 /// @param dest the destination array for the colors
 /// @param count the number of LEDs to blend
 /// @param amountOfsrc2 the fraction of src2 to blend into src1
-CRGB *blend(const CRGB *src1, const CRGB *src2, CRGB *dest, uint16_t count,
+CRGB *blend(const CRGB *src1, const CRGB *src2, CRGB *dest, fl::u16 count,
             fract8 amountOfsrc2);
 
-/// @copydoc blend(const CRGB*, const CRGB*, CRGB*, uint16_t, fract8)
+/// @copydoc blend(const CRGB*, const CRGB*, CRGB*, fl::u16, fract8)
 /// @param directionCode the direction to travel around the color wheel
-CHSV *blend(const CHSV *src1, const CHSV *src2, CHSV *dest, uint16_t count,
+CHSV *blend(const CHSV *src1, const CHSV *src2, CHSV *dest, fl::u16 count,
             fract8 amountOfsrc2,
             TGradientDirectionCode directionCode = SHORTEST_HUES);
 
@@ -136,12 +137,12 @@ CHSV &nblend(CHSV &existing, const CHSV &overlay, fract8 amountOfOverlay,
 /// @param overlay the color array to blend into existing
 /// @param count the number of colors to process
 /// @param amountOfOverlay the fraction of overlay to blend into existing
-void nblend(CRGB *existing, const CRGB *overlay, uint16_t count,
+void nblend(CRGB *existing, const CRGB *overlay, fl::u16 count,
             fract8 amountOfOverlay);
 
-/// @copydoc nblend(CRGB*, const CRGB*, uint16_t, fract8)
+/// @copydoc nblend(CRGB*, const CRGB*, fl::u16, fract8)
 /// @param directionCode the direction to travel around the color wheel
-void nblend(CHSV *existing, const CHSV *overlay, uint16_t count,
+void nblend(CHSV *existing, const CHSV *overlay, fl::u16 count,
             fract8 amountOfOverlay,
             TGradientDirectionCode directionCode = SHORTEST_HUES);
 
@@ -528,7 +529,7 @@ class CHSVPalette256 {
         const uint8_t *q = (const uint8_t *)(&(rhs.entries[0]));
         if (p == q)
             return true;
-        for (uint16_t i = 0; i < (sizeof(entries)); ++i) {
+        for (fl::u16 i = 0; i < (sizeof(entries)); ++i) {
             if (*p != *q)
                 return false;
             ++p;
@@ -763,7 +764,7 @@ class CRGBPalette16 {
         TRGBGradientPaletteEntryUnion u;
 
         // Count entries
-        uint16_t count = 0;
+        fl::u16 count = 0;
         do {
             u.dword = FL_PGM_READ_DWORD_NEAR(progent + count);
             ++count;
@@ -809,7 +810,7 @@ class CRGBPalette16 {
         TRGBGradientPaletteEntryUnion u;
 
         // Count entries
-        uint16_t count = 0;
+        fl::u16 count = 0;
         do {
             u = *(ent + count);
             ++count;
@@ -1176,7 +1177,7 @@ class CRGBPalette32 {
         TRGBGradientPaletteEntryUnion u;
 
         // Count entries
-        uint16_t count = 0;
+        fl::u16 count = 0;
         do {
             u.dword = FL_PGM_READ_DWORD_NEAR(progent + count);
             ++count;
@@ -1221,7 +1222,7 @@ class CRGBPalette32 {
         TRGBGradientPaletteEntryUnion u;
 
         // Count entries
-        uint16_t count = 0;
+        fl::u16 count = 0;
         do {
             u = *(ent + count);
             ++count;
@@ -1355,7 +1356,7 @@ class CRGBPalette256 {
         const uint8_t *q = (const uint8_t *)(&(rhs.entries[0]));
         if (p == q)
             return true;
-        for (uint16_t i = 0; i < (sizeof(entries)); ++i) {
+        for (fl::u16 i = 0; i < (sizeof(entries)); ++i) {
             if (*p != *q)
                 return false;
             ++p;
@@ -1504,13 +1505,13 @@ CRGB ColorFromPalette(const CRGBPalette16 &pal, uint8_t index,
                       uint8_t brightness = 255,
                       TBlendType blendType = LINEARBLEND);
 
-/// @brief Same as ColorFromPalette, but with uint16_t `index` to give greater
+/// @brief Same as ColorFromPalette, but with fl::u16 `index` to give greater
 /// precision.
 /// @author https://github.com/generalelectrix
 /// @see https://github.com/FastLED/FastLED/pull/202
 /// @see https://wokwi.com/projects/285170662915441160
 /// @see https://wokwi.com/projects/407831886158110721
-CRGB ColorFromPaletteExtended(const CRGBPalette16 &pal, uint16_t index,
+CRGB ColorFromPaletteExtended(const CRGBPalette16 &pal, fl::u16 index,
                               uint8_t brightness, TBlendType blendType);
 
 /// @brief Same as ColorFromPalette, but higher precision. Will eventually
@@ -1518,7 +1519,7 @@ CRGB ColorFromPaletteExtended(const CRGBPalette16 &pal, uint16_t index,
 /// @author https://github.com/generalelectrix
 /// @see https://github.com/FastLED/FastLED/pull/202#issuecomment-631333384
 /// @see https://wokwi.com/projects/285170662915441160
-CRGB ColorFromPaletteExtended(const CRGBPalette32 &pal, uint16_t index,
+CRGB ColorFromPaletteExtended(const CRGBPalette32 &pal, fl::u16 index,
                               uint8_t brightness, TBlendType blendType);
 
 /// @copydoc ColorFromPalette(const CRGBPalette16&, uint8_t, uint8_t,
@@ -1533,7 +1534,7 @@ CRGB ColorFromPalette(const CRGBPalette256 &pal, uint8_t index,
                       uint8_t brightness = 255, TBlendType blendType = NOBLEND);
 
 // @author https://github.com/generalelectrix
-CRGB ColorFromPaletteExtended(const CRGBPalette256 &pal, uint16_t index,
+CRGB ColorFromPaletteExtended(const CRGBPalette256 &pal, fl::u16 index,
                               uint8_t brightness = 255,
                               TBlendType blendType = LINEARBLEND);
 
@@ -1577,11 +1578,11 @@ CHSV ColorFromPalette(const CHSVPalette32 &pal, uint8_t index,
 /// @param blendType whether to take the palette entries directly (NOBLEND)
 /// or blend linearly between palette entries (LINEARBLEND)
 template <typename PALETTE>
-void fill_palette(CRGB *L, uint16_t N, uint8_t startIndex, uint8_t incIndex,
+void fill_palette(CRGB *L, fl::u16 N, uint8_t startIndex, uint8_t incIndex,
                   const PALETTE &pal, uint8_t brightness = 255,
                   TBlendType blendType = LINEARBLEND) {
     uint8_t colorIndex = startIndex;
-    for (uint16_t i = 0; i < N; ++i) {
+    for (fl::u16 i = 0; i < N; ++i) {
         L[i] = ColorFromPalette(pal, colorIndex, brightness, blendType);
         colorIndex += incIndex;
     }
@@ -1599,19 +1600,19 @@ void fill_palette(CRGB *L, uint16_t N, uint8_t startIndex, uint8_t incIndex,
 /// or blend linearly between palette entries (LINEARBLEND)
 /// @param reversed whether to progress through the palette backwards
 template <typename PALETTE>
-void fill_palette_circular(CRGB *L, uint16_t N, uint8_t startIndex,
+void fill_palette_circular(CRGB *L, fl::u16 N, uint8_t startIndex,
                            const PALETTE &pal, uint8_t brightness = 255,
                            TBlendType blendType = LINEARBLEND,
                            bool reversed = false) {
     if (N == 0)
         return; // avoiding div/0
 
-    const uint16_t colorChange =
+    const fl::u16 colorChange =
         65535 / N; // color change for each LED, * 256 for precision
-    uint16_t colorIndex = ((uint16_t)startIndex)
+    fl::u16 colorIndex = ((fl::u16)startIndex)
                           << 8; // offset for color index, with precision (*256)
 
-    for (uint16_t i = 0; i < N; ++i) {
+    for (fl::u16 i = 0; i < N; ++i) {
         L[i] = ColorFromPalette(pal, (colorIndex >> 8), brightness, blendType);
         if (reversed)
             colorIndex -= colorChange;
@@ -1641,10 +1642,10 @@ void fill_palette_circular(CRGB *L, uint16_t N, uint8_t startIndex,
 /// or blend linearly between palette entries (LINEARBLEND)
 template <typename PALETTE>
 void map_data_into_colors_through_palette(
-    uint8_t *dataArray, uint16_t dataCount, CRGB *targetColorArray,
+    uint8_t *dataArray, fl::u16 dataCount, CRGB *targetColorArray,
     const PALETTE &pal, uint8_t brightness = 255, uint8_t opacity = 255,
     TBlendType blendType = LINEARBLEND) {
-    for (uint16_t i = 0; i < dataCount; ++i) {
+    for (fl::u16 i = 0; i < dataCount; ++i) {
         uint8_t d = dataArray[i];
         CRGB rgb = ColorFromPalette(pal, d, brightness, blendType);
         if (opacity == 255) {
@@ -1773,7 +1774,7 @@ CRGB &napplyGamma_video(CRGB &rgb, float gammaR, float gammaG, float gammaB);
 /// in place)
 /// @param count the number of LEDs to modify
 /// @param gamma the gamma value to apply
-void napplyGamma_video(CRGB *rgbarray, uint16_t count, float gamma);
+void napplyGamma_video(CRGB *rgbarray, fl::u16 count, float gamma);
 
 /// Destructively applies a gamma adjustment to a color array
 /// @param rgbarray pointer to an LED array to apply an adjustment to (modified
@@ -1782,7 +1783,7 @@ void napplyGamma_video(CRGB *rgbarray, uint16_t count, float gamma);
 /// @param gammaR the gamma value to apply to the CRGB::red channel
 /// @param gammaG the gamma value to apply to the CRGB::green channel
 /// @param gammaB the gamma value to apply to the CRGB::blue channel
-void napplyGamma_video(CRGB *rgbarray, uint16_t count, float gammaR,
+void napplyGamma_video(CRGB *rgbarray, fl::u16 count, float gammaR,
                        float gammaG, float gammaB);
 
 /// @} GammaFuncs

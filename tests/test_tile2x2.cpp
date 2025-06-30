@@ -7,6 +7,7 @@
 #include "fl/vector.h"
 #include "fl/tile2x2.h"
 #include <string>
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -65,8 +66,8 @@ TEST_CASE("Tile2x2_u8_wrap wrap-around test with width and height") {
     originalTile.at(1, 1) = 4;
 
     // Convert to Tile2x2_u8_wrap with given width and height
-    uint16_t width = 2;
-    uint16_t height = 2;
+    fl::u16 width = 2;
+    fl::u16 height = 2;
     Tile2x2_u8_wrap cycTile(originalTile, width, height);
 
     // Verify that the conversion wraps around correctly
@@ -97,8 +98,8 @@ TEST_CASE("Tile2x2_u8_wrap conversion with width and height") {
     originalTile.at(1, 1) = 4;
 
     // Convert to Tile2x2_u8_wrap with given width and height
-    uint16_t width = 2;
-    uint16_t height = 2;
+    fl::u16 width = 2;
+    fl::u16 height = 2;
     Tile2x2_u8_wrap cycTile(originalTile, width, height);
 
     // Verify that the conversion is correct
@@ -119,7 +120,7 @@ TEST_CASE("Tile2x2_u8_wrap conversion test") {
     originalTile.at(1, 1) = 4;
 
     // Convert to Tile2x2_u8_wrap with a given width
-    uint16_t width = 10;
+    fl::u16 width = 10;
     Tile2x2_u8_wrap cycTile(originalTile, width);
 
     // Verify that the conversion is correct
@@ -145,8 +146,8 @@ TEST_CASE("Tile2x2_u8_wrap wrap-around test with width and height") {
     originalTile.at(1, 1) = 4;
     
     // Convert to Tile2x2_u8_wrap with given width and height
-    uint16_t width = 2;
-    uint16_t height = 2;
+    fl::u16 width = 2;
+    fl::u16 height = 2;
     Tile2x2_u8_wrap cycTile(originalTile, width, height);
 
     // Verify that the conversion wraps around correctly

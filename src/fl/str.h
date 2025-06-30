@@ -18,6 +18,7 @@
 #include "fl/template_magic.h"
 #include "fl/vector.h"
 #include "fl/span.h"
+#include "fl/int.h"
 
 #ifndef FASTLED_STR_INLINED_SIZE
 #define FASTLED_STR_INLINED_SIZE 64
@@ -253,7 +254,7 @@ template <size_t SIZE = FASTLED_STR_INLINED_SIZE> class StrN {
         return write(str, 1);
     }
 
-    size_t write(const uint16_t &n) {
+    size_t write(const fl::u16 &n) {
         StrN<FASTLED_STR_INLINED_SIZE> dst;
         StringFormatter::append(n, &dst); // Inlined size should suffice
         return write(dst.c_str(), dst.size());
@@ -562,10 +563,10 @@ class string : public StrN<FASTLED_STR_INLINED_SIZE> {
         return *this;
     }
     string &append(const uint8_t &c) {
-        write(uint16_t(c));
+        write(fl::u16(c));
         return *this;
     }
-    string &append(const uint16_t &val) {
+    string &append(const fl::u16 &val) {
         write(val);
         return *this;
     }

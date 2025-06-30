@@ -61,6 +61,7 @@ FASTLED_NAMESPACE_BEGIN
  */
 
 #include<SPI.h>
+#include "fl/int.h"
 
 // Conditional compilation for ESP32-S3 to utilize its flexible SPI capabilities
 #if CONFIG_IDF_TARGET_ESP32S2
@@ -132,7 +133,7 @@ public:
 	void writeByteNoWait(uint8_t b) __attribute__((always_inline)) { writeByte(b); }
 	void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { writeByte(b); wait(); }
 
-	void writeWord(uint16_t w) __attribute__((always_inline)) {
+	void writeWord(fl::u16 w) __attribute__((always_inline)) {
 		writeByte(static_cast<uint8_t>(w>>8));
 		writeByte(static_cast<uint8_t>(w&0xFF));
 	}

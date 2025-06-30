@@ -108,6 +108,7 @@
 #include "eorder.h"
 #include "platforms/esp/32/i2s/i2s_esp32dev.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -192,7 +193,7 @@ class ClocklessController : public CPixelLEDController<RGB_ORDER> {
         i2s_setup_pin(DATA_PIN, my_index);
     }
 
-    virtual uint16_t getMaxRefreshRate() const { return 400; }
+    virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
   protected:
     /** Clear DMA buffer

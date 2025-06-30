@@ -15,6 +15,7 @@
 #include "fl/str.h"
 #include "fl/vector.h"
 #include "fl/warn.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -82,7 +83,7 @@ bool ScreenMap::ParseJson(const char *jsonStrScreenMap,
         }
         auto n = x.size();
         ScreenMap segment_map(n, diameter);
-        for (uint16_t j = 0; j < n; j++) {
+        for (fl::u16 j = 0; j < n; j++) {
             segment_map.set(j, vec2f{x[j], y[j]});
         }
         segmentMaps->insert(kv.key().c_str(), segment_map);
@@ -139,7 +140,7 @@ void ScreenMap::toJson(const FixedMap<string, ScreenMap, 16> &segmentMaps,
             auto segment = map[kv.first].to<FLArduinoJson::JsonObject>();
             auto x_array = segment["x"].to<FLArduinoJson::JsonArray>();
             auto y_array = segment["y"].to<FLArduinoJson::JsonArray>();
-            for (uint16_t i = 0; i < kv.second.getLength(); i++) {
+            for (fl::u16 i = 0; i < kv.second.getLength(); i++) {
                 const vec2f &xy = kv.second[i];
                 x_array.add(xy.x);
                 y_array.add(xy.y);
@@ -194,7 +195,7 @@ ScreenMap::ScreenMap(const ScreenMap &other) {
     mLookUpTable = other.mLookUpTable;
 }
 
-void ScreenMap::set(uint16_t index, const vec2f &p) {
+void ScreenMap::set(fl::u16 index, const vec2f &p) {
     if (mLookUpTable) {
         LUTXYFLOAT &lut = *mLookUpTable.get();
         auto *data = lut.getDataMutable();

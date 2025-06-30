@@ -4,6 +4,7 @@
 
 #include "crgb.h"
 #include "fl/deprecated.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -25,7 +26,7 @@ namespace fl {
 /// @param leds a pointer to the LED array to blur
 /// @param numLeds the number of LEDs to blur
 /// @param blur_amount the amount of blur to apply
-void blur1d(CRGB *leds, uint16_t numLeds, fract8 blur_amount);
+void blur1d(CRGB *leds, fl::u16 numLeds, fract8 blur_amount);
 
 /// Two-dimensional blur filter.
 /// Spreads light to 8 XY neighbors.

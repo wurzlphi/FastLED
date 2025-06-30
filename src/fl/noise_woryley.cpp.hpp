@@ -1,4 +1,5 @@
 #include "noise_woryley.h"
+#include "fl/int.h"
 
 namespace fl {
 namespace {
@@ -15,15 +16,15 @@ constexpr int32_t Q15_ONE = 32768; // 1.0 in Q15
 int32_t q15_abs(int32_t a) { return a < 0 ? -a : a; }
 
 // Pseudo-random hash based on grid coordinates
-uint16_t hash(int32_t x, int32_t y) {
+fl::u16 hash(int32_t x, int32_t y) {
     uint32_t n = (uint32_t)(x * 374761393 + y * 668265263);
     n = (n ^ (n >> 13)) * 1274126177;
-    return (uint16_t)((n ^ (n >> 16)) & 0xFFFF);
+    return (fl::u16)((n ^ (n >> 16)) & 0xFFFF);
 }
 
 // Get fractional feature point inside a grid cell
 void feature_point(int32_t gx, int32_t gy, int32_t &fx, int32_t &fy) {
-    uint16_t h = hash(gx, gy);
+    fl::u16 h = hash(gx, gy);
     fx = (h & 0xFF) * 128; // scale to Q15 (0–32767)
     fy = ((h >> 8) & 0xFF) * 128;
 }

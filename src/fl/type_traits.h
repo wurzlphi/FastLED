@@ -10,6 +10,7 @@ Provides eanble_if and is_derived for compilers before C++14.
 
 #include "fl/namespace.h"
 #include "fl/move.h"
+#include "fl/int.h"
 
 namespace fl { // mandatory namespace to prevent name collision with
                // std::enable_if.
@@ -34,7 +35,7 @@ using enable_if_t = typename enable_if<Condition, T>::type;
 template <typename Base, typename Derived> struct is_base_of {
   private:
     typedef uint8_t yes;
-    typedef uint16_t no;
+    typedef fl::u16 no;
     static yes test(Base *); // Matches if Derived is convertible to Base*
     static no test(...);     // Fallback if not convertible
     enum {
@@ -632,7 +633,7 @@ template <typename T> struct has_member_swap {
   private:
     // must be 1 byte vs. >1 byte for sizeof test
     typedef uint8_t yes;
-    typedef uint16_t no;
+    typedef fl::u16 no;
 
     // helper<U, &U::swap> is only well-formed if U::swap(T&) exists with that
     // signature

@@ -11,6 +11,7 @@
 #include "fl/vector.h"
 #include "fl/warn.h"
 #include "platforms/ui_defs.h"
+#include "fl/int.h"
 
 #ifndef FASTLED_HAS_UI_SLIDER
 #define FASTLED_HAS_UI_SLIDER 0
@@ -72,7 +73,7 @@ class UISliderImpl {
     void setValue(float value) { mValue = MAX(mMin, MIN(mMax, value)); }
     operator float() const { return mValue; }
     operator uint8_t() const { return static_cast<uint8_t>(mValue); }
-    operator uint16_t() const { return static_cast<uint16_t>(mValue); }
+    operator fl::u16() const { return static_cast<fl::u16>(mValue); }
     operator int() const { return static_cast<int>(mValue); }
     template <typename T> T as() const { return static_cast<T>(mValue); }
 

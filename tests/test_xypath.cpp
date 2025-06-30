@@ -9,6 +9,7 @@
 #include "fl/vector.h"
 #include "fl/unused.h"
 #include <string>
+#include "fl/int.h"
 
 using namespace fl;
 
@@ -43,7 +44,7 @@ TEST_CASE("LinePath at_subpixel") {
     XYPath path(NewPtrNoTracking(line));
     path.setDrawBounds(2,2);
     Tile2x2_u8 tile = path.at_subpixel(0);
-    REQUIRE_EQ(vec2<uint16_t>(0, 0), tile.origin());
+    REQUIRE_EQ(vec2<fl::u16>(0, 0), tile.origin());
     MESSAGE_TILE(tile);
     REQUIRE_EQ(255, tile.at(0, 0));
 }
@@ -103,10 +104,10 @@ TEST_CASE("LinePath at_subpixel moves x") {
     path.setDrawBounds(3, 3);
     Tile2x2_u8 tile = path.at_subpixel(0.0f);
     // MESSAGE_TILE(tile);
-    REQUIRE_EQ(tile.origin(), vec2<uint16_t>(0, 0));
+    REQUIRE_EQ(tile.origin(), vec2<fl::u16>(0, 0));
     REQUIRE_EQ(tile.at(0, 0), 255);
     tile = path.at_subpixel(1.0f);
-    REQUIRE_EQ(tile.origin(), vec2<uint16_t>(2, 0));
+    REQUIRE_EQ(tile.origin(), vec2<fl::u16>(2, 0));
     REQUIRE_EQ(tile.at(0, 0), 255);
 }
 

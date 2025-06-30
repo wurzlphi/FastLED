@@ -31,6 +31,7 @@
 #define cos16 fl::cos16lut
 
 #include "fl/sin32.h"
+#include "fl/int.h"
 
 #elif defined(__AVR__)
 
@@ -45,14 +46,14 @@
 ///
 /// @param theta input angle from 0-65535
 /// @returns sin of theta, value between -32767 to 32767.
-LIB8STATIC int16_t sin16_avr(uint16_t theta) {
+LIB8STATIC int16_t sin16_avr(fl::u16 theta) {
     static const uint8_t data[] = {
         0,           0,           49, 0, 6393 % 256,  6393 / 256,  48, 0,
         12539 % 256, 12539 / 256, 44, 0, 18204 % 256, 18204 / 256, 38, 0,
         23170 % 256, 23170 / 256, 31, 0, 27245 % 256, 27245 / 256, 23, 0,
         30273 % 256, 30273 / 256, 14, 0, 32137 % 256, 32137 / 256, 4 /*,0*/};
 
-    uint16_t offset = (theta & 0x3FFF);
+    fl::u16 offset = (theta & 0x3FFF);
 
     // AVR doesn't have a multi-bit shift instruction,
     // so if we say "offset >>= 3", gcc makes a tiny loop.
@@ -74,7 +75,7 @@ LIB8STATIC int16_t sin16_avr(uint16_t theta) {
     uint8_t m;
 
     union {
-        uint16_t b;
+        fl::u16 b;
         struct {
             uint8_t blo;
             uint8_t bhi;
@@ -88,7 +89,7 @@ LIB8STATIC int16_t sin16_avr(uint16_t theta) {
 
     uint8_t secoffset8 = (uint8_t)(offset) / 2;
 
-    uint16_t mx = m * secoffset8;
+    fl::u16 mx = m * secoffset8;
 
     int16_t y = mx + u.b;
     if (theta & 0x8000)
@@ -110,22 +111,22 @@ LIB8STATIC int16_t sin16_avr(uint16_t theta) {
 ///
 /// @param theta input angle from 0-65535
 /// @returns sin of theta, value between -32767 to 32767.
-LIB8STATIC int16_t sin16_C(uint16_t theta) {
-    static const uint16_t base[] = {0,     6393,  12539, 18204,
+LIB8STATIC int16_t sin16_C(fl::u16 theta) {
+    static const fl::u16 base[] = {0,     6393,  12539, 18204,
                                     23170, 27245, 30273, 32137};
     static const uint8_t slope[] = {49, 48, 44, 38, 31, 23, 14, 4};
 
-    uint16_t offset = (theta & 0x3FFF) >> 3; // 0..2047
+    fl::u16 offset = (theta & 0x3FFF) >> 3; // 0..2047
     if (theta & 0x4000)
         offset = 2047 - offset;
 
     uint8_t section = offset / 256; // 0..7
-    uint16_t b = base[section];
+    fl::u16 b = base[section];
     uint8_t m = slope[section];
 
     uint8_t secoffset8 = (uint8_t)(offset) / 2;
 
-    uint16_t mx = m * secoffset8;
+    fl::u16 mx = m * secoffset8;
     int16_t y = mx + b;
 
     if (theta & 0x8000)
@@ -145,7 +146,7 @@ LIB8STATIC int16_t sin16_C(uint16_t theta) {
 /// @param theta input angle from 0-65535
 /// @returns cos of theta, value between -32767 to 32767.
 #ifndef USE_SIN_32
-LIB8STATIC int16_t cos16(uint16_t theta) { return sin16(theta + 16384); }
+LIB8STATIC int16_t cos16(fl::u16 theta) { return sin16(theta + 16384); }
 #endif
 
 ///////////////////////////////////////////////////////////////////////

@@ -9,6 +9,7 @@
 #include "fl/map.h"
 #include "fl/namespace.h"
 #include "fl/str.h"
+#include "fl/int.h"
 
 /* Screenmap maps strip indexes to x,y coordinates. This is used for FastLED Web
  * to map the 1D strip to a 2D screen. Note that the strip can have arbitrary
@@ -51,7 +52,7 @@ class ScreenMap {
 
     const vec2f &operator[](uint32_t x) const;
 
-    void set(uint16_t index, const vec2f &p);
+    void set(fl::u16 index, const vec2f &p);
 
     void addOffset(const vec2f &p);
     void addOffsetX(float x);

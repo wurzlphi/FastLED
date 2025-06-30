@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 FASTLED_USING_NAMESPACE
 
 
@@ -62,9 +63,9 @@ TEST_CASE("bit equivalence") {
     uint8_t r = 0xff;
     uint8_t r_scale = 0xff / 2;
     uint8_t brightness = 0xff / 2;
-    uint16_t r_scale16 = map8_to_16(r_scale);
-    uint16_t brightness16 = map8_to_16(brightness);
-    uint16_t r16 = scale16by8(scale16(r_scale16, brightness16), r);
+    fl::u16 r_scale16 = map8_to_16(r_scale);
+    fl::u16 brightness16 = map8_to_16(brightness);
+    fl::u16 r16 = scale16by8(scale16(r_scale16, brightness16), r);
     uint8_t r8 = scale8(scale8(r_scale, brightness), r);
     CHECK_EQ(r16 >> 8, r8);
 }
@@ -158,13 +159,13 @@ TEST_CASE("fl_min and fl_max type promotion") {
     }
 
     SUBCASE("signed and unsigned promotion with larger types") {
-        int16_t a = 50;  // Use int16_t and uint16_t instead of int8_t/uint8_t
-        uint16_t b = 100;
+        int16_t a = 50;  // Use int16_t and fl::u16 instead of int8_t/uint8_t
+        fl::u16 b = 100;
         
         auto min_result = fl::fl_min(a, b);
         auto max_result = fl::fl_max(a, b);
         
-        // int16_t and uint16_t should return signed version (int16_t) when same size but different signedness
+        // int16_t and fl::u16 should return signed version (int16_t) when same size but different signedness
         static_assert(fl::is_same<decltype(min_result), int16_t>::value, "fl_min should return int16_t");
         static_assert(fl::is_same<decltype(max_result), int16_t>::value, "fl_max should return int16_t");
         
@@ -251,7 +252,7 @@ TEST_CASE("fl_min and fl_max type promotion") {
 
         // Test signedness-based promotion
         int16_t signed_val = 500;
-        uint16_t unsigned_val = 600;
+        fl::u16 unsigned_val = 600;
         auto sign_result = fl::fl_max(signed_val, unsigned_val);
         static_assert(fl::is_same<decltype(sign_result), int16_t>::value,
                       "signedness promotion should work");

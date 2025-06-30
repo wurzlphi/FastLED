@@ -6,6 +6,7 @@
 #include "fl/register.h"
 #include "eorder.h"
 #include "transpose8x1_noinline.h"
+#include "fl/int.h"
 
 #define FASTLED_HAS_BLOCKLESS 1
 
@@ -69,11 +70,11 @@ public:
 		}
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 	typedef union {
 		uint8_t bytes[8];
-		uint16_t shorts[4];
+		fl::u16 shorts[4];
 		uint32_t raw[2];
 	} Lines;
 

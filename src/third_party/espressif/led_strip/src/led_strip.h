@@ -9,6 +9,7 @@
 #include "esp_err.h"
 #include "led_strip_rmt.h"
 #include "led_strip_spi.h"
+#include "fl/int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,7 +65,7 @@ esp_err_t led_strip_set_pixel_rgbw(led_strip_handle_t strip, uint32_t index, uin
  *      - ESP_ERR_INVALID_ARG: Set HSV color for a specific pixel failed because of an invalid argument
  *      - ESP_FAIL: Set HSV color for a specific pixel failed because other error occurred
  */
-esp_err_t led_strip_set_pixel_hsv(led_strip_handle_t strip, uint32_t index, uint16_t hue, uint8_t saturation, uint8_t value);
+esp_err_t led_strip_set_pixel_hsv(led_strip_handle_t strip, uint32_t index, fl::u16 hue, uint8_t saturation, uint8_t value);
 
 /**
  * @brief Refresh memory colors to LEDs

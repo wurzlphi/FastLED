@@ -1,5 +1,6 @@
 #define FASTLED_INTERNAL
 #include "FastLED.h"
+#include "fl/int.h"
 
 /// @file wiring.cpp
 /// Re-implementation of Arduino core functions
@@ -88,10 +89,10 @@ unsigned long micros() {
 
 void delay(unsigned long ms)
 {
-        uint16_t start = (uint16_t)micros();
+        fl::u16 start = (fl::u16)micros();
 
         while (ms > 0) {
-                if (((uint16_t)micros() - start) >= 1000) {
+                if (((fl::u16)micros() - start) >= 1000) {
                         --ms;
                         start += 1000;
                 }

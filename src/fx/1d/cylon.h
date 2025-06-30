@@ -3,6 +3,7 @@
 #include "FastLED.h"
 #include "fl/namespace.h"
 #include "fx/fx1d.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -13,7 +14,7 @@ FASTLED_SMART_PTR(Cylon);
 class Cylon : public Fx1d {
   public:
     uint8_t delay_ms;
-    Cylon(uint16_t num_leds, uint8_t fade_amount = 250, uint8_t delay_ms = 10)
+    Cylon(fl::u16 num_leds, uint8_t fade_amount = 250, uint8_t delay_ms = 10)
         : Fx1d(num_leds), delay_ms(delay_ms), fade_amount(fade_amount) {}
 
     void draw(DrawContext context) override {
@@ -27,7 +28,7 @@ class Cylon : public Fx1d {
         leds[position] = CHSV(hue++, 255, 255);
 
         // Fade all LEDs
-        for (uint16_t i = 0; i < mNumLeds; i++) {
+        for (fl::u16 i = 0; i < mNumLeds; i++) {
             leds[i].nscale8(fade_amount);
         }
 

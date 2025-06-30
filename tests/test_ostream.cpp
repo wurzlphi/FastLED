@@ -1,6 +1,7 @@
 #include "fl/ostream.h"
 #include "test.h"
 #include <cstring>
+#include "fl/int.h"
 
 // Since we can't override the fl::print function easily in this test setup,
 // we'll just verify that the ostream compiles and basic functionality works
@@ -24,7 +25,7 @@ TEST_CASE("fl::cout basic operations compile and run without crash") {
     fl::cout << static_cast<int8_t>(127);
     fl::cout << static_cast<uint8_t>(255);
     fl::cout << static_cast<int16_t>(32767);
-    fl::cout << static_cast<uint16_t>(65535);
+    fl::cout << static_cast<fl::u16>(65535);
     fl::cout << static_cast<int32_t>(2147483647);
     fl::cout << static_cast<uint32_t>(4294967295U);
     

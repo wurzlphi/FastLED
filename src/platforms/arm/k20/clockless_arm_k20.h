@@ -2,6 +2,7 @@
 #define __INC_CLOCKLESS_ARM_K20_H
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -27,7 +28,7 @@ public:
 		mPort = FastPin<DATA_PIN>::port();
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {

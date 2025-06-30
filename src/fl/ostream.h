@@ -9,6 +9,7 @@ namespace fl {
 
 #include "fl/str.h"
 #include "crgb.h"
+#include "fl/int.h"
 
 #ifndef FASTLED_STRSTREAM_USES_SIZE_T
 #if defined(__AVR__) || defined(ESP8266) || defined(ESP32)
@@ -52,7 +53,7 @@ public:
 
     ostream& operator<<(uint8_t n) {
         string temp;
-        temp.append(uint16_t(n));
+        temp.append(fl::u16(n));
         print(temp.c_str());
         return *this;
     }
@@ -64,7 +65,7 @@ public:
         return *this;
     }
 
-    ostream& operator<<(uint16_t n) {
+    ostream& operator<<(fl::u16 n) {
         string temp;
         temp.append(n);
         print(temp.c_str());

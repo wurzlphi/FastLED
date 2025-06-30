@@ -6,13 +6,14 @@
 #include "test.h"
 #include "lib8tion/intmap.h"
 #include "fl/lut.h"
+#include "fl/int.h"
 
 
 using namespace fl;
 
 TEST_CASE("LUT interp8") {
-    LUT<uint16_t> lut(2);
-    uint16_t* data = lut.getDataMutable();
+    LUT<fl::u16> lut(2);
+    fl::u16* data = lut.getDataMutable();
     data[0] = 0;
     data[1] = 255;
     CHECK_EQ(lut.interp8(0), 0);
@@ -20,15 +21,15 @@ TEST_CASE("LUT interp8") {
     CHECK_EQ(lut.interp8(128), 128);
 
     // Check the LUT interpolation for all values.
-    for (uint16_t i = 0; i < 256; i++) {
-        uint16_t expected = (i * 255) / 255;
+    for (fl::u16 i = 0; i < 256; i++) {
+        fl::u16 expected = (i * 255) / 255;
         CHECK_EQ(lut.interp8(i), expected);
     }
 }
 
 TEST_CASE("LUT interp16") {
-    LUT<uint16_t> lut(2);
-    uint16_t* data = lut.getDataMutable();
+    LUT<fl::u16> lut(2);
+    fl::u16* data = lut.getDataMutable();
     data[0] = 0;
     data[1] = 255;
     CHECK_EQ(lut.interp16(0), 0);
@@ -37,7 +38,7 @@ TEST_CASE("LUT interp16") {
 
     // Check the LUT interpolation for all values.
     for (int i = 0; i < 256; i++) {
-        uint16_t alpha16 = map8_to_16(i);
+        fl::u16 alpha16 = map8_to_16(i);
         CHECK_EQ(i, lut.interp16(alpha16));
     }
 }

@@ -1,3 +1,4 @@
+#include "fl/int.h"
 #ifndef __INC_CLOCKLESS_ARM_MXRT1062_H
 #define __INC_CLOCKLESS_ARM_MXRT1062_H
 
@@ -38,7 +39,7 @@ public:
     	FastPin<DATA_PIN>::lo();
 	}
 
-	virtual uint16_t getMaxRefreshRate() const { return 400; }
+	virtual fl::u16 getMaxRefreshRate() const { return 400; }
 
 protected:
 	virtual void showPixels(PixelController<RGB_ORDER> & pixels) {
