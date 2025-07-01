@@ -73,33 +73,33 @@ namespace fl {
     /// ANSI: unsigned short _Fract. 
     /// Range is 0 to 0.99609375 in steps of 0.00390625.  
     /// Should be interpreted as unsigned 256ths.
-    typedef uint8_t   fract8;
+    typedef u8   fract8;
 
     /// ANSI: signed short _Fract. 
     /// Range is -0.9921875 to 0.9921875 in steps of 0.0078125.  
     /// Should be interpreted as signed 128ths.
-    typedef int8_t    sfract7;
+    typedef i8    sfract7;
 
     /// ANSI: unsigned _Fract.
     /// Range is 0 to 0.99998474121 in steps of 0.00001525878.  
     /// Should be interpreted as unsigned 65536ths.
-    typedef uint16_t  fract16;
+    typedef u16  fract16;
 
-    typedef int32_t   sfract31; ///< ANSI: signed long _Fract. 31 bits int, 1 bit fraction
+    typedef i32   sfract31; ///< ANSI: signed long _Fract. 31 bits int, 1 bit fraction
 
-    typedef uint32_t  fract32;   ///< ANSI: unsigned long _Fract. 32 bits int, 32 bits fraction
+    typedef u32  fract32;   ///< ANSI: unsigned long _Fract. 32 bits int, 32 bits fraction
 
     /// ANSI: signed _Fract.
     /// Range is -0.99996948242 to 0.99996948242 in steps of 0.00003051757.  
     /// Should be interpreted as signed 32768ths.
-    typedef int16_t   sfract15;
+    typedef i16   sfract15;
 
-    typedef uint16_t  accum88;    ///< ANSI: unsigned short _Accum. 8 bits int, 8 bits fraction
-    typedef int16_t   saccum78;   ///< ANSI: signed   short _Accum. 7 bits int, 8 bits fraction
-    typedef uint32_t  accum1616;  ///< ANSI: signed         _Accum. 16 bits int, 16 bits fraction
-    typedef int32_t   saccum1516; ///< ANSI: signed         _Accum. 15 bits int, 16 bits fraction
-    typedef uint16_t  accum124;   ///< no direct ANSI counterpart. 12 bits int, 4 bits fraction
-    typedef int32_t   saccum114;  ///< no direct ANSI counterpart. 1 bit int, 14 bits fraction
+    typedef u16  accum88;    ///< ANSI: unsigned short _Accum. 8 bits int, 8 bits fraction
+    typedef i16   saccum78;   ///< ANSI: signed   short _Accum. 7 bits int, 8 bits fraction
+    typedef u32  accum1616;  ///< ANSI: signed         _Accum. 16 bits int, 16 bits fraction
+    typedef i32   saccum1516; ///< ANSI: signed         _Accum. 15 bits int, 16 bits fraction
+    typedef u16  accum124;   ///< no direct ANSI counterpart. 12 bits int, 4 bits fraction
+    typedef i32   saccum114;  ///< no direct ANSI counterpart. 1 bit int, 14 bits fraction
 }
 
 // Make fractional types available in global namespace
