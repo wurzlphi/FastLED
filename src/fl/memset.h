@@ -15,26 +15,33 @@
 
 namespace fl {
 
+// Forward declare the implementation function
+namespace detail {
+    inline void* memset_impl(void* ptr, int value, size_t num) {
+        if (!ptr || num == 0) {
+            return ptr;
+        }
+        
+#if defined(__AVR__)
+        // Use optimized memset8 for AVR platforms when the value fits in uint8_t
+        // and the count fits in uint16_t
+        if (num <= UINT16_MAX) {
+            return memset8(ptr, static_cast<uint8_t>(value), static_cast<uint16_t>(num));
+        }
+#endif
+        
+        // Fallback to standard library memset for other platforms or large sizes
+        return ::memset(ptr, value, num);
+    }
+}
+
 /// @brief Set memory to a specified value
 /// @param ptr Pointer to the memory to set
 /// @param value Value to set each byte to (cast to unsigned char)
 /// @param num Number of bytes to set
 /// @return Pointer to the memory area ptr
 inline void* memset(void* ptr, int value, size_t num) {
-    if (!ptr || num == 0) {
-        return ptr;
-    }
-    
-#if defined(__AVR__)
-    // Use optimized memset8 for AVR platforms when the value fits in uint8_t
-    // and the count fits in uint16_t
-    if (num <= UINT16_MAX) {
-        return memset8(ptr, static_cast<uint8_t>(value), static_cast<uint16_t>(num));
-    }
-#endif
-    
-    // Fallback to standard library memset for other platforms or large sizes
-    return ::memset(ptr, value, num);
+    return detail::memset_impl(ptr, value, num);
 }
 
 /// @brief Convenience overload for setting memory to zero
@@ -42,7 +49,7 @@ inline void* memset(void* ptr, int value, size_t num) {
 /// @param num Number of bytes to zero
 /// @return Pointer to the memory area ptr
 inline void* zero(void* ptr, size_t num) {
-    return memset(ptr, 0, num);
+    return detail::memset_impl(ptr, 0, num);
 }
 
 /// @brief Template version for type-safe memory setting
@@ -53,7 +60,9 @@ inline void* zero(void* ptr, size_t num) {
 /// @return Pointer to the memory area ptr as T*
 template<typename T>
 inline T* memset(T* ptr, int value, size_t count) {
-    return static_cast<T*>(memset(static_cast<void*>(ptr), value, count * sizeof(T)));
+    // Call the implementation directly to avoid template recursion
+    void* result = detail::memset_impl(static_cast<void*>(ptr), value, count * sizeof(T));
+    return static_cast<T*>(result);
 }
 
 /// @brief Template version for zeroing arrays of objects
@@ -63,7 +72,7 @@ inline T* memset(T* ptr, int value, size_t count) {
 /// @return Pointer to the memory area ptr as T*
 template<typename T>
 inline T* zero(T* ptr, size_t count) {
-    return static_cast<T*>(zero(static_cast<void*>(ptr), count * sizeof(T)));
+    return static_cast<T*>(detail::memset_impl(static_cast<void*>(ptr), 0, count * sizeof(T)));
 }
 
 } // namespace fl
