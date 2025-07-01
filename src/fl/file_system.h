@@ -21,6 +21,7 @@ FsImplPtr make_sdcard_filesystem(int cs_pin);
 
 FASTLED_NAMESPACE_BEGIN
 struct CRGB;
+namespace fl { struct CRGB; }
 FASTLED_NAMESPACE_END
 
 namespace fl {

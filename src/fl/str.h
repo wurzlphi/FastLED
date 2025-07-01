@@ -26,6 +26,7 @@
 
 FASTLED_NAMESPACE_BEGIN
 struct CRGB;
+namespace fl { struct CRGB; }
 FASTLED_NAMESPACE_END;
 
 namespace fl { // Mandatory namespace for this class since it has name

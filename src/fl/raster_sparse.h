@@ -21,6 +21,7 @@ only a small number of pixels are set.
 
 FASTLED_NAMESPACE_BEGIN
 struct CRGB;
+namespace fl { struct CRGB; }
 FASTLED_NAMESPACE_END
 
 #ifndef FASTLED_RASTER_SPARSE_INLINED_COUNT

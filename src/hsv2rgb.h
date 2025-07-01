@@ -59,6 +59,7 @@
 FASTLED_NAMESPACE_BEGIN
 
 struct CRGB;
+namespace fl { struct CRGB; }
 struct CHSV;
 
 
