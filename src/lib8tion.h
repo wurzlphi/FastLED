@@ -21,6 +21,7 @@
 #include "lib8tion/memmove.h"
 #include "lib8tion/config.h"
 #include "fl/ease.h"
+#include "fl/int.h"
 
 
 #if !defined(__AVR__)
@@ -475,11 +476,11 @@ LIB8STATIC uint16_t ease16InOutCubic(uint16_t i)  {
 
     // Apply the cubic formula directly, similar to the 8-bit version
     // scale16(a, b) computes (a * b) / 65536
-    uint32_t ii = scale16(i, i);   // i^2 scaled to 16-bit
-    uint32_t iii = scale16(ii, i); // i^3 scaled to 16-bit
+    fl::u32 ii = scale16(i, i);   // i^2 scaled to 16-bit
+    fl::u32 iii = scale16(ii, i); // i^3 scaled to 16-bit
 
     // Apply cubic formula: 3x^2 - 2x^3
-    uint32_t r1 = (3 * ii) - (2 * iii);
+    fl::u32 r1 = (3 * ii) - (2 * iii);
 
     // Clamp result to 16-bit range
     if (r1 > 65535) {
@@ -688,7 +689,7 @@ LIB8STATIC uint8_t squarewave8( uint8_t in, uint8_t pulsewidth=128)
 /// by \#defining `USE_GET_MILLISECOND_TIMER`.
 #define GET_MILLIS millis
 #else
-uint32_t get_millisecond_timer();
+fl::u32 get_millisecond_timer();
 #define GET_MILLIS get_millisecond_timer
 #endif
 
@@ -746,7 +747,7 @@ uint32_t get_millisecond_timer();
 /// @warning The BPM parameter **MUST** be provided in Q8.8 format! E.g.
 /// for 120 BPM it would be 120*256 = 30720. If you just want to specify
 /// "120", use beat16() or beat8().
-LIB8STATIC uint16_t beat88( accum88 beats_per_minute_88, uint32_t timebase = 0)
+LIB8STATIC uint16_t beat88( accum88 beats_per_minute_88, fl::u32 timebase = 0)
 {
     // BPM is 'beats per minute', or 'beats per 60000ms'.
     // To avoid using the (slower) division operator, we
@@ -762,7 +763,7 @@ LIB8STATIC uint16_t beat88( accum88 beats_per_minute_88, uint32_t timebase = 0)
 /// Generates a 16-bit "sawtooth" wave at a given BPM
 /// @param beats_per_minute the frequency of the wave, in decimal
 /// @param timebase the time offset of the wave from the millis() timer
-LIB8STATIC uint16_t beat16( accum88 beats_per_minute, uint32_t timebase = 0)
+LIB8STATIC uint16_t beat16( accum88 beats_per_minute, fl::u32 timebase = 0)
 {
     // Convert simple 8-bit BPM's to full Q8.8 accum88's if needed
     if( beats_per_minute < 256) beats_per_minute <<= 8;
@@ -772,7 +773,7 @@ LIB8STATIC uint16_t beat16( accum88 beats_per_minute, uint32_t timebase = 0)
 /// Generates an 8-bit "sawtooth" wave at a given BPM
 /// @param beats_per_minute the frequency of the wave, in decimal
 /// @param timebase the time offset of the wave from the millis() timer
-LIB8STATIC uint8_t beat8( accum88 beats_per_minute, uint32_t timebase = 0)
+LIB8STATIC uint8_t beat8( accum88 beats_per_minute, fl::u32 timebase = 0)
 {
     return beat16( beats_per_minute, timebase) >> 8;
 }
@@ -789,7 +790,7 @@ LIB8STATIC uint8_t beat8( accum88 beats_per_minute, uint32_t timebase = 0)
 /// for 120 BPM it would be 120*256 = 30720. If you just want to specify
 /// "120", use beatsin16() or beatsin8().
 LIB8STATIC uint16_t beatsin88( accum88 beats_per_minute_88, uint16_t lowest = 0, uint16_t highest = 65535,
-                              uint32_t timebase = 0, uint16_t phase_offset = 0)
+                              fl::u32 timebase = 0, uint16_t phase_offset = 0)
 {
     uint16_t beat = beat88( beats_per_minute_88, timebase);
     uint16_t beatsin = (sin16( beat + phase_offset) + 32768);
@@ -807,7 +808,7 @@ LIB8STATIC uint16_t beatsin88( accum88 beats_per_minute_88, uint16_t lowest = 0,
 /// @param timebase the time offset of the wave from the millis() timer
 /// @param phase_offset phase offset of the wave from the current position
 LIB8STATIC uint16_t beatsin16( accum88 beats_per_minute, uint16_t lowest = 0, uint16_t highest = 65535,
-                               uint32_t timebase = 0, uint16_t phase_offset = 0)
+                               fl::u32 timebase = 0, uint16_t phase_offset = 0)
 {
     uint16_t beat = beat16( beats_per_minute, timebase);
     uint16_t beatsin = (sin16( beat + phase_offset) + 32768);
@@ -825,7 +826,7 @@ LIB8STATIC uint16_t beatsin16( accum88 beats_per_minute, uint16_t lowest = 0, ui
 /// @param timebase the time offset of the wave from the millis() timer
 /// @param phase_offset phase offset of the wave from the current position
 LIB8STATIC uint8_t beatsin8( accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255,
-                            uint32_t timebase = 0, uint8_t phase_offset = 0)
+                            fl::u32 timebase = 0, uint8_t phase_offset = 0)
 {
     uint8_t beat = beat8( beats_per_minute, timebase);
     uint8_t beatsin = sin8( beat + phase_offset);
@@ -849,7 +850,7 @@ LIB8STATIC uint8_t beatsin8( accum88 beats_per_minute, uint8_t lowest = 0, uint8
 /// "every N time-periods" mechanism
 LIB8STATIC uint16_t seconds16()
 {
-    uint32_t ms = GET_MILLIS();
+    fl::u32 ms = GET_MILLIS();
     uint16_t s16;
     s16 = ms / 1000;
     return s16;
@@ -859,7 +860,7 @@ LIB8STATIC uint16_t seconds16()
 /// "every N time-periods" mechanism
 LIB8STATIC uint16_t minutes16()
 {
-    uint32_t ms = GET_MILLIS();
+    fl::u32 ms = GET_MILLIS();
     uint16_t m16;
     m16 = (ms / (60000L)) & 0xFFFF;
     return m16;
@@ -869,7 +870,7 @@ LIB8STATIC uint16_t minutes16()
 /// "every N time-periods" mechanism
 LIB8STATIC uint8_t hours8()
 {
-    uint32_t ms = GET_MILLIS();
+    fl::u32 ms = GET_MILLIS();
     uint8_t h8;
     h8 = (ms / (3600000L)) & 0xFF;
     return h8;
@@ -889,7 +890,7 @@ LIB8STATIC uint8_t hours8()
 /// just six shifts (vs 40), and no loop overhead.
 /// Used to convert millis to "binary seconds" aka bseconds:
 /// one bsecond == 1024 millis.
-LIB8STATIC uint16_t div1024_32_16( uint32_t in32)
+LIB8STATIC uint16_t div1024_32_16( fl::u32 in32)
 {
     uint16_t out16;
 #if defined(__AVR__)
@@ -916,7 +917,7 @@ LIB8STATIC uint16_t div1024_32_16( uint32_t in32)
 /// second long.
 LIB8STATIC uint16_t bseconds16()
 {
-    uint32_t ms = GET_MILLIS();
+    fl::u32 ms = GET_MILLIS();
     uint16_t s16;
     s16 = div1024_32_16( ms);
     return s16;
@@ -1017,7 +1018,7 @@ public:
 #endif  // FASTLED_DOXYGEN
 
 /// Create the CEveryNMillis class for millisecond intervals
-INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNMillis,uint32_t,GET_MILLIS);
+INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNMillis,fl::u32,GET_MILLIS);
 
 /// Create the CEveryNSeconds class for second intervals
 INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNSeconds,uint16_t,seconds16);
@@ -1037,15 +1038,15 @@ INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNHours,uint8_t,hours8);
 /// Create the CEveryNMillisDynamic class for dynamic millisecond intervals
 class CEveryNMillisDynamic {
 public:
-    uint32_t mPrevTrigger;
-    uint32_t mPeriod;
+    fl::u32 mPrevTrigger;
+    fl::u32 mPeriod;
 
-    CEveryNMillisDynamic(uint32_t period) : mPeriod(period) { reset(); };
-    uint32_t getTime() { return GET_MILLIS(); };
-    uint32_t getPeriod() const { return mPeriod; };
-    uint32_t getElapsed() { return getTime() - mPrevTrigger; }
-    uint32_t getRemaining() { return getPeriod() - getElapsed(); }
-    uint32_t getLastTriggerTime() { return mPrevTrigger; }
+    CEveryNMillisDynamic(fl::u32 period) : mPeriod(period) { reset(); };
+    fl::u32 getTime() { return GET_MILLIS(); };
+    fl::u32 getPeriod() const { return mPeriod; };
+    fl::u32 getElapsed() { return getTime() - mPrevTrigger; }
+    fl::u32 getRemaining() { return getPeriod() - getElapsed(); }
+    fl::u32 getLastTriggerTime() { return mPrevTrigger; }
     bool ready() {
         bool isReady = (getElapsed() >= getPeriod());
         if( isReady ) { reset(); }
@@ -1053,7 +1054,7 @@ public:
     }
     void reset() { mPrevTrigger = getTime(); };
     void trigger() { mPrevTrigger = getTime() - getPeriod(); };
-    void setPeriod(uint32_t period) { mPeriod = period; }
+    void setPeriod(fl::u32 period) { mPeriod = period; }
 
     operator bool() { return ready(); }
 };
@@ -1067,12 +1068,12 @@ public:
 // ————————————————————————————————————————————————
 class CEveryNMillisRandom {
 public:
-    uint32_t mPrevTrigger;
-    uint32_t mPeriod;
-    uint32_t mMinPeriod;
-    uint32_t mMaxPeriod;
+    fl::u32 mPrevTrigger;
+    fl::u32 mPeriod;
+    fl::u32 mMinPeriod;
+    fl::u32 mMaxPeriod;
 
-    CEveryNMillisRandom(uint32_t minPeriod, uint32_t maxPeriod)
+    CEveryNMillisRandom(fl::u32 minPeriod, fl::u32 maxPeriod)
       : mMinPeriod(minPeriod), mMaxPeriod(maxPeriod)
     {
         computeNext();
@@ -1081,14 +1082,14 @@ public:
 
     void computeNext() {
         // random16(x) returns [0..x-1], so this yields MIN..MAX
-        uint32_t range = mMaxPeriod - mMinPeriod + 1;
+        fl::u32 range = mMaxPeriod - mMinPeriod + 1;
         mPeriod = mMinPeriod + random16(range);
     }
 
-    uint32_t getTime() const { return GET_MILLIS(); }
+    fl::u32 getTime() const { return GET_MILLIS(); }
 
     bool ready() {
-        uint32_t now = getTime();
+        fl::u32 now = getTime();
         if (now - mPrevTrigger >= mPeriod) {
             mPrevTrigger = now;
             computeNext();
@@ -1135,7 +1136,7 @@ public:
 };
 typedef CEveryNTimePeriods<uint16_t,seconds16> CEveryNSeconds;
 typedef CEveryNTimePeriods<uint16_t,bseconds16> CEveryNBSeconds;
-typedef CEveryNTimePeriods<uint32_t,millis> CEveryNMillis;
+typedef CEveryNTimePeriods<fl::u32,millis> CEveryNMillis;
 typedef CEveryNTimePeriods<uint16_t,minutes16> CEveryNMinutes;
 typedef CEveryNTimePeriods<uint8_t,hours8> CEveryNHours;
 #endif

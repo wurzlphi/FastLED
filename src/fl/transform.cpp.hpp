@@ -7,6 +7,7 @@
 #include "lib8tion/intmap.h"
 #include "lib8tion/trig8.h"
 #include "fl/compiler_control.h"
+#include "fl/int.h"
 
 FL_DISABLE_WARNING_PUSH
 FL_DISABLE_WARNING(float-equal)
@@ -49,9 +50,9 @@ Transform16 Transform16::ToBounds(alpha16 max_value) {
     alpha16 scale16 = 0;
     if (max_value) {
         // numerator = max_value * 2^16
-        uint32_t numer = static_cast<uint32_t>(max_value) << 16;
+        fl::u32 numer = static_cast<fl::u32>(max_value) << 16;
         // denom = 0xFFFF; use ceil so 0xFFFF→max_value exactly:
-        uint32_t scale32 = numer / 0xFFFF;
+        fl::u32 scale32 = numer / 0xFFFF;
         scale16 = static_cast<alpha16>(scale32);
     }
     tx.scale_x = scale16;
@@ -70,17 +71,17 @@ Transform16 Transform16::ToBounds(const vec2<alpha16> &min,
     alpha16 scale16 = 0;
     if (max.x > min.x) {
         // numerator = max_value * 2^16
-        uint32_t numer = static_cast<uint32_t>(max.x - min.x) << 16;
+        fl::u32 numer = static_cast<fl::u32>(max.x - min.x) << 16;
         // denom = 0xFFFF; use ceil so 0xFFFF→max_value exactly:
-        uint32_t scale32 = numer / 0xFFFF;
+        fl::u32 scale32 = numer / 0xFFFF;
         scale16 = static_cast<alpha16>(scale32);
     }
     tx.scale_x = scale16;
     if (max.y > min.y) {
         // numerator = max_value * 2^16
-        uint32_t numer = static_cast<uint32_t>(max.y - min.y) << 16;
+        fl::u32 numer = static_cast<fl::u32>(max.y - min.y) << 16;
         // denom = 0xFFFF; use ceil so 0xFFFF→max_value exactly:
-        uint32_t scale32 = numer / 0xFFFF;
+        fl::u32 scale32 = numer / 0xFFFF;
         scale16 = static_cast<alpha16>(scale32);
     }
     tx.scale_y = scale16;
@@ -116,11 +117,11 @@ vec2<alpha16> Transform16::transform(const vec2<alpha16> &xy) const {
 
     // 2) Then scale in X/Y (Q16 → map32_to_16)
     if (scale_x != 0xFFFF) {
-        uint32_t tx = uint32_t(out.x) * scale_x;
+        fl::u32 tx = fl::u32(out.x) * scale_x;
         out.x = map32_to_16(tx);
     }
     if (scale_y != 0xFFFF) {
-        uint32_t ty = uint32_t(out.y) * scale_y;
+        fl::u32 ty = fl::u32(out.y) * scale_y;
         out.y = map32_to_16(ty);
     }
 

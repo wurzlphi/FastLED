@@ -12,6 +12,7 @@
 #include "fx/time.h"
 #include "fx/video.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 // Forward declaration
 class TimeFunction;
@@ -86,7 +87,7 @@ class FxEngine {
      * @param now The current time in milliseconds.
      * @param outputBuffer The buffer to render the effect into.
      */
-    bool draw(uint32_t now, CRGB *outputBuffer);
+    bool draw(fl::u32 now, CRGB *outputBuffer);
 
     /**
      * @brief Transitions to the next effect in the sequence.

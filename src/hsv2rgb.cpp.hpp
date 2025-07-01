@@ -7,6 +7,7 @@
 
 #include "FastLED.h"
 #include "fl/math_macros.h"
+#include "fl/int.h"
 
 #include "hsv2rgb.h"
 
@@ -587,10 +588,10 @@ CHSV rgb2hsv_approximate( const CRGB& rgb)
     // scale all channels up to compensate for desaturation
     if( s < 255) {
         if( s == 0) s = 1;
-        uint32_t scaleup = 65535 / (s);
-        r = ((uint32_t)(r) * scaleup) / 256;
-        g = ((uint32_t)(g) * scaleup) / 256;
-        b = ((uint32_t)(b) * scaleup) / 256;
+        fl::u32 scaleup = 65535 / (s);
+        r = ((fl::u32)(r) * scaleup) / 256;
+        g = ((fl::u32)(g) * scaleup) / 256;
+        b = ((fl::u32)(b) * scaleup) / 256;
     }
     //Serial.print("r.2="); Serial.print(r); Serial.println("");
     //Serial.print("g.2="); Serial.print(g); Serial.println("");
@@ -603,10 +604,10 @@ CHSV rgb2hsv_approximate( const CRGB& rgb)
     // scale all channels up to compensate for low values
     if( total < 255) {
         if( total == 0) total = 1;
-        uint32_t scaleup = 65535 / (total);
-        r = ((uint32_t)(r) * scaleup) / 256;
-        g = ((uint32_t)(g) * scaleup) / 256;
-        b = ((uint32_t)(b) * scaleup) / 256;
+        fl::u32 scaleup = 65535 / (total);
+        r = ((fl::u32)(r) * scaleup) / 256;
+        g = ((fl::u32)(g) * scaleup) / 256;
+        b = ((fl::u32)(b) * scaleup) / 256;
     }
     //Serial.print("r.3="); Serial.print(r); Serial.println("");
     //Serial.print("g.3="); Serial.print(g); Serial.println("");

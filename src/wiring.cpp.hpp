@@ -1,5 +1,6 @@
 #define FASTLED_INTERNAL
 #include "FastLED.h"
+#include "fl/int.h"
 
 /// @file wiring.cpp
 /// Re-implementation of Arduino core functions
@@ -20,7 +21,7 @@ typedef union { unsigned long _long; uint8_t raw[4]; } tBytesForLong;
 volatile unsigned long FastLED_timer0_overflow_count=0;
 volatile unsigned long FastLED_timer0_millis = 0;
 
-LIB8STATIC void  __attribute__((always_inline)) fastinc32 (volatile uint32_t & _long) {
+LIB8STATIC void  __attribute__((always_inline)) fastinc32 (volatile fl::u32 & _long) {
   uint8_t b = ++((tBytesForLong&)_long).raw[0];
   if(!b) {
     b = ++((tBytesForLong&)_long).raw[1];

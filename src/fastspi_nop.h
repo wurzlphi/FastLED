@@ -10,13 +10,14 @@
 #if FASTLED_DOXYGEN // Guard against the arduino ide idiotically including every header file
 
 #include "FastLED.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
 /// A nop/stub class, mostly to show the SPI methods that are needed/used by the various SPI chipset implementations.  Should
 /// be used as a definition for the set of methods that the spi implementation classes should use (since C++ doesn't support the
 /// idea of interfaces - it's possible this could be done with virtual classes, need to decide if i want that overhead)
-template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, fl::u32 _SPI_CLOCK_DIVIDER>
 class NOPSPIOutput {
 	Selectable *m_pSelect;
 

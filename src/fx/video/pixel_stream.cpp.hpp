@@ -2,6 +2,7 @@
 #include "fx/video/pixel_stream.h"
 #include "fl/dbg.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 #ifndef INT32_MAX
 #define INT32_MAX 0x7fffffff
@@ -85,7 +86,7 @@ bool PixelStream::readFrame(Frame *frame) {
     return n * 3 == size_t(mbytesPerFrame);
 }
 
-bool PixelStream::hasFrame(uint32_t frameNumber) {
+bool PixelStream::hasFrame(fl::u32 frameNumber) {
     if (mUsingByteStream) {
         // ByteStream doesn't support seeking
         DBG("Not implemented and therefore always returns true");
@@ -96,7 +97,7 @@ bool PixelStream::hasFrame(uint32_t frameNumber) {
     }
 }
 
-bool PixelStream::readFrameAt(uint32_t frameNumber, Frame *frame) {
+bool PixelStream::readFrameAt(fl::u32 frameNumber, Frame *frame) {
     // DBG("read frame at " << frameNumber);
     if (mUsingByteStream) {
         // ByteStream doesn't support seeking

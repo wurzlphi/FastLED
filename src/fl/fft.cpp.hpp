@@ -3,11 +3,12 @@
 #include "fl/compiler_control.h"
 #include "fl/fft_impl.h"
 #include "fl/hash_map_lru.h"
+#include "fl/int.h"
 
 namespace fl {
 
 template <> struct Hash<FFT_Args> {
-    uint32_t operator()(const FFT_Args &key) const noexcept {
+    fl::u32 operator()(const FFT_Args &key) const noexcept {
         return MurmurHash3_x86_32(&key, sizeof(FFT_Args));
     }
 };

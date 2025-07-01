@@ -6,6 +6,7 @@
 // We implement custom integer parsing functions instead
 
 #include "fl/math_macros.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -41,14 +42,14 @@ namespace {
         
         if (*str == '\0' || !isDigit(*str)) return false;
         
-        uint32_t value = 0;
-        const uint32_t max_div_10 = 214748364U; // INT32_MAX / 10
-        const uint32_t max_mod_10 = 7U;         // INT32_MAX % 10
-        const uint32_t max_neg_div_10 = 214748364U; // -INT32_MIN / 10  
-        const uint32_t max_neg_mod_10 = 8U;         // -INT32_MIN % 10
+        fl::u32 value = 0;
+        const fl::u32 max_div_10 = 214748364U; // INT32_MAX / 10
+        const fl::u32 max_mod_10 = 7U;         // INT32_MAX % 10
+        const fl::u32 max_neg_div_10 = 214748364U; // -INT32_MIN / 10  
+        const fl::u32 max_neg_mod_10 = 8U;         // -INT32_MIN % 10
         
         while (*str && isDigit(*str)) {
-            uint32_t digit = *str - '0';
+            fl::u32 digit = *str - '0';
             
             // Check for overflow
             if (negative) {
@@ -78,7 +79,7 @@ namespace {
     }
     
     // Custom integer parsing function for unsigned 32-bit integers
-    bool parse_uint32(const char* str, uint32_t& result) {
+    bool parse_uint32(const char* str, fl::u32& result) {
         if (!str) return false;
         
         // Skip leading whitespace
@@ -97,12 +98,12 @@ namespace {
         
         if (*str == '\0' || !isDigit(*str)) return false;
         
-        uint32_t value = 0;
-        const uint32_t max_div_10 = 429496729U; // UINT32_MAX / 10
-        const uint32_t max_mod_10 = 5U;         // UINT32_MAX % 10
+        fl::u32 value = 0;
+        const fl::u32 max_div_10 = 429496729U; // UINT32_MAX / 10
+        const fl::u32 max_mod_10 = 5U;         // UINT32_MAX % 10
         
         while (*str && isDigit(*str)) {
-            uint32_t digit = *str - '0';
+            fl::u32 digit = *str - '0';
             
             // Check for overflow
             if (value > max_div_10 || (value == max_div_10 && digit > max_mod_10)) {
@@ -246,7 +247,7 @@ istream_real& istream_real::operator>>(int8_t& n) {
 istream_real& istream_real::operator>>(uint8_t& n) {
     string token;
     if (readToken(token)) {
-        uint32_t temp;
+        fl::u32 temp;
         if (parse_uint32(token.c_str(), temp) && temp <= 255) {
             n = static_cast<uint8_t>(temp);
         } else {
@@ -276,7 +277,7 @@ istream_real& istream_real::operator>>(int16_t& n) {
 istream_real& istream_real::operator>>(uint16_t& n) {
     string token;
     if (readToken(token)) {
-        uint32_t temp;
+        fl::u32 temp;
         if (parse_uint32(token.c_str(), temp) && temp <= 65535) {
             n = static_cast<uint16_t>(temp);
         } else {
@@ -300,7 +301,7 @@ istream_real& istream_real::operator>>(int32_t& n) {
     return *this;
 }
 
-istream_real& istream_real::operator>>(uint32_t& n) {
+istream_real& istream_real::operator>>(fl::u32& n) {
     string token;
     if (readToken(token)) {
         if (!parse_uint32(token.c_str(), n)) {
@@ -351,7 +352,7 @@ istream_real& istream_real::operator>>(double& d) {
 istream_real& istream_real::operator>>(size_t& n) {
     string token;
     if (readToken(token)) {
-        uint32_t temp;
+        fl::u32 temp;
         if (parse_uint32(token.c_str(), temp)) {
             n = static_cast<size_t>(temp);
         } else {

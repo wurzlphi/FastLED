@@ -17,6 +17,7 @@
 #include "fl/force_inline.h"
 #include "lib8tion/scale8.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "eorder.h"
 #include "dither_mode.h"
 #include "pixel_iterator.h"
@@ -71,7 +72,7 @@ struct ColorAdjustment {
 /// @tparam RGB_ORDER the rgb ordering for the LEDs (e.g. what order red, green, and blue data is written out in)
 /// @tparam LANES how many parallel lanes of output to write
 /// @tparam MASK bitmask for the output lanes
-template<EOrder RGB_ORDER, int LANES=1, uint32_t MASK=0xFFFFFFFF>
+template<EOrder RGB_ORDER, int LANES=1, fl::u32 MASK=0xFFFFFFFF>
 struct PixelController {
     const uint8_t *mData;    ///< pointer to the underlying LED data
     int mLen;                ///< number of LEDs in the data for one lane

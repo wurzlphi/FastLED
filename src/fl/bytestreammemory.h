@@ -7,6 +7,7 @@
 
 #include "fl/bytestream.h"
 #include "fl/circular_buffer.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -14,7 +15,7 @@ FASTLED_SMART_PTR(ByteStreamMemory);
 
 class ByteStreamMemory : public ByteStream {
   public:
-    ByteStreamMemory(uint32_t size_buffer);
+    ByteStreamMemory(fl::u32 size_buffer);
     ~ByteStreamMemory() override;
     bool available(size_t n) const override;
     size_t read(uint8_t *dst, size_t bytesToRead) override;

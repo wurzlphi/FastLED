@@ -9,6 +9,7 @@
 #include "fl/xymap.h"
 #include "fl/tile2x2.h"
 #include "fl/compiler_control.h"
+#include "fl/int.h"
 // UI dependency moved to separate compilation unit to break dependency chain
 
 #ifdef FASTLED_TESTING
@@ -43,7 +44,7 @@ static void ftoa(float value, char *buffer, int precision = 2) {
     }
 
     // Extract integer part
-    uint32_t intPart = (uint32_t)value;
+    fl::u32 intPart = (fl::u32)value;
 
     // Convert integer part to string (reversed)
     char intBuf[12]; // Enough for 32-bit integers
@@ -61,7 +62,7 @@ static void ftoa(float value, char *buffer, int precision = 2) {
     *buffer++ = '.'; // Decimal point
 
     // Extract fractional part
-    float fracPart = value - (uint32_t)value;
+    float fracPart = value - (fl::u32)value;
     for (int j = 0; j < precision; ++j) {
         fracPart *= 10.0f;
         int digit = (int)fracPart;

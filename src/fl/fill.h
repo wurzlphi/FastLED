@@ -3,6 +3,7 @@
 #include "crgb.h"
 #include "fl/colorutils_misc.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 /// ANSI: signed short _Accum.  8 bits int, 7 bits fraction
 /// @see accum88
@@ -146,9 +147,9 @@ void fill_gradient(T *targetArray, uint16_t startpos, CHSV startcolor,
     huedelta823 *= 2;
     satdelta823 *= 2;
     valdelta823 *= 2;
-    uint32_t hue824 = static_cast<uint32_t>(startcolor.hue) << 24;
-    uint32_t sat824 = static_cast<uint32_t>(startcolor.sat) << 24;
-    uint32_t val824 = static_cast<uint32_t>(startcolor.val) << 24;
+    fl::u32 hue824 = static_cast<fl::u32>(startcolor.hue) << 24;
+    fl::u32 sat824 = static_cast<fl::u32>(startcolor.sat) << 24;
+    fl::u32 val824 = static_cast<fl::u32>(startcolor.val) << 24;
     for (uint16_t i = startpos; i <= endpos; ++i) {
         targetArray[i] = CHSV(hue824 >> 24, sat824 >> 24, val824 >> 24);
         hue824 += huedelta823;

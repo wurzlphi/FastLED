@@ -132,7 +132,7 @@ class RGBWEmulatedController
 
 
     static const int LANES = CONTROLLER::LANES_VALUE;
-    static const uint32_t MASK = CONTROLLER::MASK_VALUE;
+    static const fl::u32 MASK = CONTROLLER::MASK_VALUE;
 
     // The delegated controller must do no reordering.
     static_assert(RGB == CONTROLLER::RGB_ORDER_VALUE, "The delegated controller MUST NOT do reordering");
@@ -194,11 +194,11 @@ class RGBWEmulatedController
             // In the case of src data not a multiple of 3, then we need to
             // add pad bytes so that the delegate controller doesn't walk off the end
             // of the array and invoke a buffer overflow panic.
-            uint32_t new_size = Rgbw::size_as_rgb(num_leds);
+            fl::u32 new_size = Rgbw::size_as_rgb(num_leds);
             delete[] mRGBWPixels;
             mRGBWPixels = new CRGB[new_size];
 			// showPixels may never clear the last two pixels.
-			for (uint32_t i = 0; i < new_size; i++) {
+			for (fl::u32 i = 0; i < new_size; i++) {
 				mRGBWPixels[i] = CRGB(0, 0, 0);
 			}
 
@@ -227,7 +227,7 @@ class RGBWEmulatedController
 /// @tparam CLOCK_PIN the clock pin for these LEDs
 /// @tparam RGB_ORDER the RGB ordering for these LEDs
 /// @tparam SPI_SPEED the clock divider used for these LEDs.  Set using the ::DATA_RATE_MHZ / ::DATA_RATE_KHZ macros.  Defaults to ::DATA_RATE_MHZ(12)
-template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB,  uint32_t SPI_SPEED = DATA_RATE_MHZ(12) >
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB,  fl::u32 SPI_SPEED = DATA_RATE_MHZ(12) >
 class LPD8806Controller : public CPixelLEDController<RGB_ORDER> {
 	typedef SPIOutput<DATA_PIN, CLOCK_PIN, SPI_SPEED> SPI;
 
@@ -270,7 +270,7 @@ protected:
 /// @tparam CLOCK_PIN the clock pin for these LEDs
 /// @tparam RGB_ORDER the RGB ordering for these LEDs
 /// @tparam SPI_SPEED the clock divider used for these LEDs.  Set using the ::DATA_RATE_MHZ / ::DATA_RATE_KHZ macros.  Defaults to ::DATA_RATE_MHZ(1)
-template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, uint32_t SPI_SPEED = DATA_RATE_MHZ(1)>
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, fl::u32 SPI_SPEED = DATA_RATE_MHZ(1)>
 class WS2801Controller : public CPixelLEDController<RGB_ORDER> {
 	typedef SPIOutput<DATA_PIN, CLOCK_PIN, SPI_SPEED> SPI;
 	SPI mSPI;
@@ -297,7 +297,7 @@ protected:
 
 /// WS2803 controller class.
 /// @copydetails WS2801Controller
-template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, uint32_t SPI_SPEED = DATA_RATE_MHZ(25)>
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, fl::u32 SPI_SPEED = DATA_RATE_MHZ(25)>
 class WS2803Controller : public WS2801Controller<DATA_PIN, CLOCK_PIN, RGB_ORDER, SPI_SPEED> {};
 
 /// LPD6803 controller class (LPD1101).
@@ -308,7 +308,7 @@ class WS2803Controller : public WS2801Controller<DATA_PIN, CLOCK_PIN, RGB_ORDER,
 /// @tparam RGB_ORDER the RGB ordering for these LEDs
 /// @tparam SPI_SPEED the clock divider used for these LEDs.  Set using the ::DATA_RATE_MHZ / ::DATA_RATE_KHZ macros.  Defaults to ::DATA_RATE_MHZ(12)
 /// @see Datasheet: https://cdn-shop.adafruit.com/datasheets/LPD6803.pdf
-template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, uint32_t SPI_SPEED = DATA_RATE_MHZ(12)>
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, fl::u32 SPI_SPEED = DATA_RATE_MHZ(12)>
 class LPD6803Controller : public CPixelLEDController<RGB_ORDER> {
 	typedef SPIOutput<DATA_PIN, CLOCK_PIN, SPI_SPEED> SPI;
 	SPI mSPI;
@@ -367,10 +367,10 @@ template <
 	// you down?  Probably not. And you can always bump it up for speed. Therefore we are prioritizing
 	// "just works" over "fastest possible" here.
 	// https://www.pjrc.com/why-apa102-leds-have-trouble-at-24-mhz/
-	uint32_t SPI_SPEED = DATA_RATE_MHZ(6),
+	fl::u32 SPI_SPEED = DATA_RATE_MHZ(6),
 	fl::FiveBitGammaCorrectionMode GAMMA_CORRECTION_MODE = fl::kFiveBitGammaCorrectionMode_Null,
-	uint32_t START_FRAME = 0x00000000,
-	uint32_t END_FRAME = 0xFF000000
+	fl::u32 START_FRAME = 0x00000000,
+	fl::u32 END_FRAME = 0xFF000000
 >
 class APA102Controller : public CPixelLEDController<RGB_ORDER> {
 	typedef SPIOutput<DATA_PIN, CLOCK_PIN, SPI_SPEED> SPI;
@@ -534,7 +534,7 @@ template <
 	// you down?  Probably not. And you can always bump it up for speed. Therefore we are prioritizing
 	// "just works" over "fastest possible" here.
 	// https://www.pjrc.com/why-apa102-leds-have-trouble-at-24-mhz/
-	uint32_t SPI_SPEED = DATA_RATE_MHZ(6)
+	fl::u32 SPI_SPEED = DATA_RATE_MHZ(6)
 >
 class APA102ControllerHD : public APA102Controller<
 	DATA_PIN,
@@ -542,8 +542,8 @@ class APA102ControllerHD : public APA102Controller<
 	RGB_ORDER,
 	SPI_SPEED,
 	fl::kFiveBitGammaCorrectionMode_BitShift,
-	uint32_t(0x00000000),
-	uint32_t(0x00000000)> {
+	fl::u32(0x00000000),
+	fl::u32(0x00000000)> {
 public:
   APA102ControllerHD() = default;
   APA102ControllerHD(const APA102ControllerHD&) = delete;
@@ -558,7 +558,7 @@ template <
 	uint8_t DATA_PIN,
 	uint8_t CLOCK_PIN,
 	EOrder RGB_ORDER = RGB,
-	uint32_t SPI_SPEED = DATA_RATE_MHZ(12)
+	fl::u32 SPI_SPEED = DATA_RATE_MHZ(12)
 >
 class SK9822Controller : public APA102Controller<
 	DATA_PIN,
@@ -580,7 +580,7 @@ template <
 	uint8_t DATA_PIN,
 	uint8_t CLOCK_PIN,
 	EOrder RGB_ORDER = RGB,
-	uint32_t SPI_SPEED = DATA_RATE_MHZ(12)
+	fl::u32 SPI_SPEED = DATA_RATE_MHZ(12)
 >
 class SK9822ControllerHD : public APA102Controller<
 	DATA_PIN,
@@ -599,7 +599,7 @@ template <
 	uint8_t DATA_PIN,
 	uint8_t CLOCK_PIN,
 	EOrder RGB_ORDER = RGB,
-	uint32_t SPI_SPEED = DATA_RATE_MHZ(40)
+	fl::u32 SPI_SPEED = DATA_RATE_MHZ(40)
 >
 class HD107Controller : public APA102Controller<
 	DATA_PIN,
@@ -616,7 +616,7 @@ template <
 	uint8_t DATA_PIN,
 	uint8_t CLOCK_PIN,
 	EOrder RGB_ORDER = RGB,
-	uint32_t SPI_SPEED = DATA_RATE_MHZ(40)\
+	fl::u32 SPI_SPEED = DATA_RATE_MHZ(40)\
 >
 class HD107HDController : public APA102ControllerHD<
 	DATA_PIN,
@@ -637,7 +637,7 @@ class HD107HDController : public APA102ControllerHD<
 /// @tparam CLOCK_PIN the clock pin for these LEDs
 /// @tparam RGB_ORDER the RGB ordering for these LEDs
 /// @tparam SPI_SPEED the clock divider used for these LEDs.  Set using the ::DATA_RATE_MHZ / ::DATA_RATE_KHZ macros.  Defaults to ::DATA_RATE_MHZ(10)
-template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, uint32_t SPI_SPEED = DATA_RATE_MHZ(10)>
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, fl::u32 SPI_SPEED = DATA_RATE_MHZ(10)>
 class P9813Controller : public CPixelLEDController<RGB_ORDER> {
 	typedef SPIOutput<DATA_PIN, CLOCK_PIN, SPI_SPEED> SPI;
 	SPI mSPI;
@@ -687,7 +687,7 @@ protected:
 /// @tparam CLOCK_PIN the clock pin for these LEDs
 /// @tparam RGB_ORDER the RGB ordering for these LEDs
 /// @tparam SPI_SPEED the clock divider used for these LEDs.  Set using the ::DATA_RATE_MHZ / ::DATA_RATE_KHZ macros.  Defaults to ::DATA_RATE_MHZ(16)
-template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, uint32_t SPI_SPEED = DATA_RATE_MHZ(16)>
+template <uint8_t DATA_PIN, uint8_t CLOCK_PIN, EOrder RGB_ORDER = RGB, fl::u32 SPI_SPEED = DATA_RATE_MHZ(16)>
 class SM16716Controller : public CPixelLEDController<RGB_ORDER> {
 	typedef SPIOutput<DATA_PIN, CLOCK_PIN, SPI_SPEED> SPI;
 	SPI mSPI;
@@ -1163,7 +1163,7 @@ public:
 	};
 
     static const int LANES = ControllerT::LANES_VALUE;
-    static const uint32_t MASK = ControllerT::MASK_VALUE;
+    static const fl::u32 MASK = ControllerT::MASK_VALUE;
 
     WS2816Controller() {}
     ~WS2816Controller() {

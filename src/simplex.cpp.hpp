@@ -3,6 +3,7 @@
 
 #define FASTLED_INTERNAL
 #include "FastLED.h"
+#include "fl/int.h"
 
 // This file implements simplex noise, which is an improved Perlin noise. This
 // implementation is a fixed-point version that avoids all uses of floating
@@ -103,9 +104,9 @@ static int32_t grad(uint8_t hash, int32_t x, int32_t y, int32_t z, int32_t t) {
 }
 
 // 1D simplex noise.
-uint16_t snoise16(uint32_t x) {
-    uint32_t i0 = x >> 12;
-    uint32_t i1 = i0 + 1;
+uint16_t snoise16(fl::u32 x) {
+    fl::u32 i0 = x >> 12;
+    fl::u32 i1 = i0 + 1;
     int32_t x0 = x & 0xfff;   // .12
     int32_t x1 = x0 - 0x1000; // .12
 
@@ -126,14 +127,14 @@ uint16_t snoise16(uint32_t x) {
 }
 
 // 2D simplex noise.
-uint16_t snoise16(uint32_t x, uint32_t y) {
+uint16_t snoise16(fl::u32 x, fl::u32 y) {
     const uint64_t F2 = 1572067135; // .32: F2 = 0.5*(sqrt(3.0)-1.0)
     const uint64_t G2 = 907633384;  // .32: G2 = (3.0-Math.sqrt(3.0))/6.0
 
     // Skew the input space to determine which simplex cell we're in
-    uint32_t s = (((uint64_t)x + (uint64_t)y) * F2) >> 32; // (.12 + .12) * .32 = .12: Hairy factor for 2D
-    uint32_t i = ((x>>1) + (s>>1)) >> 11;                  // .0
-    uint32_t j = ((y>>1) + (s>>1)) >> 11;                  // .0
+    fl::u32 s = (((uint64_t)x + (uint64_t)y) * F2) >> 32; // (.12 + .12) * .32 = .12: Hairy factor for 2D
+    fl::u32 i = ((x>>1) + (s>>1)) >> 11;                  // .0
+    fl::u32 j = ((y>>1) + (s>>1)) >> 11;                  // .0
 
     uint64_t t = ((uint64_t)i + (uint64_t)j) * G2; // .32
     uint64_t X0 = ((uint64_t)i<<32) - t;           // .32: Unskew the cell origin back to (x,y) space
@@ -143,7 +144,7 @@ uint16_t snoise16(uint32_t x, uint32_t y) {
 
     // For the 2D case, the simplex shape is an equilateral triangle.
     // Determine which simplex we are in.
-    uint32_t i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
+    fl::u32 i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
     if (x0 > y0) {
         i1 = 1;
         j1 = 0; // lower triangle, XY order: (0,0)->(1,0)->(1,1)
@@ -168,21 +169,21 @@ uint16_t snoise16(uint32_t x, uint32_t y) {
     if (t0 > 0) {
         t0 = (t0 * t0) >> 16;                                      // .16
         t0 = (t0 * t0) >> 16;                                      // .16
-        n0 = t0 * grad(SIMPLEX_P((i+(uint32_t)(SIMPLEX_P(j&0xff)))&0xff), x0, y0); // .16 * .14 = .30
+        n0 = t0 * grad(SIMPLEX_P((i+(fl::u32)(SIMPLEX_P(j&0xff)))&0xff), x0, y0); // .16 * .14 = .30
     }
 
     int32_t t1 = (((int32_t)1 << 27) - x1*x1 - y1*y1) >> 12; // .16
     if (t1 > 0) {
         t1 = (t1 * t1) >> 16;                                              // .16
         t1 = (t1 * t1) >> 16;                                              // .16
-        n1 = t1 * grad(SIMPLEX_P((i+i1+(uint32_t)(SIMPLEX_P((j+j1)&0xff)))&0xff), x1, y1); // .16 * .14 = .30
+        n1 = t1 * grad(SIMPLEX_P((i+i1+(fl::u32)(SIMPLEX_P((j+j1)&0xff)))&0xff), x1, y1); // .16 * .14 = .30
     }
 
     int32_t t2 = (((int32_t)1 << 27) - x2*x2 - y2*y2) >> 12; // .16
     if (t2 > 0) {
         t2 = (t2 * t2) >> 16;                                            // .16
         t2 = (t2 * t2) >> 16;                                            // .16
-        n2 = t2 * grad(SIMPLEX_P((i+1+(uint32_t)(SIMPLEX_P((j+1)&0xff)))&0xff), x2, y2); // .16 * .14 = .30
+        n2 = t2 * grad(SIMPLEX_P((i+1+(fl::u32)(SIMPLEX_P((j+1)&0xff)))&0xff), x2, y2); // .16 * .14 = .30
     }
 
     // Add contributions from each corner to get the final noise value.
@@ -193,16 +194,16 @@ uint16_t snoise16(uint32_t x, uint32_t y) {
 }
 
 // 3D simplex noise.
-uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
+uint16_t snoise16(fl::u32 x, fl::u32 y, fl::u32 z) {
     // Simple skewing factors for the 3D case
     const uint64_t F3 = 1431655764; // .32: 0.333333333
     const uint64_t G3 = 715827884;  // .32: 0.166666667
 
     // Skew the input space to determine which simplex cell we're in
-    uint32_t s = (((uint64_t)x + (uint64_t)y + (uint64_t)z) * F3) >> 32; // .12 + .32 = .12: Very nice and simple skew factor for 3D
-    uint32_t i = ((x>>1) + (s>>1)) >> 11;                                // .0
-    uint32_t j = ((y>>1) + (s>>1)) >> 11;                                // .0
-    uint32_t k = ((z>>1) + (s>>1)) >> 11;                                // .0
+    fl::u32 s = (((uint64_t)x + (uint64_t)y + (uint64_t)z) * F3) >> 32; // .12 + .32 = .12: Very nice and simple skew factor for 3D
+    fl::u32 i = ((x>>1) + (s>>1)) >> 11;                                // .0
+    fl::u32 j = ((y>>1) + (s>>1)) >> 11;                                // .0
+    fl::u32 k = ((z>>1) + (s>>1)) >> 11;                                // .0
 
     uint64_t t = ((uint64_t)i + (uint64_t)j + (uint64_t)k) * G3; // .32
     uint64_t X0 = ((uint64_t)i<<32) - t;                         // .32: Unskew the cell origin back to (x,y) space
@@ -214,8 +215,8 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
 
     // For the 3D case, the simplex shape is a slightly irregular tetrahedron.
     // Determine which simplex we are in.
-    uint32_t i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
-    uint32_t i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
+    fl::u32 i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
+    fl::u32 i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
 
     // This code would benefit from a backport from the GLSL version!
     if (x0 >= y0) {
@@ -290,7 +291,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
         t0 = (t0 * t0) >> 16; // .16
         t0 = (t0 * t0) >> 16; // .16
         // .16 * .14 = .30
-        n0 = t0 * grad(SIMPLEX_P((i+(uint32_t)SIMPLEX_P((j+(uint32_t)SIMPLEX_P(k&0xff))&0xff))&0xff), x0, y0, z0);
+        n0 = t0 * grad(SIMPLEX_P((i+(fl::u32)SIMPLEX_P((j+(fl::u32)SIMPLEX_P(k&0xff))&0xff))&0xff), x0, y0, z0);
     }
 
     int32_t t1 = (fix0_6 - x1*x1 - y1*y1 - z1*z1) >> 12; // .16
@@ -298,7 +299,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
         t1 = (t1 * t1) >> 16; // .16
         t1 = (t1 * t1) >> 16; // .16
         // .16 * .14 = .30
-        n1 = t1 * grad(SIMPLEX_P((i+i1+(uint32_t)SIMPLEX_P((j+j1+(uint32_t)SIMPLEX_P((k+k1)&0xff))&0xff))&0xff), x1, y1, z1);
+        n1 = t1 * grad(SIMPLEX_P((i+i1+(fl::u32)SIMPLEX_P((j+j1+(fl::u32)SIMPLEX_P((k+k1)&0xff))&0xff))&0xff), x1, y1, z1);
     }
 
     int32_t t2 = (fix0_6 - x2*x2 - y2*y2 - z2*z2) >> 12; // .16
@@ -306,7 +307,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
         t2 = (t2 * t2) >> 16; // .16
         t2 = (t2 * t2) >> 16; // .16
         // .16 * .14 = .30
-        n2 = t2 * grad(SIMPLEX_P((i+i2+(uint32_t)SIMPLEX_P((j+j2+(uint32_t)SIMPLEX_P((k+k2)&0xff))&0xff))&0xff), x2, y2, z2);
+        n2 = t2 * grad(SIMPLEX_P((i+i2+(fl::u32)SIMPLEX_P((j+j2+(fl::u32)SIMPLEX_P((k+k2)&0xff))&0xff))&0xff), x2, y2, z2);
     }
 
     int32_t t3 = (fix0_6 - x3*x3 - y3*y3 - z3*z3) >> 12; // .16
@@ -314,7 +315,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
         t3 = (t3 * t3) >> 16; // .16
         t3 = (t3 * t3) >> 16; // .16
         // .16 * .14 = .30
-        n3 = t3 * grad(SIMPLEX_P((i+1+(uint32_t)SIMPLEX_P((j+1+(uint32_t)SIMPLEX_P((k+1)&0xff))&0xff))&0xff), x3, y3, z3);
+        n3 = t3 * grad(SIMPLEX_P((i+1+(fl::u32)SIMPLEX_P((j+1+(fl::u32)SIMPLEX_P((k+1)&0xff))&0xff))&0xff), x3, y3, z3);
     }
 
     // Add contributions from each corner to get the final noise value.
@@ -325,18 +326,18 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z) {
 }
 
 // 4D simplex noise.
-uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
+uint16_t snoise16(fl::u32 x, fl::u32 y, fl::u32 z, fl::u32 w) {
     // The skewing and unskewing factors are hairy again for the 4D case
     const uint64_t F4 = 331804471; // .30: (Math.sqrt(5.0)-1.0)/4.0 = 0.30901699437494745
     const uint64_t G4 = 593549882; // .32: (5.0-Math.sqrt(5.0))/20.0 = 0.1381966011250105
 
     // Skew the (x,y,z,w) space to determine which cell of 24 simplices we're
     // in.
-    uint32_t s = (((uint64_t)x + (uint64_t)y + (uint64_t)z + (uint64_t)w) * F4) >> 32; // .12 + .30 = .10: Factor for 4D skewing.
-    uint32_t i = ((x>>2) + s) >> 10;                                                   // .0
-    uint32_t j = ((y>>2) + s) >> 10;                                                   // .0
-    uint32_t k = ((z>>2) + s) >> 10;                                                   // .0
-    uint32_t l = ((w>>2) + s) >> 10;                                                   // .0
+    fl::u32 s = (((uint64_t)x + (uint64_t)y + (uint64_t)z + (uint64_t)w) * F4) >> 32; // .12 + .30 = .10: Factor for 4D skewing.
+    fl::u32 i = ((x>>2) + s) >> 10;                                                   // .0
+    fl::u32 j = ((y>>2) + s) >> 10;                                                   // .0
+    fl::u32 k = ((z>>2) + s) >> 10;                                                   // .0
+    fl::u32 l = ((w>>2) + s) >> 10;                                                   // .0
 
     uint64_t t = (((uint64_t)i + (uint64_t)j + (uint64_t)k + (uint64_t)l) * G4) >> 18; // .14
     uint64_t X0 = ((uint64_t)i<<14) - t;                                               // .14: Unskew the cell origin back to (x,y,z,w) space
@@ -382,22 +383,22 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
     // We use a thresholding to set the coordinates in turn from the largest magnitude.
     // The number 3 in the "simplex" array is at the position of the largest coordinate.
     // The integer offsets for the second simplex corner
-    uint32_t i1 = simplex_detail::simplex[c][0] >= 3 ? 1 : 0;
-    uint32_t j1 = simplex_detail::simplex[c][1] >= 3 ? 1 : 0;
-    uint32_t k1 = simplex_detail::simplex[c][2] >= 3 ? 1 : 0;
-    uint32_t l1 = simplex_detail::simplex[c][3] >= 3 ? 1 : 0;
+    fl::u32 i1 = simplex_detail::simplex[c][0] >= 3 ? 1 : 0;
+    fl::u32 j1 = simplex_detail::simplex[c][1] >= 3 ? 1 : 0;
+    fl::u32 k1 = simplex_detail::simplex[c][2] >= 3 ? 1 : 0;
+    fl::u32 l1 = simplex_detail::simplex[c][3] >= 3 ? 1 : 0;
     // The number 2 in the "simplex" array is at the second largest coordinate.
     // The integer offsets for the third simplex corner
-    uint32_t i2 = simplex_detail::simplex[c][0] >= 2 ? 1 : 0;
-    uint32_t j2 = simplex_detail::simplex[c][1] >= 2 ? 1 : 0;
-    uint32_t k2 = simplex_detail::simplex[c][2] >= 2 ? 1 : 0;
-    uint32_t l2 = simplex_detail::simplex[c][3] >= 2 ? 1 : 0;
+    fl::u32 i2 = simplex_detail::simplex[c][0] >= 2 ? 1 : 0;
+    fl::u32 j2 = simplex_detail::simplex[c][1] >= 2 ? 1 : 0;
+    fl::u32 k2 = simplex_detail::simplex[c][2] >= 2 ? 1 : 0;
+    fl::u32 l2 = simplex_detail::simplex[c][3] >= 2 ? 1 : 0;
     // The number 1 in the "simplex" array is at the second smallest coordinate.
     // The integer offsets for the fourth simplex corner
-    uint32_t i3 = simplex_detail::simplex[c][0] >= 1 ? 1 : 0;
-    uint32_t j3 = simplex_detail::simplex[c][1] >= 1 ? 1 : 0;
-    uint32_t k3 = simplex_detail::simplex[c][2] >= 1 ? 1 : 0;
-    uint32_t l3 = simplex_detail::simplex[c][3] >= 1 ? 1 : 0;
+    fl::u32 i3 = simplex_detail::simplex[c][0] >= 1 ? 1 : 0;
+    fl::u32 j3 = simplex_detail::simplex[c][1] >= 1 ? 1 : 0;
+    fl::u32 k3 = simplex_detail::simplex[c][2] >= 1 ? 1 : 0;
+    fl::u32 l3 = simplex_detail::simplex[c][3] >= 1 ? 1 : 0;
     // The fifth corner has all coordinate offsets = 1, so no need to look that up.
 
     int32_t x1 = x0 - ((int32_t)i1<<14) + (int32_t)(G4>>18); // .14: Offsets for second corner in (x,y,z,w) coords
@@ -426,7 +427,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
         t0 = (t0 * t0) >> 16;
         t0 = (t0 * t0) >> 16;
         // .16 * .14 = .30
-        n0 = t0 * grad(SIMPLEX_P((i+(uint32_t)(SIMPLEX_P((j+(uint32_t)(SIMPLEX_P((k+(uint32_t)(SIMPLEX_P(l&0xff)))&0xff)))&0xff)))&0xff), x0, y0, z0, w0);
+        n0 = t0 * grad(SIMPLEX_P((i+(fl::u32)(SIMPLEX_P((j+(fl::u32)(SIMPLEX_P((k+(fl::u32)(SIMPLEX_P(l&0xff)))&0xff)))&0xff)))&0xff), x0, y0, z0, w0);
     }
 
     int32_t t1 = (fix0_6 - x1*x1 - y1*y1 - z1*z1 - w1*w1) >> 12; // .16
@@ -434,7 +435,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
         t1 = (t1 * t1) >> 16;
         t1 = (t1 * t1) >> 16;
         // .16 * .14 = .30
-        n1 = t1 * grad(SIMPLEX_P((i+i1+(uint32_t)(SIMPLEX_P((j+j1+(uint32_t)(SIMPLEX_P((k+k1+(uint32_t)(SIMPLEX_P((l+l1)&0xff)))&0xff)))&0xff)))&0xff), x1, y1, z1, w1);
+        n1 = t1 * grad(SIMPLEX_P((i+i1+(fl::u32)(SIMPLEX_P((j+j1+(fl::u32)(SIMPLEX_P((k+k1+(fl::u32)(SIMPLEX_P((l+l1)&0xff)))&0xff)))&0xff)))&0xff), x1, y1, z1, w1);
     }
 
     int32_t t2 = (fix0_6 - x2*x2 - y2*y2 - z2*z2 - w2*w2) >> 12; // .16
@@ -442,7 +443,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
         t2 = (t2 * t2) >> 16;
         t2 = (t2 * t2) >> 16;
         // .16 * .14 = .30
-        n2 = t2 * grad(SIMPLEX_P((i+i2+(uint32_t)(SIMPLEX_P((j+j2+(uint32_t)(SIMPLEX_P((k+k2+(uint32_t)(SIMPLEX_P((l+l2)&0xff)))&0xff)))&0xff)))&0xff), x2, y2, z2, w2);
+        n2 = t2 * grad(SIMPLEX_P((i+i2+(fl::u32)(SIMPLEX_P((j+j2+(fl::u32)(SIMPLEX_P((k+k2+(fl::u32)(SIMPLEX_P((l+l2)&0xff)))&0xff)))&0xff)))&0xff), x2, y2, z2, w2);
     }
 
     int32_t t3 = (fix0_6 - x3*x3 - y3*y3 - z3*z3 - w3*w3) >> 12; // .16
@@ -450,7 +451,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
         t3 = (t3 * t3) >> 16;
         t3 = (t3 * t3) >> 16;
         // .16 * .14 = .30
-        n3 = t3 * grad(SIMPLEX_P((i+i3+(uint32_t)(SIMPLEX_P((j+j3+(uint32_t)(SIMPLEX_P((k+k3+(uint32_t)(SIMPLEX_P((l+l3)&0xff)))&0xff)))&0xff)))&0xff), x3, y3, z3, w3);
+        n3 = t3 * grad(SIMPLEX_P((i+i3+(fl::u32)(SIMPLEX_P((j+j3+(fl::u32)(SIMPLEX_P((k+k3+(fl::u32)(SIMPLEX_P((l+l3)&0xff)))&0xff)))&0xff)))&0xff), x3, y3, z3, w3);
     }
 
     int32_t t4 = (fix0_6 - x4*x4 - y4*y4 - z4*z4 - w4*w4) >> 12; // .16
@@ -458,7 +459,7 @@ uint16_t snoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t w) {
         t4 = (t4 * t4) >> 16;
         t4 = (t4 * t4) >> 16;
         // .16 * .14 = .30
-        n4 = t4 * grad(SIMPLEX_P((i+1+(uint32_t)(SIMPLEX_P((j+1+(uint32_t)(SIMPLEX_P((k+1+(uint32_t)(SIMPLEX_P((l+1)&0xff)))&0xff)))&0xff)))&0xff), x4, y4, z4, w4);
+        n4 = t4 * grad(SIMPLEX_P((i+1+(fl::u32)(SIMPLEX_P((j+1+(fl::u32)(SIMPLEX_P((k+1+(fl::u32)(SIMPLEX_P((l+1)&0xff)))&0xff)))&0xff)))&0xff), x4, y4, z4, w4);
     }
 
     int32_t n = n0 + n1 + n2 + n3 + n4;  // .30

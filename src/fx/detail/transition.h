@@ -2,6 +2,7 @@
 
 #include "fl/namespace.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -11,7 +12,7 @@ class Transition {
     Transition() : mStart(0), mDuration(0), mNotStarted(true) {}
     ~Transition() {}
 
-    uint8_t getProgress(uint32_t now) {
+    uint8_t getProgress(fl::u32 now) {
         if (mNotStarted) {
             return 0;
         }
@@ -24,7 +25,7 @@ class Transition {
         }
     }
 
-    void start(uint32_t now, uint32_t duration) {
+    void start(fl::u32 now, fl::u32 duration) {
         mNotStarted = false;
         mStart = now;
         mDuration = duration;
@@ -32,7 +33,7 @@ class Transition {
 
     void end() { mNotStarted = true; }
 
-    bool isTransitioning(uint32_t now) {
+    bool isTransitioning(fl::u32 now) {
         if (mNotStarted) {
             return false;
         }
@@ -40,8 +41,8 @@ class Transition {
     }
 
   private:
-    uint32_t mStart;
-    uint32_t mDuration;
+    fl::u32 mStart;
+    fl::u32 mDuration;
     bool mNotStarted;
 };
 

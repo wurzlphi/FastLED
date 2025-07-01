@@ -8,6 +8,7 @@ intersecting the line and calls a visitor function for each cell.
 
 #include "fl/math.h"
 #include "fl/point.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -222,30 +223,30 @@ inline void traverseGridSegment32(const vec2f &start, const vec2f &end,
     int32_t deltaX_fp = endX_fp - startX_fp;
     int32_t deltaY_fp = endY_fp - startY_fp;
 
-    uint32_t absDeltaX_fp =
-        (deltaX_fp != 0) ? static_cast<uint32_t>(
+    fl::u32 absDeltaX_fp =
+        (deltaX_fp != 0) ? static_cast<fl::u32>(
                                ABS((int64_t(FP_ONE) << FP_SHIFT) / deltaX_fp))
                          : UINT32_MAX;
-    uint32_t absDeltaY_fp =
-        (deltaY_fp != 0) ? static_cast<uint32_t>(
+    fl::u32 absDeltaY_fp =
+        (deltaY_fp != 0) ? static_cast<fl::u32>(
                                ABS((int64_t(FP_ONE) << FP_SHIFT) / deltaY_fp))
                          : UINT32_MAX;
 
     int32_t nextX_fp = (stepX > 0) ? ((x0 + 1) << FP_SHIFT) : (x0 << FP_SHIFT);
     int32_t nextY_fp = (stepY > 0) ? ((y0 + 1) << FP_SHIFT) : (y0 << FP_SHIFT);
 
-    uint32_t tMaxX_fp =
+    fl::u32 tMaxX_fp =
         (deltaX_fp != 0)
-            ? static_cast<uint32_t>(
+            ? static_cast<fl::u32>(
                   ABS(int64_t(nextX_fp - startX_fp)) * absDeltaX_fp >> FP_SHIFT)
             : UINT32_MAX;
-    uint32_t tMaxY_fp =
+    fl::u32 tMaxY_fp =
         (deltaY_fp != 0)
-            ? static_cast<uint32_t>(
+            ? static_cast<fl::u32>(
                   ABS(int64_t(nextY_fp - startY_fp)) * absDeltaY_fp >> FP_SHIFT)
             : UINT32_MAX;
 
-    const uint32_t maxT_fp = FP_ONE;
+    const fl::u32 maxT_fp = FP_ONE;
 
     int32_t currentX = x0;
     int32_t currentY = y0;
@@ -253,7 +254,7 @@ inline void traverseGridSegment32(const vec2f &start, const vec2f &end,
     while (true) {
         visitor.visit(currentX, currentY);
 
-        uint32_t t_fp = (tMaxX_fp < tMaxY_fp) ? tMaxX_fp : tMaxY_fp;
+        fl::u32 t_fp = (tMaxX_fp < tMaxY_fp) ? tMaxX_fp : tMaxY_fp;
         if (t_fp > maxT_fp)
             break;
 

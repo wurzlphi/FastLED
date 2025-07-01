@@ -2,6 +2,7 @@
 /// Defines the 8x1 transposition function
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "transpose8x1_noinline.h"
 
@@ -9,7 +10,7 @@
 #pragma GCC diagnostic ignored "-Wcast-align"
 
 void transpose8x1_noinline(unsigned char *A, unsigned char *B) {
-    uint32_t x, y, t;
+    fl::u32 x, y, t;
 
     // Load the array and pack it into x and y.
     y = *(unsigned int*)(A);

@@ -7,6 +7,7 @@
 #include "fl/vector.h"
 #include <math.h>
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -34,7 +35,7 @@ class AudioSample {
     // and sounds like cloths rubbing. Useful for sound analysis.
     float zcf() const;
     float rms() const;
-    uint32_t timestamp() const;  // Timestamp when sample became valid (millis)
+    fl::u32 timestamp() const;  // Timestamp when sample became valid (millis)
 
     void fft(FFTBins *out) const;
 
@@ -105,14 +106,14 @@ class AudioSampleImpl : public fl::Referent {
     // template <typename It> void assign(It begin, It end) {
     //     assign(begin, end, 0);  // Default timestamp to 0
     // }
-    template <typename It> void assign(It begin, It end, uint32_t timestamp) {
+    template <typename It> void assign(It begin, It end, fl::u32 timestamp) {
         mSignedPcm.assign(begin, end);
         mTimestamp = timestamp;
         // calculate zero crossings
         initZeroCrossings();
     }
     const VectorPCM &pcm() const { return mSignedPcm; }
-    uint32_t timestamp() const { return mTimestamp; }
+    fl::u32 timestamp() const { return mTimestamp; }
 
     // "Zero crossing factor". High values > .4 indicate hissing
     // sounds. For example a microphone rubbing against a clothing.
@@ -148,7 +149,7 @@ class AudioSampleImpl : public fl::Referent {
 
     VectorPCM mSignedPcm;
     int16_t mZeroCrossings = 0;
-    uint32_t mTimestamp = 0;
+    fl::u32 mTimestamp = 0;
 };
 
 } // namespace fl

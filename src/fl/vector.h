@@ -11,6 +11,7 @@
 #include "fl/namespace.h"
 #include "fl/scoped_ptr.h"
 #include "fl/type_traits.h"
+#include "fl/int.h"
 #include "inplacenew.h"
 
 namespace fl {
@@ -996,7 +997,7 @@ template <typename T, size_t INLINED_SIZE> class InlinedVector {
               typename = fl::enable_if_t<!fl::is_integral<InputIt>::value>>
     void assign(InputIt begin, InputIt end) {
         clear();
-        if (uint32_t(end - begin) <= INLINED_SIZE) {
+        if (fl::u32(end - begin) <= INLINED_SIZE) {
             mFixed.assign(begin, end);
             return;
         }

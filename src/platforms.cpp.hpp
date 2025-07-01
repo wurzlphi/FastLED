@@ -23,8 +23,9 @@ __attribute__((weak)) volatile unsigned long timer_millis = 0;
 
     #include "platforms/arm/nrf52/led_sysdefs_arm_nrf52.h"
     #include "platforms/arm/nrf52/arbiter_nrf52.h"
+#include "fl/int.h"
 
-    uint32_t isrCount;
+    fl::u32 isrCount;
 
     #ifdef __cplusplus
         extern "C" {

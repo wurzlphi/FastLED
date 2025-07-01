@@ -33,7 +33,7 @@ extern const int16_t *cosArray;
 
 // 0 to 16777216 is a full circle
 // output is between -2147418112 and 2147418112
-FASTLED_FORCE_INLINE static int32_t sin32(uint32_t angle) {
+FASTLED_FORCE_INLINE static int32_t sin32(fl::u32 angle) {
     uint8_t angle256 = angle / 65536;
     int32_t subAngle = angle % 65536;
     return sinArray[angle256] * (65536 - subAngle) +
@@ -42,7 +42,7 @@ FASTLED_FORCE_INLINE static int32_t sin32(uint32_t angle) {
 
 // 0 to 16777216 is a full circle
 // output is between -2147418112 and 2147418112
-FASTLED_FORCE_INLINE static int32_t cos32(uint32_t angle) {
+FASTLED_FORCE_INLINE static int32_t cos32(fl::u32 angle) {
     uint8_t angle256 = angle / 65536;
     int32_t subAngle = angle % 65536;
     return cosArray[angle256] * (65536 - subAngle) +

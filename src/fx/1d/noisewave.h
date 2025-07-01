@@ -2,6 +2,7 @@
 
 #include "FastLED.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fx/fx1d.h"
 #include "noisegen.h"
 
@@ -38,7 +39,7 @@ class NoiseWave : public Fx1d {
   private:
     NoiseGenerator noiseGeneratorRed;
     NoiseGenerator noiseGeneratorBlue;
-    uint32_t start_time = 0;
+    fl::u32 start_time = 0;
 };
 
 } // namespace fl

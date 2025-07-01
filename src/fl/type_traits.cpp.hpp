@@ -1,5 +1,6 @@
 
 #include "fl/type_traits.h"
+#include "fl/int.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -85,7 +86,7 @@ void __compile_test() {
                   "uint16_t should be integral");
     static_assert(fl::is_integral<int32_t>::value,
                   "int32_t should be integral");
-    static_assert(fl::is_integral<uint32_t>::value,
+    static_assert(fl::is_integral<fl::u32>::value,
                   "uint32_t should be integral");
     static_assert(fl::is_integral<int64_t>::value,
                   "int64_t should be integral");

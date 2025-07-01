@@ -20,6 +20,7 @@ threshold. The first version is much faster and should be used in most cases.
 #include "fl/point.h"
 #include "fl/span.h"
 #include "fl/vector.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -239,7 +240,7 @@ template <typename NumberT = float> class LineSimplifierExact {
 
     LineSimplifierExact(int count) : mCount(count) {}
 
-    void setCount(uint32_t count) { mCount = count; }
+    void setCount(fl::u32 count) { mCount = count; }
 
     template <typename VectorType = fl::vector<Point>>
     void simplifyInplace(VectorType *polyLine) {
@@ -357,7 +358,7 @@ template <typename NumberT = float> class LineSimplifierExact {
         return;
     }
 
-    uint32_t mCount = 10;
+    fl::u32 mCount = 10;
     LineSimplifier<NumberT> mLineSimplifier;
 };
 

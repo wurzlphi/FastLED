@@ -8,6 +8,7 @@
 #include "fl/assert.h"
 #include "fl/math_macros.h"
 #include "fl/xymap.h"
+#include "fl/int.h"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshift-count-overflow"
@@ -85,7 +86,7 @@ void downscaleArbitrary(const CRGB *src, const XYMap &srcXY, CRGB *dst,
     const uint16_t dstWidth = dstXY.getWidth();
     const uint16_t dstHeight = dstXY.getHeight();
 
-    const uint32_t FP_ONE = 256; // Q8.8 fixed-point multiplier
+    const fl::u32 FP_ONE = 256; // Q8.8 fixed-point multiplier
 
     FASTLED_ASSERT(dstWidth <= srcWidth,
                    "Destination width must be <= source width");
@@ -94,15 +95,15 @@ void downscaleArbitrary(const CRGB *src, const XYMap &srcXY, CRGB *dst,
 
     for (uint16_t dy = 0; dy < dstHeight; ++dy) {
         // Fractional boundaries in Q8.8
-        uint32_t dstY0 = (dy * srcHeight * FP_ONE) / dstHeight;
-        uint32_t dstY1 = ((dy + 1) * srcHeight * FP_ONE) / dstHeight;
+        fl::u32 dstY0 = (dy * srcHeight * FP_ONE) / dstHeight;
+        fl::u32 dstY1 = ((dy + 1) * srcHeight * FP_ONE) / dstHeight;
 
         for (uint16_t dx = 0; dx < dstWidth; ++dx) {
-            uint32_t dstX0 = (dx * srcWidth * FP_ONE) / dstWidth;
-            uint32_t dstX1 = ((dx + 1) * srcWidth * FP_ONE) / dstWidth;
+            fl::u32 dstX0 = (dx * srcWidth * FP_ONE) / dstWidth;
+            fl::u32 dstX1 = ((dx + 1) * srcWidth * FP_ONE) / dstWidth;
 
             uint64_t rSum = 0, gSum = 0, bSum = 0;
-            uint32_t totalWeight = 0;
+            fl::u32 totalWeight = 0;
 
             // Find covered source pixels
             uint16_t srcY_start = dstY0 / FP_ONE;
@@ -113,20 +114,20 @@ void downscaleArbitrary(const CRGB *src, const XYMap &srcXY, CRGB *dst,
 
             for (uint16_t sy = srcY_start; sy < srcY_end; ++sy) {
                 // Calculate vertical overlap in Q8.8
-                uint32_t sy0 = sy * FP_ONE;
-                uint32_t sy1 = (sy + 1) * FP_ONE;
-                uint32_t y_overlap = MIN(dstY1, sy1) - MAX(dstY0, sy0);
+                fl::u32 sy0 = sy * FP_ONE;
+                fl::u32 sy1 = (sy + 1) * FP_ONE;
+                fl::u32 y_overlap = MIN(dstY1, sy1) - MAX(dstY0, sy0);
                 if (y_overlap == 0)
                     continue;
 
                 for (uint16_t sx = srcX_start; sx < srcX_end; ++sx) {
-                    uint32_t sx0 = sx * FP_ONE;
-                    uint32_t sx1 = (sx + 1) * FP_ONE;
-                    uint32_t x_overlap = MIN(dstX1, sx1) - MAX(dstX0, sx0);
+                    fl::u32 sx0 = sx * FP_ONE;
+                    fl::u32 sx1 = (sx + 1) * FP_ONE;
+                    fl::u32 x_overlap = MIN(dstX1, sx1) - MAX(dstX0, sx0);
                     if (x_overlap == 0)
                         continue;
 
-                    uint32_t weight = (x_overlap * y_overlap + (FP_ONE >> 1)) >>
+                    fl::u32 weight = (x_overlap * y_overlap + (FP_ONE >> 1)) >>
                                       8; // Q8.8 * Q8.8 → Q16.16 → Q8.8
 
                     const CRGB &p = src[srcXY.mapToIndex(sx, sy)];

@@ -23,6 +23,7 @@ and removals.
 #include "fl/vector.h"
 #include "fl/warn.h"
 #include "fl/compiler_control.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -192,8 +193,8 @@ class HashMap {
                             uint8_t load_factor) {
         // (size + tombstones) << 8   : multiply numerator by 256
         // capacity * max_load : denominator * threshold
-        uint32_t lhs = (size + tombstones) << 8;
-        uint32_t rhs = (bucket_size * load_factor);
+        fl::u32 lhs = (size + tombstones) << 8;
+        fl::u32 rhs = (bucket_size * load_factor);
         return lhs > rhs;
     }
 

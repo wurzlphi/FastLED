@@ -12,6 +12,7 @@
 #include "fl/deprecated.h"
 #include "fl/fill.h"
 #include "fl/xymap.h"
+#include "fl/int.h"
 #include "lib8tion/memmove.h"
 
 // #include "pixeltypes.h"  // pulls in FastLED.h, beware.
@@ -253,7 +254,7 @@ typedef union {
         uint8_t g;     ///< CRGB::green channel value of the color entry
         uint8_t b;     ///< CRGB::blue channel value of the color entry
     };
-    uint32_t dword;   ///< values as a packed 32-bit double word
+    fl::u32 dword;   ///< values as a packed 32-bit double word
     uint8_t bytes[4]; ///< values as an array
 } TRGBGradientPaletteEntryUnion;
 

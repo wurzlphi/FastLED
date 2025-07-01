@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include "fl/array.h"
+#include "fl/int.h"
 
 
 /// Disables pragma messages and warnings
@@ -318,7 +319,7 @@ static int8_t inline __attribute__((always_inline)) lerp7by8( int8_t a, int8_t b
     return result;
 }
 
-int16_t inoise16_raw(uint32_t x, uint32_t y, uint32_t z)
+int16_t inoise16_raw(fl::u32 x, fl::u32 y, fl::u32 z)
 {
     // Find the unit cube containing the point
     uint8_t X = (x>>16)&0xFF;
@@ -361,7 +362,7 @@ int16_t inoise16_raw(uint32_t x, uint32_t y, uint32_t z)
     return ans;
 }
 
-int16_t inoise16_raw(uint32_t x, uint32_t y, uint32_t z, uint32_t t) {
+int16_t inoise16_raw(fl::u32 x, fl::u32 y, fl::u32 z, fl::u32 t) {
     // 1. Extract the integer (grid) parts.
     uint8_t X = (x >> 16) & 0xFF;
     uint8_t Y = (y >> 16) & 0xFF;
@@ -440,10 +441,10 @@ int16_t inoise16_raw(uint32_t x, uint32_t y, uint32_t z, uint32_t t) {
     return noise4d;
 }
 
-uint16_t inoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t t) {
+uint16_t inoise16(fl::u32 x, fl::u32 y, fl::u32 z, fl::u32 t) {
     int32_t ans = inoise16_raw(x,y,z,t);
     ans = ans + 19052L;
-    uint32_t pan = ans;
+    fl::u32 pan = ans;
     // pan = (ans * 220L) >> 7.  That's the same as:
     // pan = (ans * 440L) >> 8.  And this way avoids a 7X four-byte shift-loop on AVR.
     // Identical math, except for the highest bit, which we don't care about anyway,
@@ -456,10 +457,10 @@ uint16_t inoise16(uint32_t x, uint32_t y, uint32_t z, uint32_t t) {
     // return scale16by8(inoise16_raw(x,y,z)+19052,220)<<1;
 }
 
-uint16_t inoise16(uint32_t x, uint32_t y, uint32_t z) {
+uint16_t inoise16(fl::u32 x, fl::u32 y, fl::u32 z) {
     int32_t ans = inoise16_raw(x,y,z);
     ans = ans + 19052L;
-    uint32_t pan = ans;
+    fl::u32 pan = ans;
     // pan = (ans * 220L) >> 7.  That's the same as:
     // pan = (ans * 440L) >> 8.  And this way avoids a 7X four-byte shift-loop on AVR.
     // Identical math, except for the highest bit, which we don't care about anyway,
@@ -472,7 +473,7 @@ uint16_t inoise16(uint32_t x, uint32_t y, uint32_t z) {
     // return scale16by8(inoise16_raw(x,y,z)+19052,220)<<1;
 }
 
-int16_t inoise16_raw(uint32_t x, uint32_t y)
+int16_t inoise16_raw(fl::u32 x, fl::u32 y)
 {
     // Find the unit cube containing the point
     uint8_t X = x>>16;
@@ -505,10 +506,10 @@ int16_t inoise16_raw(uint32_t x, uint32_t y)
     return ans;
 }
 
-uint16_t inoise16(uint32_t x, uint32_t y) {
+uint16_t inoise16(fl::u32 x, fl::u32 y) {
     int32_t ans = inoise16_raw(x,y);
     ans = ans + 17308L;
-    uint32_t pan = ans;
+    fl::u32 pan = ans;
     // pan = (ans * 242L) >> 7.  That's the same as:
     // pan = (ans * 484L) >> 8.  And this way avoids a 7X four-byte shift-loop on AVR.
     // Identical math, except for the highest bit, which we don't care about anyway,
@@ -520,7 +521,7 @@ uint16_t inoise16(uint32_t x, uint32_t y) {
     // return scale16by8(inoise16_raw(x,y)+17308,242)<<1;
 }
 
-int16_t inoise16_raw(uint32_t x)
+int16_t inoise16_raw(fl::u32 x)
 {
     // Find the unit cube containing the point
     uint8_t X = x>>16;
@@ -545,8 +546,8 @@ int16_t inoise16_raw(uint32_t x)
     return ans;
 }
 
-uint16_t inoise16(uint32_t x) {
-    return ((uint32_t)((int32_t)inoise16_raw(x) + 17308L)) << 1;
+uint16_t inoise16(fl::u32 x) {
+    return ((fl::u32)((int32_t)inoise16_raw(x) + 17308L)) << 1;
 }
 
 int8_t inoise8_raw(uint16_t x, uint16_t y, uint16_t z)
@@ -690,8 +691,8 @@ uint8_t inoise8(uint16_t x) {
 // }
 
 void fill_raw_noise8(uint8_t *pData, uint8_t num_points, uint8_t octaves, uint16_t x, int scale, uint16_t time) {
-  uint32_t _xx = x;
-  uint32_t scx = scale;
+  fl::u32 _xx = x;
+  fl::u32 scx = scale;
   for(int o = 0; o < octaves; ++o) {
     for(int i = 0,xx=_xx; i < num_points; ++i, xx+=scx) {
           pData[i] = qadd8(pData[i],inoise8(xx,time)>>o);
@@ -702,12 +703,12 @@ void fill_raw_noise8(uint8_t *pData, uint8_t num_points, uint8_t octaves, uint16
   }
 }
 
-void fill_raw_noise16into8(uint8_t *pData, uint8_t num_points, uint8_t octaves, uint32_t x, int scale, uint32_t time) {
-  uint32_t _xx = x;
-  uint32_t scx = scale;
+void fill_raw_noise16into8(uint8_t *pData, uint8_t num_points, uint8_t octaves, fl::u32 x, int scale, fl::u32 time) {
+  fl::u32 _xx = x;
+  fl::u32 scx = scale;
   for(int o = 0; o < octaves; ++o) {
     for(int i = 0,xx=_xx; i < num_points; ++i, xx+=scx) {
-      uint32_t accum = (inoise16(xx,time))>>o;
+      fl::u32 accum = (inoise16(xx,time))>>o;
       accum += (pData[i]<<8);
       if(accum > 65535) { accum = 65535; }
       pData[i] = accum>>8;
@@ -770,7 +771,7 @@ void fill_raw_2dnoise8(uint8_t *pData, int width, int height, uint8_t octaves, u
   fill_raw_2dnoise8(pData, width, height, octaves, q44(2,0), 128, 1, x, scalex, y, scaley, time);
 }
 
-void fill_raw_2dnoise16(uint16_t *pData, int width, int height, uint8_t octaves, q88 freq88, fract16 amplitude, int skip, uint32_t x, int32_t scalex, uint32_t y, int32_t scaley, uint32_t time) {
+void fill_raw_2dnoise16(uint16_t *pData, int width, int height, uint8_t octaves, q88 freq88, fract16 amplitude, int skip, fl::u32 x, int32_t scalex, fl::u32 y, int32_t scaley, fl::u32 time) {
   if(octaves > 1) {
     fill_raw_2dnoise16(pData, width, height, octaves-1, freq88, amplitude, skip, x *freq88 , scalex *freq88, y * freq88, scaley * freq88, time);
   } else {
@@ -808,7 +809,7 @@ int32_t nmin=11111110;
 /// @todo Remove?
 int32_t nmax=0;
 
-void fill_raw_2dnoise16into8(uint8_t *pData, int width, int height, uint8_t octaves, q44 freq44, fract8 amplitude, int skip, uint32_t x, int32_t scalex, uint32_t y, int32_t scaley, uint32_t time) {
+void fill_raw_2dnoise16into8(uint8_t *pData, int width, int height, uint8_t octaves, q44 freq44, fract8 amplitude, int skip, fl::u32 x, int32_t scalex, fl::u32 y, int32_t scaley, fl::u32 time) {
   if(octaves > 1) {
     fill_raw_2dnoise16into8(pData, width, height, octaves-1, freq44, amplitude, skip+1, x*freq44, scalex *freq44, y*freq44, scaley * freq44, time);
   } else {
@@ -818,7 +819,7 @@ void fill_raw_2dnoise16into8(uint8_t *pData, int width, int height, uint8_t octa
 
   scalex *= skip;
   scaley *= skip;
-  uint32_t xx;
+  fl::u32 xx;
   fract8 invamp = 255-amplitude;
   for(int i = 0; i < height; i+=skip, y+=scaley) {
     uint8_t *pRow = pData + (i*width);
@@ -841,7 +842,7 @@ void fill_raw_2dnoise16into8(uint8_t *pData, int width, int height, uint8_t octa
   }
 }
 
-void fill_raw_2dnoise16into8(uint8_t *pData, int width, int height, uint8_t octaves, uint32_t x, int scalex, uint32_t y, int scaley, uint32_t time) {
+void fill_raw_2dnoise16into8(uint8_t *pData, int width, int height, uint8_t octaves, fl::u32 x, int scalex, fl::u32 y, int scaley, fl::u32 time) {
   fill_raw_2dnoise16into8(pData, width, height, octaves, q44(2,0), 171, 1, x, scalex, y, scaley, time);
 }
 
@@ -939,7 +940,7 @@ void fill_2dnoise8(CRGB *leds, int width, int height, bool serpentine,
 
 
 void fill_2dnoise16(CRGB *leds, int width, int height, bool serpentine,
-            uint8_t octaves, uint32_t x, int xscale, uint32_t y, int yscale, uint32_t time,
+            uint8_t octaves, fl::u32 x, int xscale, fl::u32 y, int yscale, fl::u32 time,
             uint8_t hue_octaves, uint16_t hue_x, int hue_xscale, uint16_t hue_y, uint16_t hue_yscale,uint16_t hue_time, bool blend, uint16_t hue_shift) {
 
   FASTLED_STACK_ARRAY(uint8_t, V, height*width);

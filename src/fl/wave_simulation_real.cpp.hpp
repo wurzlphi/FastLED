@@ -5,6 +5,7 @@
 #include "fl/clamp.h"
 #include "fl/namespace.h"
 #include "fl/wave_simulation_real.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -44,7 +45,7 @@ float fixed_to_float(int16_t f) {
 
 using namespace wave_detail;
 
-WaveSimulation1D_Real::WaveSimulation1D_Real(uint32_t len, float courantSq,
+WaveSimulation1D_Real::WaveSimulation1D_Real(fl::u32 len, float courantSq,
                                              int dampening)
     : length(len),
       grid1(length + 2), // Initialize vector with correct size
@@ -156,7 +157,7 @@ void WaveSimulation1D_Real::update() {
     whichGrid ^= 1;
 }
 
-WaveSimulation2D_Real::WaveSimulation2D_Real(uint32_t W, uint32_t H,
+WaveSimulation2D_Real::WaveSimulation2D_Real(fl::u32 W, fl::u32 H,
                                              float speed, float dampening)
     : width(W), height(H), stride(W + 2),
       grid1((W + 2) * (H + 2)),

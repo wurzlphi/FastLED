@@ -1,6 +1,7 @@
 #include "fl/audio_reactive.h"
 #include "fl/math.h"
 #include "fl/span.h"
+#include "fl/int.h"
 #include <math.h>
 
 namespace fl {
@@ -36,7 +37,7 @@ void AudioReactive::processSample(const AudioSample& sample) {
     }
     
     // Extract timestamp from the AudioSample
-    uint32_t currentTimeMs = sample.timestamp();
+    fl::u32 currentTimeMs = sample.timestamp();
     
     // Process the AudioSample immediately - timing is gated by sample availability
     processFFT(sample);
@@ -49,7 +50,7 @@ void AudioReactive::processSample(const AudioSample& sample) {
     mCurrentData.timestamp = currentTimeMs;
 }
 
-void AudioReactive::update(uint32_t currentTimeMs) {
+void AudioReactive::update(fl::u32 currentTimeMs) {
     // This method handles updates without new sample data
     // Just apply smoothing and update timestamp
     smoothResults();
@@ -180,7 +181,7 @@ void AudioReactive::updateVolumeAndPeak(const AudioSample& sample) {
     }
 }
 
-void AudioReactive::detectBeat(uint32_t currentTimeMs) {
+void AudioReactive::detectBeat(fl::u32 currentTimeMs) {
     // Need minimum time since last beat
     if (currentTimeMs - mLastBeatTime < BEAT_COOLDOWN) {
         mCurrentData.beatDetected = false;

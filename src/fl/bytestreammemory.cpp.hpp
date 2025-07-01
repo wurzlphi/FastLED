@@ -4,10 +4,11 @@
 #include "fl/math_macros.h"
 #include "fl/namespace.h"
 #include "fl/warn.h"
+#include "fl/int.h"
 
 namespace fl {
 
-ByteStreamMemory::ByteStreamMemory(uint32_t size_buffer)
+ByteStreamMemory::ByteStreamMemory(fl::u32 size_buffer)
     : mReadBuffer(size_buffer) {}
 
 ByteStreamMemory::~ByteStreamMemory() = default;

@@ -2,6 +2,7 @@
 #include "fl/rectangular_draw_buffer.h"
 #include "fl/allocator.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "rgbw.h"
 
 namespace fl {
@@ -54,9 +55,9 @@ bool RectangularDrawBuffer::onQueuingDone() {
     mDrawListChangedThisFrame = mDrawList != mPrevDrawList;
     // iterator through the current draw objects and calculate the total
     // number of bytes (representing RGB or RGBW) that will be drawn this frame.
-    uint32_t total_bytes = 0;
-    uint32_t max_bytes_in_strip = 0;
-    uint32_t num_strips = 0;
+    fl::u32 total_bytes = 0;
+    fl::u32 max_bytes_in_strip = 0;
+    fl::u32 num_strips = 0;
     getBlockInfo(&num_strips, &max_bytes_in_strip, &total_bytes);
     if (total_bytes > mAllLedsBufferUint8Size) {
         uint8_t *old_ptr = mAllLedsBufferUint8.release();
@@ -65,7 +66,7 @@ bool RectangularDrawBuffer::onQueuingDone() {
         mAllLedsBufferUint8.reset(ptr);
     }
     mAllLedsBufferUint8Size = total_bytes;
-    uint32_t offset = 0;
+    fl::u32 offset = 0;
     for (auto it = mDrawList.begin(); it != mDrawList.end(); ++it) {
         uint8_t pin = it->mPin;
         span<uint8_t> slice(mAllLedsBufferUint8.get() + offset,
@@ -76,23 +77,23 @@ bool RectangularDrawBuffer::onQueuingDone() {
     return true;
 }
 
-uint32_t RectangularDrawBuffer::getMaxBytesInStrip() const {
-    uint32_t max_bytes = 0;
+fl::u32 RectangularDrawBuffer::getMaxBytesInStrip() const {
+    fl::u32 max_bytes = 0;
     for (auto it = mDrawList.begin(); it != mDrawList.end(); ++it) {
         max_bytes = MAX(max_bytes, it->mNumBytes);
     }
     return max_bytes;
 }
 
-uint32_t RectangularDrawBuffer::getTotalBytes() const {
-    uint32_t num_strips = mDrawList.size();
-    uint32_t max_bytes = getMaxBytesInStrip();
+fl::u32 RectangularDrawBuffer::getTotalBytes() const {
+    fl::u32 num_strips = mDrawList.size();
+    fl::u32 max_bytes = getMaxBytesInStrip();
     return num_strips * max_bytes;
 }
 
-void RectangularDrawBuffer::getBlockInfo(uint32_t *num_strips,
-                                         uint32_t *bytes_per_strip,
-                                         uint32_t *total_bytes) const {
+void RectangularDrawBuffer::getBlockInfo(fl::u32 *num_strips,
+                                         fl::u32 *bytes_per_strip,
+                                         fl::u32 *total_bytes) const {
     *num_strips = mDrawList.size();
     *bytes_per_strip = getMaxBytesInStrip();
     *total_bytes = (*num_strips) * (*bytes_per_strip);

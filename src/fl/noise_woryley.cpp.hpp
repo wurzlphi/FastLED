@@ -1,4 +1,5 @@
 #include "noise_woryley.h"
+#include "fl/int.h"
 
 namespace fl {
 namespace {
@@ -16,7 +17,7 @@ int32_t q15_abs(int32_t a) { return a < 0 ? -a : a; }
 
 // Pseudo-random hash based on grid coordinates
 uint16_t hash(int32_t x, int32_t y) {
-    uint32_t n = (uint32_t)(x * 374761393 + y * 668265263);
+    fl::u32 n = (fl::u32)(x * 374761393 + y * 668265263);
     n = (n ^ (n >> 13)) * 1274126177;
     return (uint16_t)((n ^ (n >> 16)) & 0xFFFF);
 }

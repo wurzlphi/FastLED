@@ -79,7 +79,7 @@ public:
         return *this;
     }
 
-    ostream& operator<<(uint32_t n) {
+    ostream& operator<<(fl::u32 n) {
         string temp;
         temp.append(n);
         print(temp.c_str());
@@ -110,7 +110,7 @@ public:
 #if FASTLED_STRSTREAM_USES_SIZE_T
     ostream& operator<<(size_t n) {
         string temp;
-        temp.append(uint32_t(n));
+        temp.append(fl::u32(n));
         print(temp.c_str());
         return *this;
     }

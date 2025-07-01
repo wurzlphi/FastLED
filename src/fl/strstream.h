@@ -35,7 +35,7 @@ template <> struct StrStreamHelper<char> {
 
 template <> struct StrStreamHelper<unsigned int> {
     static void append(string &str, const unsigned int &n) {
-        str.append(uint32_t(n));
+        str.append(fl::u32(n));
     }
 };
 
@@ -114,7 +114,7 @@ class StrStream {
 
 #if FASTLED_STRSTREAM_USES_SIZE_T
     StrStream &operator<<(size_t n) {
-        mStr.append(uint32_t(n));
+        mStr.append(fl::u32(n));
         return *this;
     }
 #endif
@@ -143,8 +143,8 @@ class StrStream {
         return *this;
     }
 
-    StrStream &operator<<(const uint32_t &n) {
-        mStr.append(uint32_t(n));
+    StrStream &operator<<(const fl::u32 &n) {
+        mStr.append(fl::u32(n));
         return *this;
     }
 
@@ -198,7 +198,7 @@ class FakeStrStream {
     FakeStrStream &operator<<(uint8_t) { return *this; }
     FakeStrStream &operator<<(uint16_t) { return *this; }
     FakeStrStream &operator<<(int16_t) { return *this; }
-    FakeStrStream &operator<<(uint32_t) { return *this; }
+    FakeStrStream &operator<<(fl::u32) { return *this; }
     FakeStrStream &operator<<(int32_t) { return *this; }
 
     FakeStrStream &operator=(const string &) { return *this; }
