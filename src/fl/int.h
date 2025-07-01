@@ -34,6 +34,10 @@ namespace fl {
         typedef unsigned long long u64;
     #endif
     
+    // Pointer and size types - universal across platforms
+    typedef uintptr_t uptr;  ///< Pointer-sized unsigned integer
+    typedef size_t sz;       ///< Size type for containers and memory
+    
     // Compile-time verification that types are exactly the expected size
     static_assert(sizeof(i8) == 1, "i8 must be exactly 1 byte");
     static_assert(sizeof(i16) == 2, "i16 must be exactly 2 bytes");
@@ -43,4 +47,6 @@ namespace fl {
     static_assert(sizeof(u16) == 2, "u16 must be exactly 2 bytes");
     static_assert(sizeof(u32) == 4, "u32 must be exactly 4 bytes");
     static_assert(sizeof(u64) == 8, "u64 must be exactly 8 bytes");
+    static_assert(sizeof(uptr) == sizeof(void*), "uptr must be exactly pointer size");
+    static_assert(sizeof(sz) == sizeof(size_t), "sz must be exactly size_t size");
 }
