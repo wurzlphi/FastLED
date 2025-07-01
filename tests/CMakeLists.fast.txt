@@ -1,0 +1,260 @@
+# FastLED Fast Development Build Configuration
+# Optimized for quick iteration during development
+# Usage: Copy this file over CMakeLists.txt for fast builds
+
+cmake_minimum_required(VERSION 3.10)
+project(FastLED_Tests)
+
+# Enforce C++17 globally for all targets.
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# FAST BUILD OPTIMIZATIONS
+# =========================
+
+# Use RelWithDebInfo for fast builds with minimal debug info
+set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
+
+# Force creation of thin archives (instead of full .a files) only for non apple builds
+if(NOT APPLE)
+    set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> rcT <TARGET> <OBJECTS>")
+    set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> rT <TARGET> <OBJECTS>")
+    set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> <TARGET>")
+    message(STATUS "Using thin archives for faster builds")
+endif()
+
+# Enable parallel compilation
+include(ProcessorCount)
+ProcessorCount(CPU_COUNT)
+if(CPU_COUNT)
+    set(CMAKE_BUILD_PARALLEL_LEVEL ${CPU_COUNT})
+    message(STATUS "Using ${CPU_COUNT} parallel compilation jobs")
+endif()
+
+# Check for ccache to speed up compilation
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    message(STATUS "Using ccache: ${CCACHE_FOUND}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_FOUND})
+    set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_FOUND})
+    # Set ccache options for better performance
+    set(ENV{CCACHE_SLOPPINESS} time_macros)
+    set(ENV{CCACHE_COMPRESS} true)
+    set(ENV{CCACHE_MAXSIZE} 2G)
+else()
+    message(STATUS "ccache not found. Install ccache for faster incremental builds.")
+endif()
+
+# Check if mold linker is available
+find_program(MOLD_EXECUTABLE mold)
+
+if(MOLD_EXECUTABLE)
+    # Set mold as the default linker
+    message(STATUS "Using mold linker: ${MOLD_EXECUTABLE}")
+    
+    # Add mold linker flags to the common flags
+    list(APPEND COMMON_COMPILE_FLAGS "-fuse-ld=mold")
+    
+    # Set linker flags globally
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=mold")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=mold")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -fuse-ld=mold")
+else()
+    find_program(LLDLINK_EXECUTABLE lld-link)
+    if(LLDLINK_EXECUTABLE)
+        message(STATUS "Using lld-link linker: ${LLDLINK_EXECUTABLE}")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+    else()
+        message(STATUS "Neither mold nor lld-link found. Using system default linker.")
+    endif()
+endif()
+
+# Output the current build type
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "🚀 FAST BUILD MODE: Optimized for development speed")
+
+# Fast build optimizations (proven effective)
+set(FAST_DEBUG_OPT -O2)           # Good optimization without excessive compile time
+set(FAST_DEBUG_INFO -g1)          # Minimal debug info for stack traces
+set(FAST_FRAME_POINTER -fno-omit-frame-pointer)  # Keep frame pointers for debugging
+
+# Define MINIMAL compiler flags for faster compilation
+set(COMMON_COMPILE_FLAGS
+    ${FAST_DEBUG_OPT}
+    ${FAST_DEBUG_INFO}
+    ${FAST_FRAME_POINTER}
+    -DNDEBUG                      # Disable assertions for speed
+    -Wall                         # Keep basic warnings
+    -Werror=return-type          # Critical errors only
+    -Wno-comment                 # Disable comment warnings
+    -DPROGMEM=                   # Arduino compatibility
+    -DFASTLED_FIVE_BIT_HD_GAMMA_FUNCTION_2_8
+)
+
+# Minimal unit test flags for fastest compilation
+set(UNIT_TEST_COMPILE_FLAGS
+    ${FAST_DEBUG_OPT}
+    ${FAST_DEBUG_INFO}
+    ${FAST_FRAME_POINTER}
+    -DNDEBUG
+    -Wall
+    -Werror=return-type
+    -Wno-comment
+)
+
+set(UNIT_TEST_CXX_FLAGS
+    -Werror=suggest-override
+    -Werror=non-virtual-dtor
+)
+
+# FAST BUILD: Minimal compile definitions (no expensive debug checks)
+set(COMMON_COMPILE_DEFINITIONS
+    FASTLED_FORCE_NAMESPACE=1
+    FASTLED_NO_AUTO_NAMESPACE
+    FASTLED_TESTING
+    ENABLE_CRASH_HANDLER
+    FASTLED_STUB_IMPL
+    FASTLED_NO_PINMAP
+    HAS_HARDWARE_PIN_SUPPORT
+    # Removed for speed: _GLIBCXX_DEBUG _GLIBCXX_DEBUG_PEDANTIC
+)
+
+# Fix for Microsoft STL version check with older Clang versions on Windows
+if(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND COMMON_COMPILE_DEFINITIONS _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH)
+endif()
+
+# Set output directories
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/bin)
+
+# Set binary directory
+set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.build/bin)
+
+# Set path to FastLED source directory
+add_compile_definitions(${COMMON_COMPILE_DEFINITIONS})
+set(FASTLED_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+# Include FastLED source directory
+include_directories(${FASTLED_SOURCE_DIR}/src)
+
+# Delegate source file computation to src/CMakeLists.txt
+add_subdirectory(${FASTLED_SOURCE_DIR}/src ${CMAKE_BINARY_DIR}/fastled)
+
+# FAST BUILD: No static linking for faster development builds
+# Comment out static linking for speed
+# if(NOT APPLE)
+#     target_link_options(fastled PRIVATE -static-libgcc -static-libstdc++)
+# endif()
+
+# libunwind setup (simplified for fast builds)
+find_program(PKG_CONFIG_FOUND pkg-config)
+if(PKG_CONFIG_FOUND)
+    execute_process(COMMAND pkg-config --exists libunwind
+                   RESULT_VARIABLE LIBUNWIND_FOUND)
+    if(LIBUNWIND_FOUND EQUAL 0)
+        set(USE_LIBUNWIND TRUE)
+        set(LIBUNWIND_LIBRARIES unwind)
+        message(STATUS "LibUnwind found: ${LIBUNWIND_LIBRARIES}")
+    else()
+        set(USE_LIBUNWIND FALSE)
+        message(STATUS "LibUnwind not found. Using basic stack traces.")
+    endif()
+else()
+    set(USE_LIBUNWIND FALSE)
+    message(STATUS "pkg-config not found. Using basic stack traces.")
+endif()
+
+# Enable testing
+enable_testing()
+
+# Create doctest main library with fast flags
+add_library(doctest_main STATIC doctest_main.cpp)
+target_include_directories(doctest_main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(doctest_main PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
+target_compile_options(doctest_main PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
+target_compile_definitions(doctest_main PRIVATE ${COMMON_COMPILE_DEFINITIONS})
+
+# Add Windows debugging libraries for crash handler
+if(WIN32)
+    target_link_libraries(doctest_main dbghelp psapi)
+endif()
+
+# Find all test source files
+file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
+
+# Process source files with fast build settings
+foreach(TEST_SOURCE ${TEST_SOURCES})
+    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+    target_link_libraries(${TEST_NAME} fastled doctest_main)
+    
+    # Set the correct subsystem for Windows
+    if(WIN32)
+        target_link_libraries(${TEST_NAME} dbghelp psapi)
+        if(MSVC)
+            set_target_properties(${TEST_NAME} PROPERTIES
+                WIN32_EXECUTABLE FALSE
+                LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+        else()
+            if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+                set_target_properties(${TEST_NAME} PROPERTIES
+                    WIN32_EXECUTABLE FALSE
+                    LINK_FLAGS "-Xlinker /subsystem:console")
+            else()
+                set_target_properties(${TEST_NAME} PROPERTIES
+                    WIN32_EXECUTABLE FALSE)
+            endif()
+        endif()
+    endif()
+    
+    # libunwind linking
+    if(USE_LIBUNWIND)
+        target_link_libraries(${TEST_NAME} ${LIBUNWIND_LIBRARIES})
+    endif()
+    
+    target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    set_target_properties(${TEST_NAME} PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
+    
+    # FAST BUILD: No static linking for development
+    # if(NOT APPLE AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    #     target_link_options(${TEST_NAME} PRIVATE -static-libgcc -static-libstdc++)
+    # endif()
+    
+    # Apply fast build flags
+    target_compile_options(${TEST_NAME} PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
+    target_compile_options(${TEST_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
+    target_compile_definitions(${TEST_NAME} PRIVATE 
+        ${COMMON_COMPILE_DEFINITIONS}
+        $<$<BOOL:${USE_LIBUNWIND}>:USE_LIBUNWIND>
+    )
+    
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+endforeach()
+
+# Clean orphaned binaries
+file(GLOB TEST_BINARIES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_*${CMAKE_EXECUTABLE_SUFFIX}")
+foreach(ORPHANED_BINARY ${TEST_BINARIES})
+    get_filename_component(BINARY_NAME ${ORPHANED_BINARY} NAME_WE)
+    get_filename_component(BINARY_DIR ${ORPHANED_BINARY} DIRECTORY)
+    get_filename_component(PARENT_DIR ${BINARY_DIR} DIRECTORY)
+    get_filename_component(GRANDPARENT_DIR ${PARENT_DIR} DIRECTORY)
+    set(CORRESPONDING_SOURCE "${GRANDPARENT_DIR}/${BINARY_NAME}.cpp")
+    if(NOT EXISTS "${CORRESPONDING_SOURCE}")
+        file(REMOVE "${ORPHANED_BINARY}")
+    endif()
+endforeach()
+
+# Add verbose output for tests
+set(CMAKE_CTEST_ARGUMENTS "--output-on-failure")
+
+message(STATUS "🚀 FastLED Fast Build Configuration Complete")
+message(STATUS "   - Optimized for: Development iteration speed")
+message(STATUS "   - Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "   - Parallel jobs: ${CPU_COUNT}")
+message(STATUS "   - ccache: ${CCACHE_FOUND}")
+message(STATUS "   - Linker: ${MOLD_EXECUTABLE}")

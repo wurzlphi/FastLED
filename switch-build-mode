@@ -1,0 +1,152 @@
+#!/bin/bash
+# Switch between normal and fast build modes for FastLED
+
+set -e
+
+TESTS_DIR="tests"
+CMAKE_NORMAL="$TESTS_DIR/CMakeLists.txt"
+CMAKE_FAST="$TESTS_DIR/CMakeLists.fast.txt"
+CMAKE_BACKUP="$TESTS_DIR/CMakeLists.txt.backup"
+
+show_help() {
+    echo "FastLED Build Mode Switcher"
+    echo "Usage: $0 [fast|normal|status]"
+    echo ""
+    echo "Commands:"
+    echo "  fast      Switch to fast development build mode"
+    echo "  normal    Switch to normal build mode" 
+    echo "  status    Show current build mode"
+    echo ""
+    echo "Fast mode optimizations:"
+    echo "  - Skips UNO compilation (saves ~12s)"
+    echo "  - Uses -O2 instead of -O1"
+    echo "  - Minimal debug info (-g1)"
+    echo "  - No static linking"
+    echo "  - Reduced warning checks"
+    echo "  - Optimized for incremental builds"
+}
+
+get_current_mode() {
+    if [ -f "$CMAKE_NORMAL" ]; then
+        if grep -q "FAST BUILD MODE" "$CMAKE_NORMAL" 2>/dev/null; then
+            echo "fast"
+        else
+            echo "normal"
+        fi
+    else
+        echo "unknown"
+    fi
+}
+
+switch_to_fast() {
+    current=$(get_current_mode)
+    
+    if [ "$current" = "fast" ]; then
+        echo "⚡ Already in fast build mode"
+        return 0
+    fi
+    
+    echo "🚀 Switching to FAST build mode..."
+    
+    # Backup current CMakeLists.txt if not already backed up
+    if [ ! -f "$CMAKE_BACKUP" ] && [ -f "$CMAKE_NORMAL" ]; then
+        echo "📁 Backing up original CMakeLists.txt"
+        cp "$CMAKE_NORMAL" "$CMAKE_BACKUP"
+    fi
+    
+    # Copy fast configuration
+    if [ -f "$CMAKE_FAST" ]; then
+        cp "$CMAKE_FAST" "$CMAKE_NORMAL"
+        echo "✅ Fast build mode activated"
+        echo ""
+        echo "🔧 Fast mode features:"
+        echo "   - UNO tests disabled (set FASTLED_SKIP_UNO_TESTS=0 to enable)"
+        echo "   - Optimized compilation flags (-O2, -g1)"
+        echo "   - Dynamic linking for faster iteration"
+        echo "   - Reduced warning overhead"
+        echo ""
+        echo "💡 Use './test-fast' for quick development testing"
+    else
+        echo "❌ Error: Fast CMake configuration not found at $CMAKE_FAST"
+        exit 1
+    fi
+}
+
+switch_to_normal() {
+    current=$(get_current_mode)
+    
+    if [ "$current" = "normal" ]; then
+        echo "🐢 Already in normal build mode"
+        return 0
+    fi
+    
+    echo "🔄 Switching to NORMAL build mode..."
+    
+    if [ -f "$CMAKE_BACKUP" ]; then
+        cp "$CMAKE_BACKUP" "$CMAKE_NORMAL"
+        echo "✅ Normal build mode restored"
+        echo ""
+        echo "🔧 Normal mode features:"
+        echo "   - Full debugging symbols"
+        echo "   - All warning checks enabled"
+        echo "   - Static linking"
+        echo "   - UNO tests included"
+        echo ""
+        echo "💡 Use 'bash test' for complete testing"
+    else
+        echo "❌ Error: No backup found. Cannot restore normal mode."
+        echo "Please restore CMakeLists.txt manually or from git."
+        exit 1
+    fi
+}
+
+show_status() {
+    current=$(get_current_mode)
+    
+    echo "FastLED Build Status"
+    echo "==================="
+    
+    case "$current" in
+        "fast")
+            echo "🚀 Current mode: FAST (development optimized)"
+            echo "⚡ Features: Quick builds, UNO tests disabled, minimal debug info"
+            echo "💡 Command: ./test-fast"
+            ;;
+        "normal")
+            echo "🐢 Current mode: NORMAL (full featured)"
+            echo "🔍 Features: Full debug info, all tests, complete warnings"
+            echo "💡 Command: bash test"
+            ;;
+        "unknown")
+            echo "❓ Current mode: UNKNOWN"
+            echo "⚠️  CMakeLists.txt not found or corrupted"
+            ;;
+    esac
+    
+    echo ""
+    echo "Available modes:"
+    echo "  fast    - Quick development iteration"
+    echo "  normal  - Complete testing and debugging"
+}
+
+# Main script
+case "${1:-status}" in
+    "fast")
+        switch_to_fast
+        ;;
+    "normal")
+        switch_to_normal
+        ;;
+    "status")
+        show_status
+        ;;
+    "help"|"-h"|"--help")
+        show_help
+        ;;
+    *)
+        echo "❌ Unknown command: $1"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac

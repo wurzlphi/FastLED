@@ -1,0 +1,27 @@
+#!/bin/bash
+# FastLED Fast Development Test Script
+# Optimized for quick iteration during development
+
+set -e
+
+echo "🚀 FastLED Fast Development Tests"
+echo "=================================="
+
+# Skip UNO compilation by default for speed (can be overridden)
+export FASTLED_SKIP_UNO_TESTS=${FASTLED_SKIP_UNO_TESTS:-1}
+
+# Enable non-interactive mode for speed
+export FASTLED_CI_NO_INTERACTIVE=true
+
+# Use the optimized test runner
+cd "$(dirname "$0")"
+
+# Print configuration
+echo "⚙️  Configuration:"
+echo "   - UNO tests: $([ "$FASTLED_SKIP_UNO_TESTS" = "1" ] && echo "DISABLED (faster)" || echo "ENABLED")"
+echo "   - Target: C++ tests only"
+echo "   - Mode: Development (incremental builds)"
+echo ""
+
+# Run the optimized test
+exec uv run test.py --cpp "$@"
