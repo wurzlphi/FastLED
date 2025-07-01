@@ -45,17 +45,17 @@ template <typename T, size_t N> struct InlinedMemoryBlock {
     T *memory() {
         MemoryType *begin = &mMemoryBlock[0];
         uintptr_t shift_up =
-            reinterpret_cast<uintptr_t>(begin) & (sizeof(MemoryType) - 1);
+            fl::ptr_to_int(begin) & (sizeof(MemoryType) - 1);
         MemoryType *raw = begin + shift_up;
-        return reinterpret_cast<T *>(raw);
+        return fl::bit_cast_ptr<T>(static_cast<void*>(raw));
     }
 
     const T *memory() const {
         const MemoryType *begin = &mMemoryBlock[0];
         const uintptr_t shift_up =
-            reinterpret_cast<uintptr_t>(begin) & (sizeof(MemoryType) - 1);
+            fl::ptr_to_int(begin) & (sizeof(MemoryType) - 1);
         const MemoryType *raw = begin + shift_up;
-        return reinterpret_cast<const T *>(raw);
+        return fl::bit_cast_ptr<const T>(static_cast<const void*>(raw));
     }
 
 #ifdef FASTLED_TESTING

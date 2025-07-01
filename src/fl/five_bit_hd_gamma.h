@@ -6,6 +6,7 @@
 #include "fl/gamma.h"
 #include "fl/stdint.h"
 #include "fl/int.h"
+#include "fl/bitcast.h"
 
 #include "crgb.h"
 #include "lib8tion/scale8.h"
@@ -158,7 +159,7 @@ inline fl::u8 five_bit_bitshift(u16 r16, u16 g16, u16 b16,
     // driver brightness.
     u16 max_component = max3(r16, g16, b16);
     // five_bit_color_bitshift(&r16, &g16, &b16, &v5);
-    fl::u8 shifts = brightness_bitshifter16(&v5, reinterpret_cast<fl::u16*>(&max_component), 4, 2);
+    fl::u8 shifts = brightness_bitshifter16(&v5, fl::bit_cast_ptr<fl::u16>(static_cast<void*>(&max_component)), 4, 2);
     if (shifts) {
         r16 = r16 << shifts;
         g16 = g16 << shifts;

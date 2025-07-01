@@ -5,6 +5,7 @@
 #include "fl/int.h"
 #include "fl/stdint.h"
 #include "fl/force_inline.h"
+#include "fl/bitcast.h"
 #include <string.h>
 
 namespace fl {
@@ -29,7 +30,7 @@ static inline uint32_t MurmurHash3_x86_32(const void *key, size_t len,
     const uint32_t c2 = 0x1b873593;
 
     // body
-    const uint32_t *blocks = reinterpret_cast<const uint32_t *>(data);
+    const uint32_t *blocks = fl::bit_cast_ptr<const uint32_t>(static_cast<const void*>(data));
     for (int i = 0; i < nblocks; ++i) {
         uint32_t k1 = blocks[i];
         k1 *= c1;
@@ -135,7 +136,7 @@ template <typename T> struct FastHash<vec2<T>> {
 template <typename T> struct Hash<T *> {
     uint32_t operator()(T *key) const noexcept {
         if (sizeof(T *) == sizeof(uint32_t)) {
-            uint32_t key_u = reinterpret_cast<uintptr_t>(key);
+            uint32_t key_u = static_cast<uint32_t>(fl::ptr_to_int(key));
             return fast_hash32(key_u);
         } else {
             return MurmurHash3_x86_32(key, sizeof(T *));
