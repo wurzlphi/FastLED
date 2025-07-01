@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string.h>  // for memcpy
+#include <string.h>  // for standard memcpy
 
 // Guard against PROGMEM redefinition on platforms that have their own definition
 #if !defined(PROGMEM) && !defined(__IMXRT1062__) && !defined(__MK20DX128__) && !defined(__MK20DX256__) && !defined(__MK66FX1M0__) && !defined(__MK64FX512__) && !defined(__MKL26Z64__)
@@ -17,24 +17,27 @@
 #endif
 #endif
 
-// Safe memory access macros to avoid strict aliasing issues
-// These use memcpy which is optimized away by the compiler but avoids UB
-static inline uint8_t fl_pgm_read_byte_near_safe(const void* addr) {
-    uint8_t result;
-    memcpy(&result, addr, sizeof(uint8_t));
+// Private helper function for safe memory copying to avoid strict aliasing issues
+// This uses standard memcpy but is scoped locally to avoid conflicts
+template<typename T>
+static inline T fl_progmem_safe_read(const void* addr) {
+    T result;
+    memcpy(&result, addr, sizeof(T));
     return result;
+}
+
+// Safe memory access macros to avoid strict aliasing issues
+// These use the private helper function which wraps memcpy safely
+static inline uint8_t fl_pgm_read_byte_near_safe(const void* addr) {
+    return fl_progmem_safe_read<uint8_t>(addr);
 }
 
 static inline uint16_t fl_pgm_read_word_near_safe(const void* addr) {
-    uint16_t result;
-    memcpy(&result, addr, sizeof(uint16_t));
-    return result;
+    return fl_progmem_safe_read<uint16_t>(addr);
 }
 
 static inline uint32_t fl_pgm_read_dword_near_safe(const void* addr) {
-    uint32_t result;
-    memcpy(&result, addr, sizeof(uint32_t));
-    return result;
+    return fl_progmem_safe_read<uint32_t>(addr);
 }
 
 #define FL_PGM_READ_BYTE_NEAR(x) (fl_pgm_read_byte_near_safe(x))
