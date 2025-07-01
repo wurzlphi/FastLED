@@ -1,6 +1,7 @@
 #include "fl/file_system.h"
 #include "fl/unused.h"
 #include "fl/warn.h"
+#include "fl/int.h"
 
 #ifdef __EMSCRIPTEN__
 #include "platforms/wasm/fs_wasm.h"
@@ -27,7 +28,7 @@ class NullFileHandle : public FileHandle {
 
     bool available() const override { return false; }
     size_t size() const override { return 0; }
-    size_t read(uint8_t *dst, size_t bytesToRead) override {
+    size_t read(fl::u8 *dst, size_t bytesToRead) override {
         FASTLED_UNUSED(dst);
         FASTLED_UNUSED(bytesToRead);
         return 0;
@@ -174,7 +175,7 @@ bool FileSystem::readText(const char *path, fl::string *out) {
     out->reserve(size + out->size());
     bool wrote = false;
     while (file->available()) {
-        uint8_t buf[64];
+        fl::u8 buf[64];
         size_t n = file->read(buf, sizeof(buf));
         // out->append(buf, n);
         out->append((const char *)buf, n);

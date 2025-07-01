@@ -2,6 +2,7 @@
 
 //#include <stddef.h>
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include <string.h>
 
 #include "fl/functional.h"
@@ -37,9 +38,9 @@ template <typename T, size_t N> struct InlinedMemoryBlock {
     InlinedMemoryBlock(const InlinedMemoryBlock &other) = default;
     InlinedMemoryBlock(InlinedMemoryBlock &&other) = default;
 
-    // uint32_t mRaw[N * sizeof(T)/sizeof(MemoryType) + kExtraSize];
+    // fl::u32 mRaw[N * sizeof(T)/sizeof(MemoryType) + kExtraSize];
     // align this to the size of MemoryType.
-    // uint32_t mMemoryBlock[kTotalSize] = {0};
+    // fl::u32 mMemoryBlock[kTotalSize] = {0};
     MemoryType mMemoryBlock[kBlockSize];
 
     T *memory() {
@@ -996,7 +997,7 @@ template <typename T, size_t INLINED_SIZE> class InlinedVector {
               typename = fl::enable_if_t<!fl::is_integral<InputIt>::value>>
     void assign(InputIt begin, InputIt end) {
         clear();
-        if (uint32_t(end - begin) <= INLINED_SIZE) {
+        if (fl::u32(end - begin) <= INLINED_SIZE) {
             mFixed.assign(begin, end);
             return;
         }

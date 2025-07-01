@@ -14,7 +14,7 @@ namespace fl {
 
 struct DrawItem {
     DrawItem() = default;
-    DrawItem(uint8_t pin, u16 numLeds, bool is_rgbw);
+    DrawItem(fl::u8 pin, u16 numLeds, bool is_rgbw);
     
     // Rule of 5 for POD data
     DrawItem(const DrawItem &other) = default;
@@ -22,8 +22,8 @@ struct DrawItem {
     DrawItem(DrawItem &&other) noexcept = default;
     DrawItem &operator=(DrawItem &&other) noexcept = default;
     
-    uint8_t mPin = 0;
-    uint32_t mNumBytes = 0;
+    fl::u8 mPin = 0;
+    fl::u32 mNumBytes = 0;
     bool mIsRgbw = false;
     bool operator!=(const DrawItem &other) const {
         return mPin != other.mPin || mNumBytes != other.mNumBytes ||
@@ -37,16 +37,16 @@ struct DrawItem {
 // data. The strips are not necessarily contiguous in memory. One or more
 // DrawItems containing the pin number and number are queued up. When the
 // queue-ing is done, the buffers are compacted into the rectangular buffer.
-// Data access is achieved through a span<uint8_t> representing the pixel data
+// Data access is achieved through a span<fl::u8> representing the pixel data
 // for that pin.
 class RectangularDrawBuffer {
   public:
     typedef fl::HeapVector<DrawItem> DrawList;
     // We manually manage the memory for the buffer of all LEDs so that it can
     // go into psram on ESP32S3, which is managed by fl::PSRamAllocator.
-    scoped_array<uint8_t> mAllLedsBufferUint8;
-    uint32_t mAllLedsBufferUint8Size = 0;
-    fl::FixedMap<uint8_t, fl::span<uint8_t>, 50> mPinToLedSegment;
+    scoped_array<fl::u8> mAllLedsBufferUint8;
+    fl::u32 mAllLedsBufferUint8Size = 0;
+    fl::FixedMap<fl::u8, fl::span<fl::u8>, 50> mPinToLedSegment;
     DrawList mDrawList;
     DrawList mPrevDrawList;
     bool mDrawListChangedThisFrame = false;
@@ -57,7 +57,7 @@ class RectangularDrawBuffer {
     RectangularDrawBuffer() = default;
     ~RectangularDrawBuffer() = default;
 
-    fl::span<uint8_t> getLedsBufferBytesForPin(uint8_t pin,
+    fl::span<fl::u8> getLedsBufferBytesForPin(fl::u8 pin,
                                                bool clear_first = true);
 
     // Safe to call multiple times before calling queue() once. Returns true on
@@ -68,10 +68,10 @@ class RectangularDrawBuffer {
     // Safe to call multiple times before calling onQueueingStart() again.
     // Returns true on the first call, false after.
     bool onQueuingDone();
-    uint32_t getMaxBytesInStrip() const;
-    uint32_t getTotalBytes() const;
-    void getBlockInfo(uint32_t *num_strips, uint32_t *bytes_per_strip,
-                      uint32_t *total_bytes) const;
+    fl::u32 getMaxBytesInStrip() const;
+    fl::u32 getTotalBytes() const;
+    void getBlockInfo(fl::u32 *num_strips, fl::u32 *bytes_per_strip,
+                      fl::u32 *total_bytes) const;
 };
 
 } // namespace fl

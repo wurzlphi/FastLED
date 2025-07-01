@@ -6,6 +6,7 @@
 
 #else
 
+#include "fl/int.h"
 #include <math.h>
 
 #include "fl/assert.h"
@@ -46,7 +47,7 @@ vec2f XYPath::at(float alpha, const TransformFloat &tx) {
     return mPathRenderer->at(alpha, tx);
 }
 
-void XYPath::setDrawBounds(uint16_t width, uint16_t height) {
+void XYPath::setDrawBounds(fl::u16 width, fl::u16 height) {
     mPathRenderer->setDrawBounds(width, height);
 }
 
@@ -76,20 +77,20 @@ XYPath::~XYPath() {}
 
 void XYPathRenderer::rasterize(
     float from, float to, int steps, XYRaster &raster,
-    fl::function<uint8_t(float)> *optional_alpha_gen) {
+    fl::function<fl::u8(float)> *optional_alpha_gen) {
     for (int i = 0; i < steps; ++i) {
         float alpha = fl::map_range<int, float>(i, 0, steps - 1, from, to);
         Tile2x2_u8 tile = at_subpixel(alpha);
         if (optional_alpha_gen) {
             // Scale the tile based on the alpha value.
-            uint8_t a8 = (*optional_alpha_gen)(alpha);
+            fl::u8 a8 = (*optional_alpha_gen)(alpha);
             tile.scale(a8);
         }
         raster.rasterize(tile);
     }
 }
 
-void XYPathRenderer::setDrawBounds(uint16_t width, uint16_t height) {
+void XYPathRenderer::setDrawBounds(fl::u16 width, fl::u16 height) {
     // auto &tx = *(mGridTransform.mImpl);
     auto &tx = mGridTransform;
 
@@ -164,7 +165,7 @@ XYPathPtr XYPath::NewCirclePath() {
     return XYPathPtr::New(path);
 }
 
-XYPathPtr XYPath::NewCirclePath(uint16_t width, uint16_t height) {
+XYPathPtr XYPath::NewCirclePath(fl::u16 width, fl::u16 height) {
     CirclePathPtr path = CirclePathPtr::New();
     XYPathPtr out = XYPathPtr::New(path);
     out->setDrawBounds(width, height);
@@ -176,14 +177,14 @@ XYPathPtr XYPath::NewHeartPath() {
     return XYPathPtr::New(path);
 }
 
-XYPathPtr XYPath::NewHeartPath(uint16_t width, uint16_t height) {
+XYPathPtr XYPath::NewHeartPath(fl::u16 width, fl::u16 height) {
     HeartPathPtr path = HeartPathPtr::New();
     XYPathPtr out = XYPathPtr::New(path);
     out->setDrawBounds(width, height);
     return out;
 }
 
-XYPathPtr XYPath::NewArchimedeanSpiralPath(uint16_t width, uint16_t height) {
+XYPathPtr XYPath::NewArchimedeanSpiralPath(fl::u16 width, fl::u16 height) {
     ArchimedeanSpiralPathPtr path = ArchimedeanSpiralPathPtr::New();
     XYPathPtr out = XYPathPtr::New(path);
     out->setDrawBounds(width, height);
@@ -196,7 +197,7 @@ XYPathPtr XYPath::NewArchimedeanSpiralPath() {
     return out;
 }
 
-XYPathPtr XYPath::NewRosePath(uint16_t width, uint16_t height,
+XYPathPtr XYPath::NewRosePath(fl::u16 width, fl::u16 height,
                               const Ptr<RosePathParams> &params) {
     RosePathPtr path = RosePathPtr::New(params);
     XYPathPtr out = XYPathPtr::New(path);
@@ -206,7 +207,7 @@ XYPathPtr XYPath::NewRosePath(uint16_t width, uint16_t height,
     return out;
 }
 
-XYPathPtr XYPath::NewPhyllotaxisPath(uint16_t width, uint16_t height,
+XYPathPtr XYPath::NewPhyllotaxisPath(fl::u16 width, fl::u16 height,
                                      const Ptr<PhyllotaxisParams> &args) {
     PhyllotaxisPathPtr path = PhyllotaxisPathPtr::New(args);
     XYPathPtr out = XYPathPtr::New(path);
@@ -216,7 +217,7 @@ XYPathPtr XYPath::NewPhyllotaxisPath(uint16_t width, uint16_t height,
     return out;
 }
 
-XYPathPtr XYPath::NewGielisCurvePath(uint16_t width, uint16_t height,
+XYPathPtr XYPath::NewGielisCurvePath(fl::u16 width, fl::u16 height,
                                      const Ptr<GielisCurveParams> &params) {
     GielisCurvePathPtr path = GielisCurvePathPtr::New(params);
     XYPathPtr out = XYPathPtr::New(path);
@@ -226,7 +227,7 @@ XYPathPtr XYPath::NewGielisCurvePath(uint16_t width, uint16_t height,
     return out;
 }
 
-XYPathPtr XYPath::NewCatmullRomPath(uint16_t width, uint16_t height,
+XYPathPtr XYPath::NewCatmullRomPath(fl::u16 width, fl::u16 height,
                                     const Ptr<CatmullRomParams> &params) {
     CatmullRomPathPtr path = CatmullRomPathPtr::New(params);
     XYPathPtr out = XYPathPtr::New(path);
@@ -237,7 +238,7 @@ XYPathPtr XYPath::NewCatmullRomPath(uint16_t width, uint16_t height,
 }
 
 XYPathPtr XYPath::NewCustomPath(const fl::function<vec2f(float)> &f,
-                                const rect<int16_t> &drawbounds,
+                                const rect<fl::i16> &drawbounds,
                                 const TransformFloat &transform,
                                 const char *name) {
 
@@ -250,7 +251,7 @@ XYPathPtr XYPath::NewCustomPath(const fl::function<vec2f(float)> &f,
     if (!transform.is_identity()) {
         out->setTransform(transform);
     }
-    rect<int16_t> bounds;
+    rect<fl::i16> bounds;
     if (path->hasDrawBounds(&bounds)) {
         if (!bounds.mMin.is_zero()) {
             // Set the bounds to the path's bounds

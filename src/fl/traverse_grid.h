@@ -8,6 +8,7 @@ intersecting the line and calls a visitor function for each cell.
 
 #include "fl/math.h"
 #include "fl/point.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -121,59 +122,59 @@ inline void traverseGridSegmentFloat(const vec2f &start, const vec2f &end,
 template <typename GridVisitor>
 inline void traverseGridSegment16(const vec2f &start, const vec2f &end,
                                   GridVisitor &visitor) {
-    const int16_t FP_SHIFT = 8;
-    const int16_t FP_ONE = 1 << FP_SHIFT;
-    // const int16_t FP_MASK = FP_ONE - 1;
+    const fl::i16 FP_SHIFT = 8;
+    const fl::i16 FP_ONE = 1 << FP_SHIFT;
+    // const fl::i16 FP_MASK = FP_ONE - 1;
 
     // Convert to fixed-point (Q8.8), signed
-    int16_t startX_fp = static_cast<int16_t>(start.x * FP_ONE);
-    int16_t startY_fp = static_cast<int16_t>(start.y * FP_ONE);
-    int16_t endX_fp = static_cast<int16_t>(end.x * FP_ONE);
-    int16_t endY_fp = static_cast<int16_t>(end.y * FP_ONE);
+    fl::i16 startX_fp = static_cast<fl::i16>(start.x * FP_ONE);
+    fl::i16 startY_fp = static_cast<fl::i16>(start.y * FP_ONE);
+    fl::i16 endX_fp = static_cast<fl::i16>(end.x * FP_ONE);
+    fl::i16 endY_fp = static_cast<fl::i16>(end.y * FP_ONE);
 
-    int16_t x0 = startX_fp >> FP_SHIFT;
-    int16_t y0 = startY_fp >> FP_SHIFT;
-    int16_t x1 = endX_fp >> FP_SHIFT;
-    int16_t y1 = endY_fp >> FP_SHIFT;
+    fl::i16 x0 = startX_fp >> FP_SHIFT;
+    fl::i16 y0 = startY_fp >> FP_SHIFT;
+    fl::i16 x1 = endX_fp >> FP_SHIFT;
+    fl::i16 y1 = endY_fp >> FP_SHIFT;
 
-    int16_t stepX = (x1 > x0) ? 1 : (x1 < x0) ? -1 : 0;
-    int16_t stepY = (y1 > y0) ? 1 : (y1 < y0) ? -1 : 0;
+    fl::i16 stepX = (x1 > x0) ? 1 : (x1 < x0) ? -1 : 0;
+    fl::i16 stepY = (y1 > y0) ? 1 : (y1 < y0) ? -1 : 0;
 
-    int16_t deltaX_fp = endX_fp - startX_fp;
-    int16_t deltaY_fp = endY_fp - startY_fp;
+    fl::i16 deltaX_fp = endX_fp - startX_fp;
+    fl::i16 deltaY_fp = endY_fp - startY_fp;
 
-    uint16_t absDeltaX_fp =
-        (deltaX_fp != 0) ? static_cast<uint16_t>(
-                               ABS((int32_t(FP_ONE) << FP_SHIFT) / deltaX_fp))
+    fl::u16 absDeltaX_fp =
+        (deltaX_fp != 0) ? static_cast<fl::u16>(
+                               ABS((fl::i32(FP_ONE) << FP_SHIFT) / deltaX_fp))
                          : UINT16_MAX;
-    uint16_t absDeltaY_fp =
-        (deltaY_fp != 0) ? static_cast<uint16_t>(
-                               ABS((int32_t(FP_ONE) << FP_SHIFT) / deltaY_fp))
+    fl::u16 absDeltaY_fp =
+        (deltaY_fp != 0) ? static_cast<fl::u16>(
+                               ABS((fl::i32(FP_ONE) << FP_SHIFT) / deltaY_fp))
                          : UINT16_MAX;
 
-    int16_t nextX_fp = (stepX > 0) ? ((x0 + 1) << FP_SHIFT) : (x0 << FP_SHIFT);
-    int16_t nextY_fp = (stepY > 0) ? ((y0 + 1) << FP_SHIFT) : (y0 << FP_SHIFT);
+    fl::i16 nextX_fp = (stepX > 0) ? ((x0 + 1) << FP_SHIFT) : (x0 << FP_SHIFT);
+    fl::i16 nextY_fp = (stepY > 0) ? ((y0 + 1) << FP_SHIFT) : (y0 << FP_SHIFT);
 
-    uint16_t tMaxX_fp =
+    fl::u16 tMaxX_fp =
         (deltaX_fp != 0)
-            ? static_cast<uint16_t>(
-                  ABS(int32_t(nextX_fp - startX_fp)) * absDeltaX_fp >> FP_SHIFT)
+            ? static_cast<fl::u16>(
+                  ABS(fl::i32(nextX_fp - startX_fp)) * absDeltaX_fp >> FP_SHIFT)
             : UINT16_MAX;
-    uint16_t tMaxY_fp =
+    fl::u16 tMaxY_fp =
         (deltaY_fp != 0)
-            ? static_cast<uint16_t>(
-                  ABS(int32_t(nextY_fp - startY_fp)) * absDeltaY_fp >> FP_SHIFT)
+            ? static_cast<fl::u16>(
+                  ABS(fl::i32(nextY_fp - startY_fp)) * absDeltaY_fp >> FP_SHIFT)
             : UINT16_MAX;
 
-    const uint16_t maxT_fp = FP_ONE;
+    const fl::u16 maxT_fp = FP_ONE;
 
-    int16_t currentX = x0;
-    int16_t currentY = y0;
+    fl::i16 currentX = x0;
+    fl::i16 currentY = y0;
 
     while (true) {
         visitor.visit(currentX, currentY);
 
-        uint16_t t_fp = (tMaxX_fp < tMaxY_fp) ? tMaxX_fp : tMaxY_fp;
+        fl::u16 t_fp = (tMaxX_fp < tMaxY_fp) ? tMaxX_fp : tMaxY_fp;
         if (t_fp > maxT_fp)
             break;
 
@@ -201,59 +202,59 @@ inline void traverseGridSegment16(const vec2f &start, const vec2f &end,
 template <typename GridVisitor>
 inline void traverseGridSegment32(const vec2f &start, const vec2f &end,
                                   GridVisitor &visitor) {
-    const int32_t FP_SHIFT = 8;
-    const int32_t FP_ONE = 1 << FP_SHIFT;
-    // const int32_t FP_MASK = FP_ONE - 1;
+    const fl::i32 FP_SHIFT = 8;
+    const fl::i32 FP_ONE = 1 << FP_SHIFT;
+    // const fl::i32 FP_MASK = FP_ONE - 1;
 
     // Convert to fixed-point (Q24.8) signed
-    int32_t startX_fp = static_cast<int32_t>(start.x * FP_ONE);
-    int32_t startY_fp = static_cast<int32_t>(start.y * FP_ONE);
-    int32_t endX_fp = static_cast<int32_t>(end.x * FP_ONE);
-    int32_t endY_fp = static_cast<int32_t>(end.y * FP_ONE);
+    fl::i32 startX_fp = static_cast<fl::i32>(start.x * FP_ONE);
+    fl::i32 startY_fp = static_cast<fl::i32>(start.y * FP_ONE);
+    fl::i32 endX_fp = static_cast<fl::i32>(end.x * FP_ONE);
+    fl::i32 endY_fp = static_cast<fl::i32>(end.y * FP_ONE);
 
-    int32_t x0 = startX_fp >> FP_SHIFT;
-    int32_t y0 = startY_fp >> FP_SHIFT;
-    int32_t x1 = endX_fp >> FP_SHIFT;
-    int32_t y1 = endY_fp >> FP_SHIFT;
+    fl::i32 x0 = startX_fp >> FP_SHIFT;
+    fl::i32 y0 = startY_fp >> FP_SHIFT;
+    fl::i32 x1 = endX_fp >> FP_SHIFT;
+    fl::i32 y1 = endY_fp >> FP_SHIFT;
 
-    int32_t stepX = (x1 > x0) ? 1 : (x1 < x0) ? -1 : 0;
-    int32_t stepY = (y1 > y0) ? 1 : (y1 < y0) ? -1 : 0;
+    fl::i32 stepX = (x1 > x0) ? 1 : (x1 < x0) ? -1 : 0;
+    fl::i32 stepY = (y1 > y0) ? 1 : (y1 < y0) ? -1 : 0;
 
-    int32_t deltaX_fp = endX_fp - startX_fp;
-    int32_t deltaY_fp = endY_fp - startY_fp;
+    fl::i32 deltaX_fp = endX_fp - startX_fp;
+    fl::i32 deltaY_fp = endY_fp - startY_fp;
 
-    uint32_t absDeltaX_fp =
-        (deltaX_fp != 0) ? static_cast<uint32_t>(
+    fl::u32 absDeltaX_fp =
+        (deltaX_fp != 0) ? static_cast<fl::u32>(
                                ABS((int64_t(FP_ONE) << FP_SHIFT) / deltaX_fp))
                          : UINT32_MAX;
-    uint32_t absDeltaY_fp =
-        (deltaY_fp != 0) ? static_cast<uint32_t>(
+    fl::u32 absDeltaY_fp =
+        (deltaY_fp != 0) ? static_cast<fl::u32>(
                                ABS((int64_t(FP_ONE) << FP_SHIFT) / deltaY_fp))
                          : UINT32_MAX;
 
-    int32_t nextX_fp = (stepX > 0) ? ((x0 + 1) << FP_SHIFT) : (x0 << FP_SHIFT);
-    int32_t nextY_fp = (stepY > 0) ? ((y0 + 1) << FP_SHIFT) : (y0 << FP_SHIFT);
+    fl::i32 nextX_fp = (stepX > 0) ? ((x0 + 1) << FP_SHIFT) : (x0 << FP_SHIFT);
+    fl::i32 nextY_fp = (stepY > 0) ? ((y0 + 1) << FP_SHIFT) : (y0 << FP_SHIFT);
 
-    uint32_t tMaxX_fp =
+    fl::u32 tMaxX_fp =
         (deltaX_fp != 0)
-            ? static_cast<uint32_t>(
+            ? static_cast<fl::u32>(
                   ABS(int64_t(nextX_fp - startX_fp)) * absDeltaX_fp >> FP_SHIFT)
             : UINT32_MAX;
-    uint32_t tMaxY_fp =
+    fl::u32 tMaxY_fp =
         (deltaY_fp != 0)
-            ? static_cast<uint32_t>(
+            ? static_cast<fl::u32>(
                   ABS(int64_t(nextY_fp - startY_fp)) * absDeltaY_fp >> FP_SHIFT)
             : UINT32_MAX;
 
-    const uint32_t maxT_fp = FP_ONE;
+    const fl::u32 maxT_fp = FP_ONE;
 
-    int32_t currentX = x0;
-    int32_t currentY = y0;
+    fl::i32 currentX = x0;
+    fl::i32 currentY = y0;
 
     while (true) {
         visitor.visit(currentX, currentY);
 
-        uint32_t t_fp = (tMaxX_fp < tMaxY_fp) ? tMaxX_fp : tMaxY_fp;
+        fl::u32 t_fp = (tMaxX_fp < tMaxY_fp) ? tMaxX_fp : tMaxY_fp;
         if (t_fp > maxT_fp)
             break;
 

@@ -2,6 +2,7 @@
 #define FASTLED_INTERNAL
 #endif
 
+#include "fl/int.h"
 #include "FastLED.h"
 
 #include "fl/ease.h"
@@ -14,93 +15,93 @@
 namespace fl {
 
 // 8-bit easing functions
-uint8_t easeInQuad8(uint8_t i) {
+fl::u8 easeInQuad8(fl::u8 i) {
     // Simple quadratic ease-in: i^2 scaled to 8-bit range
     // Using scale8(i, i) which computes (i * i) / 255
     return scale8(i, i);
 }
 
-uint8_t easeInOutQuad8(uint8_t i) {
-    constexpr uint16_t MAX = 0xFF;            // 255
-    constexpr uint16_t HALF = (MAX + 1) >> 1; // 128
-    constexpr uint16_t DENOM = MAX;           // divisor for scaling
-    constexpr uint16_t ROUND = DENOM >> 1;    // for rounding
+fl::u8 easeInOutQuad8(fl::u8 i) {
+    constexpr fl::u16 MAX = 0xFF;            // 255
+    constexpr fl::u16 HALF = (MAX + 1) >> 1; // 128
+    constexpr fl::u16 DENOM = MAX;           // divisor for scaling
+    constexpr fl::u16 ROUND = DENOM >> 1;    // for rounding
 
     if (i < HALF) {
         // first half: y = 2·(i/MAX)² → y_i = 2·i² / MAX
-        uint32_t t = i;
-        uint32_t num = 2 * t * t + ROUND; // 2*i², +half for rounding
-        return uint8_t(num / DENOM);
+        fl::u32 t = i;
+        fl::u32 num = 2 * t * t + ROUND; // 2*i², +half for rounding
+        return fl::u8(num / DENOM);
     } else {
         // second half: y = 1 − 2·(1−i/MAX)²
         // → y_i = MAX − (2·(MAX−i)² / MAX)
-        uint32_t d = MAX - i;
-        uint32_t num = 2 * d * d + ROUND; // 2*(MAX−i)², +half for rounding
-        return uint8_t(MAX - (num / DENOM));
+        fl::u32 d = MAX - i;
+        fl::u32 num = 2 * d * d + ROUND; // 2*(MAX−i)², +half for rounding
+        return fl::u8(MAX - (num / DENOM));
     }
 }
 
-uint8_t easeInOutCubic8(uint8_t i) {
-    constexpr uint16_t MAX = 0xFF;                  // 255
-    constexpr uint16_t HALF = (MAX + 1) >> 1;       // 128
-    constexpr uint32_t DENOM = (uint32_t)MAX * MAX; // 255*255 = 65025
-    constexpr uint32_t ROUND = DENOM >> 1;          // for rounding
+fl::u8 easeInOutCubic8(fl::u8 i) {
+    constexpr fl::u16 MAX = 0xFF;                  // 255
+    constexpr fl::u16 HALF = (MAX + 1) >> 1;       // 128
+    constexpr fl::u32 DENOM = (fl::u32)MAX * MAX; // 255*255 = 65025
+    constexpr fl::u32 ROUND = DENOM >> 1;          // for rounding
 
     if (i < HALF) {
         // first half: y = 4·(i/MAX)³ → y_i = 4·i³ / MAX²
-        uint32_t ii = i;
-        uint32_t cube = ii * ii * ii;    // i³
-        uint32_t num = 4 * cube + ROUND; // 4·i³, +half denom for rounding
-        return uint8_t(num / DENOM);
+        fl::u32 ii = i;
+        fl::u32 cube = ii * ii * ii;    // i³
+        fl::u32 num = 4 * cube + ROUND; // 4·i³, +half denom for rounding
+        return fl::u8(num / DENOM);
     } else {
         // second half: y = 1 − ((−2·t+2)³)/2
         // where t = i/MAX; equivalently:
         // y_i = MAX − (4·(MAX−i)³ / MAX²)
-        uint32_t d = MAX - i;
-        uint32_t cube = d * d * d; // (MAX−i)³
-        uint32_t num = 4 * cube + ROUND;
-        return uint8_t(MAX - (num / DENOM));
+        fl::u32 d = MAX - i;
+        fl::u32 cube = d * d * d; // (MAX−i)³
+        fl::u32 num = 4 * cube + ROUND;
+        return fl::u8(MAX - (num / DENOM));
     }
 }
 
-uint8_t easeOutQuad8(uint8_t i) {
+fl::u8 easeOutQuad8(fl::u8 i) {
     // ease-out is the inverse of ease-in: 1 - (1-t)²
     // For 8-bit: y = MAX - (MAX-i)² / MAX
-    constexpr uint16_t MAX = 0xFF;
-    uint32_t d = MAX - i;              // (MAX - i)
-    uint32_t num = d * d + (MAX >> 1); // (MAX-i)² + rounding
-    return uint8_t(MAX - (num / MAX));
+    constexpr fl::u16 MAX = 0xFF;
+    fl::u32 d = MAX - i;              // (MAX - i)
+    fl::u32 num = d * d + (MAX >> 1); // (MAX-i)² + rounding
+    return fl::u8(MAX - (num / MAX));
 }
 
-uint8_t easeInCubic8(uint8_t i) {
+fl::u8 easeInCubic8(fl::u8 i) {
     // Simple cubic ease-in: i³ scaled to 8-bit range
     // y = i³ / MAX²
-    constexpr uint16_t MAX = 0xFF;
-    constexpr uint32_t DENOM = (uint32_t)MAX * MAX;
-    constexpr uint32_t ROUND = DENOM >> 1;
+    constexpr fl::u16 MAX = 0xFF;
+    constexpr fl::u32 DENOM = (fl::u32)MAX * MAX;
+    constexpr fl::u32 ROUND = DENOM >> 1;
 
-    uint32_t ii = i;
-    uint32_t cube = ii * ii * ii; // i³
-    uint32_t num = cube + ROUND;
-    return uint8_t(num / DENOM);
+    fl::u32 ii = i;
+    fl::u32 cube = ii * ii * ii; // i³
+    fl::u32 num = cube + ROUND;
+    return fl::u8(num / DENOM);
 }
 
-uint8_t easeOutCubic8(uint8_t i) {
+fl::u8 easeOutCubic8(fl::u8 i) {
     // ease-out cubic: 1 - (1-t)³
     // For 8-bit: y = MAX - (MAX-i)³ / MAX²
-    constexpr uint16_t MAX = 0xFF;
-    constexpr uint32_t DENOM = (uint32_t)MAX * MAX;
-    constexpr uint32_t ROUND = DENOM >> 1;
+    constexpr fl::u16 MAX = 0xFF;
+    constexpr fl::u32 DENOM = (fl::u32)MAX * MAX;
+    constexpr fl::u32 ROUND = DENOM >> 1;
 
-    uint32_t d = MAX - i;      // (MAX - i)
-    uint32_t cube = d * d * d; // (MAX-i)³
-    uint32_t num = cube + ROUND;
-    return uint8_t(MAX - (num / DENOM));
+    fl::u32 d = MAX - i;      // (MAX - i)
+    fl::u32 cube = d * d * d; // (MAX-i)³
+    fl::u32 num = cube + ROUND;
+    return fl::u8(MAX - (num / DENOM));
 }
 
-uint8_t easeInSine8(uint8_t i) {
+fl::u8 easeInSine8(fl::u8 i) {
 
-    static const uint8_t easeInSineTable[256] = {
+    static const fl::u8 easeInSineTable[256] = {
         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   1,   1,   1,
         1,   1,   1,   1,   2,   2,   2,   2,   2,   3,   3,   3,   3,   4,
         4,   4,   4,   5,   5,   5,   6,   6,   6,   7,   7,   7,   8,   8,
@@ -126,54 +127,54 @@ uint8_t easeInSine8(uint8_t i) {
     return easeInSineTable[i];
 }
 
-uint8_t easeOutSine8(uint8_t i) {
+fl::u8 easeOutSine8(fl::u8 i) {
     // ease-out sine: sin(t * π/2)
     // Delegate to 16-bit version for consistency and accuracy
     // Scale 8-bit input to 16-bit range, call 16-bit function, scale result back
-    uint16_t input16 = map8_to_16(i);
-    uint16_t result16 = easeOutSine16(input16);
+    fl::u16 input16 = map8_to_16(i);
+    fl::u16 result16 = easeOutSine16(input16);
     return map16_to_8(result16);
 }
 
-uint8_t easeInOutSine8(uint8_t i) {
+fl::u8 easeInOutSine8(fl::u8 i) {
     // ease-in-out sine: -(cos(π*t) - 1) / 2
     // Delegate to 16-bit version for consistency and accuracy
     // Scale 8-bit input to 16-bit range, call 16-bit function, scale result back
-    uint16_t input16 = map8_to_16(i);
-    uint16_t result16 = easeInOutSine16(input16);
+    fl::u16 input16 = map8_to_16(i);
+    fl::u16 result16 = easeInOutSine16(input16);
     return map16_to_8(result16);
 }
 
 // 16-bit easing functions
-uint16_t easeInQuad16(uint16_t i) {
+fl::u16 easeInQuad16(fl::u16 i) {
     // Simple quadratic ease-in: i^2 scaled to 16-bit range
     // Using scale16(i, i) which computes (i * i) / 65535
     return scale16(i, i);
 }
 
-uint16_t easeInOutQuad16(uint16_t x) {
+fl::u16 easeInOutQuad16(fl::u16 x) {
     // 16-bit quadratic ease-in / ease-out function
-    constexpr uint32_t MAX = 0xFFFF;          // 65535
-    constexpr uint32_t HALF = (MAX + 1) >> 1; // 32768
-    constexpr uint32_t DENOM = MAX;           // divisor
-    constexpr uint32_t ROUND = DENOM >> 1;    // for rounding
+    constexpr fl::u32 MAX = 0xFFFF;          // 65535
+    constexpr fl::u32 HALF = (MAX + 1) >> 1; // 32768
+    constexpr fl::u32 DENOM = MAX;           // divisor
+    constexpr fl::u32 ROUND = DENOM >> 1;    // for rounding
 
     if (x < HALF) {
         // first half: y = 2·(x/MAX)² → y_i = 2·x² / MAX
         uint64_t xi = x;
         uint64_t num = 2 * xi * xi + ROUND; // 2*x², +half for rounding
-        return uint16_t(num / DENOM);
+        return fl::u16(num / DENOM);
     } else {
         // second half: y = 1 − 2·(1−x/MAX)² → y_i = MAX − (2·(MAX−x)² / MAX)
         uint64_t d = MAX - x;
         uint64_t num = 2 * d * d + ROUND; // 2*(MAX−x)², +half for rounding
-        return uint16_t(MAX - (num / DENOM));
+        return fl::u16(MAX - (num / DENOM));
     }
 }
 
-uint16_t easeInOutCubic16(uint16_t x) {
-    const uint32_t MAX = 0xFFFF;             // 65535
-    const uint32_t HALF = (MAX + 1) >> 1;    // 32768
+fl::u16 easeInOutCubic16(fl::u16 x) {
+    const fl::u32 MAX = 0xFFFF;             // 65535
+    const fl::u32 HALF = (MAX + 1) >> 1;    // 32768
     const uint64_t M2 = (uint64_t)MAX * MAX; // 65535² = 4 294 836 225
 
     if (x < HALF) {
@@ -182,55 +183,55 @@ uint16_t easeInOutCubic16(uint16_t x) {
         uint64_t cube = xi * xi * xi; // x³
         // add M2/2 for rounding
         uint64_t num = 4 * cube + (M2 >> 1);
-        return (uint16_t)(num / M2);
+        return (fl::u16)(num / M2);
     } else {
         // second half: y = 1 − ((2·(1−x/MAX))³)/2
         // → y_i = MAX − (4·(MAX−x)³ / MAX²)
         uint64_t d = MAX - x;
         uint64_t cube = d * d * d; // (MAX−x)³
         uint64_t num = 4 * cube + (M2 >> 1);
-        return (uint16_t)(MAX - (num / M2));
+        return (fl::u16)(MAX - (num / M2));
     }
 }
 
-uint16_t easeOutQuad16(uint16_t i) {
+fl::u16 easeOutQuad16(fl::u16 i) {
     // ease-out quadratic: 1 - (1-t)²
     // For 16-bit: y = MAX - (MAX-i)² / MAX
-    constexpr uint32_t MAX = 0xFFFF;     // 65535
-    constexpr uint32_t ROUND = MAX >> 1; // for rounding
+    constexpr fl::u32 MAX = 0xFFFF;     // 65535
+    constexpr fl::u32 ROUND = MAX >> 1; // for rounding
 
     uint64_t d = MAX - i;         // (MAX - i)
     uint64_t num = d * d + ROUND; // (MAX-i)² + rounding
-    return uint16_t(MAX - (num / MAX));
+    return fl::u16(MAX - (num / MAX));
 }
 
-uint16_t easeInCubic16(uint16_t i) {
+fl::u16 easeInCubic16(fl::u16 i) {
     // Simple cubic ease-in: i³ scaled to 16-bit range
     // y = i³ / MAX²
-    constexpr uint32_t MAX = 0xFFFF;                // 65535
+    constexpr fl::u32 MAX = 0xFFFF;                // 65535
     constexpr uint64_t DENOM = (uint64_t)MAX * MAX; // 65535²
     constexpr uint64_t ROUND = DENOM >> 1;          // for rounding
 
     uint64_t ii = i;
     uint64_t cube = ii * ii * ii; // i³
     uint64_t num = cube + ROUND;
-    return uint16_t(num / DENOM);
+    return fl::u16(num / DENOM);
 }
 
-uint16_t easeOutCubic16(uint16_t i) {
+fl::u16 easeOutCubic16(fl::u16 i) {
     // ease-out cubic: 1 - (1-t)³
     // For 16-bit: y = MAX - (MAX-i)³ / MAX²
-    constexpr uint32_t MAX = 0xFFFF;                // 65535
+    constexpr fl::u32 MAX = 0xFFFF;                // 65535
     constexpr uint64_t DENOM = (uint64_t)MAX * MAX; // 65535²
     constexpr uint64_t ROUND = DENOM >> 1;          // for rounding
 
     uint64_t d = MAX - i;      // (MAX - i)
     uint64_t cube = d * d * d; // (MAX-i)³
     uint64_t num = cube + ROUND;
-    return uint16_t(MAX - (num / DENOM));
+    return fl::u16(MAX - (num / DENOM));
 }
 
-uint16_t easeInSine16(uint16_t i) {
+fl::u16 easeInSine16(fl::u16 i) {
     // ease-in sine: 1 - cos(t * π/2)
     // Handle boundary conditions explicitly
     if (i == 0)
@@ -241,8 +242,8 @@ uint16_t easeInSine16(uint16_t i) {
     // Map i from [0,65535] to [0,4194304] in cos32 space (zero to quarter wave)
     // Formula: 1 - cos(t * π/2) where t goes from 0 to 1
     // sin32/cos32 quarter cycle is 16777216/4 = 4194304
-    uint32_t angle = ((uint64_t)i * 4194304ULL) / 65535ULL;
-    int32_t cos_result = fl::cos32(angle);
+    fl::u32 angle = ((uint64_t)i * 4194304ULL) / 65535ULL;
+    fl::i32 cos_result = fl::cos32(angle);
 
     // Convert cos32 output and apply easing formula: 1 - cos(t * π/2)
     // cos32 output range is [-2147418112, 2147418112]
@@ -256,12 +257,12 @@ uint16_t easeInSine16(uint16_t i) {
     
     // Scale from [0, 2147418112] to [0, 65535]
     uint64_t result = (uint64_t)adjusted * 65535ULL + (MAX_COS32 >> 1); // Add half for rounding
-    uint16_t final_result = (uint16_t)(result / (uint64_t)MAX_COS32);
+    fl::u16 final_result = (fl::u16)(result / (uint64_t)MAX_COS32);
     
     return final_result;
 }
 
-uint16_t easeOutSine16(uint16_t i) {
+fl::u16 easeOutSine16(fl::u16 i) {
     // ease-out sine: sin(t * π/2)
     // Handle boundary conditions explicitly
     if (i == 0)
@@ -273,16 +274,16 @@ uint16_t easeOutSine16(uint16_t i) {
     // Map i from [0,65535] to [0,4194304] in sin32 space (zero to quarter wave)
     // Formula: sin(t * π/2) where t goes from 0 to 1
     // sin32 quarter cycle is 16777216/4 = 4194304
-    uint32_t angle = ((uint64_t)i * 4194304ULL) / 65535ULL;
-    int32_t sin_result = fl::sin32(angle);
+    fl::u32 angle = ((uint64_t)i * 4194304ULL) / 65535ULL;
+    fl::i32 sin_result = fl::sin32(angle);
     
     // Convert sin32 output range [-2147418112, 2147418112] to [0, 65535]
     // sin32 output is in range -32767*65536 to +32767*65536
     // For ease-out sine, we only use positive portion [0, 2147418112] -> [0, 65535]
-    return (uint16_t)((uint64_t)sin_result * 65535ULL / 2147418112ULL);
+    return (fl::u16)((uint64_t)sin_result * 65535ULL / 2147418112ULL);
 }
 
-uint16_t easeInOutSine16(uint16_t i) {
+fl::u16 easeInOutSine16(fl::u16 i) {
     // ease-in-out sine: -(cos(π*t) - 1) / 2
     // Handle boundary conditions explicitly
     if (i == 0)
@@ -294,14 +295,14 @@ uint16_t easeInOutSine16(uint16_t i) {
     // Map i from [0,65535] to [0,8388608] in cos32 space (0 to half wave)
     // Formula: (1 - cos(π*t)) / 2 where t goes from 0 to 1
     // sin32/cos32 half cycle is 16777216/2 = 8388608
-    uint32_t angle = ((uint64_t)i * 8388608ULL) / 65535ULL;
-    int32_t cos_result = fl::cos32(angle);
+    fl::u32 angle = ((uint64_t)i * 8388608ULL) / 65535ULL;
+    fl::i32 cos_result = fl::cos32(angle);
 
     // Convert cos32 output and apply easing formula: (1 - cos(π*t)) / 2
     // cos32 output range is [-2147418112, 2147418112]
     // We want: (2147418112 - cos_result) / 2, then scale to [0, 65535]
     int64_t adjusted = (2147418112LL - (int64_t)cos_result) / 2;
-    return (uint16_t)((uint64_t)adjusted * 65535ULL / 2147418112ULL);
+    return (fl::u16)((uint64_t)adjusted * 65535ULL / 2147418112ULL);
 }
 
 } // namespace fl

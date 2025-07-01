@@ -4,6 +4,7 @@
 #include "fl/leds.h"
 #include "fl/raster_sparse.h"
 #include "fl/tile2x2.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -33,7 +34,7 @@ void XYRasterU8Sparse::rasterize(const span<const Tile2x2_u8> &tiles) {
         FASTLED_WARN("Rasterize: no tiles");
         return;
     }
-    const rect<int16_t> *optional_bounds =
+    const rect<fl::i16> *optional_bounds =
         mAbsoluteBoundsSet ? nullptr : &mAbsoluteBounds;
 
     // Check if the bounds are set.
@@ -46,11 +47,11 @@ void XYRasterU8Sparse::rasterize(const span<const Tile2x2_u8> &tiles) {
 }
 
 void XYRasterU8Sparse::rasterize_internal(const Tile2x2_u8 &tile,
-                                          const rect<int16_t> *optional_bounds) {
-    const vec2<int16_t> &origin = tile.origin();
+                                          const rect<fl::i16> *optional_bounds) {
+    const vec2<fl::i16> &origin = tile.origin();
     for (int x = 0; x < 2; ++x) {
         for (int y = 0; y < 2; ++y) {
-            uint8_t value = tile.at(x, y);
+            fl::u8 value = tile.at(x, y);
             if (!value) {
                 continue;
             }
@@ -59,7 +60,7 @@ void XYRasterU8Sparse::rasterize_internal(const Tile2x2_u8 &tile,
             if (optional_bounds && !optional_bounds->contains(xx, yy)) {
                 continue;
             }
-            write(vec2<int16_t>(xx, yy), value);
+            write(vec2<fl::i16>(xx, yy), value);
         }
     }
 }
@@ -73,7 +74,7 @@ void fl::XYRasterSparse_CRGB::draw(const XYMap &xymap, CRGB *out) {
         if (!xymap.has(pt.x, pt.y)) {
             continue;
         }
-        uint32_t index = xymap(pt.x, pt.y);
+        fl::u32 index = xymap(pt.x, pt.y);
         const CRGB &color = it.second;
         // Only draw non-black pixels (since black represents "no data")
         if (color.r != 0 || color.g != 0 || color.b != 0) {

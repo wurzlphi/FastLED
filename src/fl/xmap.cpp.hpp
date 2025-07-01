@@ -1,27 +1,28 @@
 
 
 #include "fl/xmap.h"
+#include "fl/int.h"
 
 namespace fl {
 
-XMap XMap::constructWithUserFunction(uint16_t length, XFunction xFunction,
-                                     uint16_t offset) {
+XMap XMap::constructWithUserFunction(fl::u16 length, XFunction xFunction,
+                                     fl::u16 offset) {
     XMap out = XMap(length, kFunction);
     out.xFunction = xFunction;
     out.mOffset = offset;
     return out;
 }
 
-XMap XMap::constructWithLookUpTable(uint16_t length,
-                                    const uint16_t *lookUpTable,
-                                    uint16_t offset) {
+XMap XMap::constructWithLookUpTable(fl::u16 length,
+                                    const fl::u16 *lookUpTable,
+                                    fl::u16 offset) {
     XMap out = XMap(length, kLookUpTable);
     out.mData = lookUpTable;
     out.mOffset = offset;
     return out;
 }
 
-XMap::XMap(uint16_t length, bool is_reverse, uint16_t offset) {
+XMap::XMap(fl::u16 length, bool is_reverse, fl::u16 offset) {
     type = is_reverse ? kReverse : kLinear;
     this->length = length;
     this->mOffset = offset;
@@ -42,17 +43,17 @@ void XMap::convertToLookUpTable() {
     }
     mLookUpTable.reset();
     mLookUpTable = LUT16Ptr::New(length);
-    uint16_t *dataMutable = mLookUpTable->getDataMutable();
+    fl::u16 *dataMutable = mLookUpTable->getDataMutable();
     mData = mLookUpTable->getData();
-    for (uint16_t x = 0; x < length; x++) {
+    for (fl::u16 x = 0; x < length; x++) {
         dataMutable[x] = mapToIndex(x);
     }
     type = kLookUpTable;
     xFunction = nullptr;
 }
 
-uint16_t XMap::mapToIndex(uint16_t x) const {
-    uint16_t index;
+fl::u16 XMap::mapToIndex(fl::u16 x) const {
+    fl::u16 index;
     switch (type) {
     case kLinear:
         index = x_linear(x, length);
@@ -73,11 +74,11 @@ uint16_t XMap::mapToIndex(uint16_t x) const {
     return index + mOffset;
 }
 
-uint16_t XMap::getLength() const { return length; }
+fl::u16 XMap::getLength() const { return length; }
 
 XMap::Type XMap::getType() const { return type; }
 
-XMap::XMap(uint16_t length, Type type)
+XMap::XMap(fl::u16 length, Type type)
     : length(length), type(type), mOffset(0) {}
 
 XMap &XMap::operator=(const XMap &other) {

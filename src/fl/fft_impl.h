@@ -5,6 +5,7 @@
 #include "fl/scoped_ptr.h"
 #include "fl/span.h"
 #include "fl/vector.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -34,7 +35,7 @@ class FFTImpl : public fl::Referent {
     // Note that the sample sizes MUST match the samples size passed into the
     // constructor.
     Result run(const AudioSample &sample, FFTBins *out);
-    Result run(span<const int16_t> sample, FFTBins *out);
+    Result run(span<const fl::i16> sample, FFTBins *out);
     // Info on what the frequency the bins represent
     fl::string info() const;
 

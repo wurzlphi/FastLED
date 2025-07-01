@@ -2,13 +2,14 @@
 
 #include "fl/inplacenew.h"  // for fl::move, fl::forward, in‐place new
 #include "fl/type_traits.h" // for fl::enable_if, fl::is_same, etc.
+#include "fl/int.h"
 
 namespace fl {
 
 // A variant that can hold any of N different types
 template <typename... Types> class Variant {
   public:
-    using Tag = uint8_t;
+    using Tag = fl::u8;
     static constexpr Tag Empty = 0;
 
     // –– ctors/dtors/assign as before …

@@ -15,6 +15,7 @@
 #include "fl/str.h"
 #include "fl/vector.h"
 #include "fl/warn.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -82,7 +83,7 @@ bool ScreenMap::ParseJson(const char *jsonStrScreenMap,
         }
         auto n = x.size();
         ScreenMap segment_map(n, diameter);
-        for (uint16_t j = 0; j < n; j++) {
+        for (fl::u16 j = 0; j < n; j++) {
             segment_map.set(j, vec2f{x[j], y[j]});
         }
         segmentMaps->insert(kv.key().c_str(), segment_map);
@@ -139,7 +140,7 @@ void ScreenMap::toJson(const FixedMap<string, ScreenMap, 16> &segmentMaps,
             auto segment = map[kv.first].to<FLArduinoJson::JsonObject>();
             auto x_array = segment["x"].to<FLArduinoJson::JsonArray>();
             auto y_array = segment["y"].to<FLArduinoJson::JsonArray>();
-            for (uint16_t i = 0; i < kv.second.getLength(); i++) {
+            for (fl::u16 i = 0; i < kv.second.getLength(); i++) {
                 const vec2f &xy = kv.second[i];
                 x_array.add(xy.x);
                 y_array.add(xy.y);
@@ -168,22 +169,22 @@ void ScreenMap::toJsonStr(const FixedMap<string, ScreenMap, 16> &segmentMaps,
 #endif
 }
 
-ScreenMap::ScreenMap(uint32_t length, float mDiameter)
+ScreenMap::ScreenMap(fl::u32 length, float mDiameter)
     : length(length), mDiameter(mDiameter) {
     mLookUpTable = LUTXYFLOATPtr::New(length);
     LUTXYFLOAT &lut = *mLookUpTable.get();
     vec2f *data = lut.getDataMutable();
-    for (uint32_t x = 0; x < length; x++) {
+    for (fl::u32 x = 0; x < length; x++) {
         data[x] = {0, 0};
     }
 }
 
-ScreenMap::ScreenMap(const vec2f *lut, uint32_t length, float diameter)
+ScreenMap::ScreenMap(const vec2f *lut, fl::u32 length, float diameter)
     : length(length), mDiameter(diameter) {
     mLookUpTable = LUTXYFLOATPtr::New(length);
     LUTXYFLOAT &lut16xy = *mLookUpTable.get();
     vec2f *data = lut16xy.getDataMutable();
-    for (uint32_t x = 0; x < length; x++) {
+    for (fl::u32 x = 0; x < length; x++) {
         data[x] = lut[x];
     }
 }
@@ -194,7 +195,7 @@ ScreenMap::ScreenMap(const ScreenMap &other) {
     mLookUpTable = other.mLookUpTable;
 }
 
-void ScreenMap::set(uint16_t index, const vec2f &p) {
+void ScreenMap::set(fl::u16 index, const vec2f &p) {
     if (mLookUpTable) {
         LUTXYFLOAT &lut = *mLookUpTable.get();
         auto *data = lut.getDataMutable();
@@ -204,7 +205,7 @@ void ScreenMap::set(uint16_t index, const vec2f &p) {
 
 void ScreenMap::setDiameter(float diameter) { mDiameter = diameter; }
 
-vec2f ScreenMap::mapToIndex(uint32_t x) const {
+vec2f ScreenMap::mapToIndex(fl::u32 x) const {
     if (x >= length || !mLookUpTable) {
         return {0, 0};
     }
@@ -213,7 +214,7 @@ vec2f ScreenMap::mapToIndex(uint32_t x) const {
     return screen_coords;
 }
 
-uint32_t ScreenMap::getLength() const { return length; }
+fl::u32 ScreenMap::getLength() const { return length; }
 
 float ScreenMap::getDiameter() const { return mDiameter; }
 
@@ -235,7 +236,7 @@ vec2f ScreenMap::getBounds() const {
     float minY = data[0].y;
     float maxY = data[0].y;
 
-    for (uint32_t i = 1; i < length; i++) {
+    for (fl::u32 i = 1; i < length; i++) {
         const vec2f &p = lut[i];
         minX = MIN(minX, p.x);
         maxX = MAX(maxX, p.x);
@@ -251,7 +252,7 @@ const vec2f &ScreenMap::empty() {
     return s_empty;
 }
 
-const vec2f &ScreenMap::operator[](uint32_t x) const {
+const vec2f &ScreenMap::operator[](fl::u32 x) const {
     if (x >= length || !mLookUpTable) {
         return empty(); // better than crashing.
     }
@@ -259,7 +260,7 @@ const vec2f &ScreenMap::operator[](uint32_t x) const {
     return lut[x];
 }
 
-vec2f &ScreenMap::operator[](uint32_t x) {
+vec2f &ScreenMap::operator[](fl::u32 x) {
     if (x >= length || !mLookUpTable) {
         return const_cast<vec2f &>(empty()); // better than crashing.
     }
@@ -279,7 +280,7 @@ ScreenMap &ScreenMap::operator=(const ScreenMap &other) {
 
 void ScreenMap::addOffset(const vec2f &p) {
     vec2f *data = mLookUpTable->getDataMutable();
-    for (uint32_t i = 0; i < length; i++) {
+    for (fl::u32 i = 0; i < length; i++) {
         vec2f &curr = data[i];
         curr.x += p.x;
         curr.y += p.y;

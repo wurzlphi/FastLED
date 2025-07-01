@@ -31,15 +31,15 @@ private:
 
     /// Generate next 32-bit random number using this instance's seed
     /// @returns The next 32-bit random number
-    uint32_t next_random32() {
-        uint32_t high = next_random16();
-        uint32_t low = next_random16();
+    fl::u32 next_random32() {
+        fl::u32 high = next_random16();
+        fl::u32 low = next_random16();
         return (high << 16) | low;
     }
 
 public:
     /// The result type for this random generator (32-bit unsigned integer)
-    typedef uint32_t result_type;
+    typedef fl::u32 result_type;
 
     /// Default constructor - uses current global random seed
     fl_random() : seed_(random16_get_seed()) {}
@@ -59,9 +59,9 @@ public:
     /// @returns A random number from 0 to n-1
     result_type operator()(result_type n) {
         if (n == 0) return 0;
-        uint32_t r = next_random32();
+        fl::u32 r = next_random32();
         uint64_t p = (uint64_t)n * (uint64_t)r;
-        return (uint32_t)(p >> 32);
+        return (fl::u32)(p >> 32);
     }
 
     /// Generate a random number in the range [min, max)
@@ -106,17 +106,17 @@ public:
 
     /// Generate an 8-bit random number
     /// @returns A random 8-bit unsigned integer (0-255)
-    uint8_t random8() {
+    fl::u8 random8() {
         u16 r = next_random16();
         // return the sum of the high and low bytes, for better mixing
-        return (uint8_t)(((uint8_t)(r & 0xFF)) + ((uint8_t)(r >> 8)));
+        return (fl::u8)(((fl::u8)(r & 0xFF)) + ((fl::u8)(r >> 8)));
     }
 
     /// Generate an 8-bit random number in the range [0, n)
     /// @param n The upper bound (exclusive)
     /// @returns A random 8-bit number from 0 to n-1
-    uint8_t random8(uint8_t n) {
-        uint8_t r = random8();
+    fl::u8 random8(fl::u8 n) {
+        fl::u8 r = random8();
         r = (r * n) >> 8;
         return r;
     }
@@ -125,9 +125,9 @@ public:
     /// @param min The lower bound (inclusive)
     /// @param max The upper bound (exclusive)
     /// @returns A random 8-bit number from min to max-1
-    uint8_t random8(uint8_t min, uint8_t max) {
-        uint8_t delta = max - min;
-        uint8_t r = random8(delta) + min;
+    fl::u8 random8(fl::u8 min, fl::u8 max) {
+        fl::u8 delta = max - min;
+        fl::u8 r = random8(delta) + min;
         return r;
     }
 

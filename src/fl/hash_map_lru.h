@@ -8,6 +8,7 @@ recently used items when it reaches capacity.
 
 #include "fl/hash_map.h"
 #include "fl/type_traits.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -19,10 +20,10 @@ class HashMapLru {
     // Wrapper for values that includes access time tracking
     struct ValueWithTimestamp {
         T value;
-        uint32_t last_access_time;
+        fl::u32 last_access_time;
 
         ValueWithTimestamp() : last_access_time(0) {}
-        ValueWithTimestamp(const T &v, uint32_t time)
+        ValueWithTimestamp(const T &v, fl::u32 time)
             : value(v), last_access_time(time) {}
     };
 
@@ -134,7 +135,7 @@ class HashMapLru {
 
         // Find the entry with the oldest timestamp
         Key oldest_key;
-        uint32_t oldest_time = UINT32_MAX;
+        fl::u32 oldest_time = UINT32_MAX;
         bool found = false;
 
         for (auto it = mMap.begin(); it != mMap.end(); ++it) {
@@ -156,7 +157,7 @@ class HashMapLru {
 
     HashMap<Key, ValueWithTimestamp, Hash, KeyEqual, INLINED_COUNT> mMap;
     size_t mMaxSize;
-    uint32_t mCurrentTime;
+    fl::u32 mCurrentTime;
 };
 
 } // namespace fl

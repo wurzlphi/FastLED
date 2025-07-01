@@ -23,6 +23,7 @@ and removals.
 #include "fl/vector.h"
 #include "fl/warn.h"
 #include "fl/compiler_control.h"
+#include "fl/int.h"
 
 namespace fl {
 
@@ -64,7 +65,7 @@ class HashMap {
 
     void setLoadFactor(float f) {
         f = fl::clamp(f, 0.f, 1.f);
-        mLoadFactor = fl::map_range<float, uint8_t>(f, 0.f, 1.f, 0, 255);
+        mLoadFactor = fl::map_range<float, fl::u8>(f, 0.f, 1.f, 0, 255);
     }
 
     // Iterator support.
@@ -189,11 +190,11 @@ class HashMap {
     }
 
     static bool NeedsRehash(size_t size, size_t bucket_size, size_t tombstones,
-                            uint8_t load_factor) {
+                            fl::u8 load_factor) {
         // (size + tombstones) << 8   : multiply numerator by 256
         // capacity * max_load : denominator * threshold
-        uint32_t lhs = (size + tombstones) << 8;
-        uint32_t rhs = (bucket_size * load_factor);
+        fl::u32 lhs = (size + tombstones) << 8;
+        fl::u32 rhs = (bucket_size * load_factor);
         return lhs > rhs;
     }
 
@@ -617,7 +618,7 @@ class HashMap {
     fl::vector_inlined<Entry, INLINED_COUNT> _buckets;
     size_t _size;
     size_t _tombstones;
-    uint8_t mLoadFactor;
+    fl::u8 mLoadFactor;
     fl::bitset<1024> _occupied;
     fl::bitset<1024> _deleted;
     Hash _hash;

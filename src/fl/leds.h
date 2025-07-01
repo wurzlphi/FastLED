@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fl/int.h"
 #include "crgb.h"
 #include "fl/xymap.h"
 
@@ -10,7 +11,7 @@ namespace fl {
 // of the leds. Hence this class.
 class Leds {
   public:
-    Leds(CRGB *leds, uint16_t width, uint16_t height);
+    Leds(CRGB *leds, fl::u16 width, fl::u16 height);
     Leds(CRGB *leds, const XYMap &xymap);
 
     // Copy constructor and assignment operator.

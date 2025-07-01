@@ -10,6 +10,7 @@
 #define FASTLED_INTERNAL 1
 #endif
 
+#include "fl/int.h"
 #include "FastLED.h"
 
 #include "third_party/cq_kernel/cq_kernel.h"
@@ -66,7 +67,7 @@ class FFTContext {
 
     size_t sampleSize() const { return m_cq_cfg.samples; }
 
-    void fft_unit_test(span<const int16_t> buffer, FFTBins *out) {
+    void fft_unit_test(span<const fl::i16> buffer, FFTBins *out) {
 
         // FASTLED_ASSERT(512 == m_cq_cfg.samples, "FFTImpl samples mismatch and
         // are still hardcoded to 512");
@@ -82,8 +83,8 @@ class FFTContext {
         const float delta_f = (maxf - minf) / m_cq_cfg.bands;
         // begin transform
         for (int i = 0; i < m_cq_cfg.bands; ++i) {
-            int32_t real = cq[i].r;
-            int32_t imag = cq[i].i;
+            fl::i32 real = cq[i].r;
+            fl::i32 imag = cq[i].i;
             float r2 = float(real * real);
             float i2 = float(imag * imag);
             float magnitude = sqrt(r2 + i2);
@@ -151,11 +152,11 @@ size_t FFTImpl::sampleSize() const {
 
 FFTImpl::Result FFTImpl::run(const AudioSample &sample, FFTBins *out) {
     auto &audio_sample = sample.pcm();
-    span<const int16_t> slice(audio_sample);
+    span<const fl::i16> slice(audio_sample);
     return run(slice, out);
 }
 
-FFTImpl::Result FFTImpl::run(span<const int16_t> sample, FFTBins *out) {
+FFTImpl::Result FFTImpl::run(span<const fl::i16> sample, FFTBins *out) {
     if (!mContext) {
         return FFTImpl::Result(false, "FFTImpl context is not initialized");
     }

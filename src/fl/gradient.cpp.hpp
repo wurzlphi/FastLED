@@ -2,12 +2,13 @@
 #include "fl/gradient.h"
 #include "fl/assert.h"
 #include "fl/colorutils.h"
+#include "fl/int.h"
 
 namespace fl {
 
 namespace {
 struct Visitor {
-    Visitor(uint8_t index) : index(index) {}
+    Visitor(fl::u8 index) : index(index) {}
     void accept(const CRGBPalette16 *palette) {
         CRGB c = ColorFromPalette(*palette, index);
         return_val = c;
@@ -35,11 +36,11 @@ struct Visitor {
     }
 
     CRGB return_val;
-    uint8_t index;
+    fl::u8 index;
 };
 
 struct VisitorFill {
-    VisitorFill(span<const uint8_t> indices, span<CRGB> output)
+    VisitorFill(span<const fl::u8> indices, span<CRGB> output)
         : output(output), indices(indices) {
         // This assert was triggering on the corkscrew example. Not sure why
         // but the corrective action of taking the min was corrective action.
@@ -80,13 +81,13 @@ struct VisitorFill {
     }
 
     span<CRGB> output;
-    span<const uint8_t> indices;
-    uint8_t n = 0;
+    span<const fl::u8> indices;
+    fl::u8 n = 0;
 };
 
 } // namespace
 
-CRGB Gradient::colorAt(uint8_t index) const {
+CRGB Gradient::colorAt(fl::u8 index) const {
     Visitor visitor(index);
     mVariant.visit(visitor);
     return visitor.return_val;
@@ -114,17 +115,17 @@ Gradient &Gradient::operator=(const Gradient &other) {
     return *this;
 }
 
-void Gradient::fill(span<const uint8_t> input, span<CRGB> output) const {
+void Gradient::fill(span<const fl::u8> input, span<CRGB> output) const {
     VisitorFill visitor(input, output);
     mVariant.visit(visitor);
 }
 
-CRGB GradientInlined::colorAt(uint8_t index) const {
+CRGB GradientInlined::colorAt(fl::u8 index) const {
     Visitor visitor(index);
     mVariant.visit(visitor);
     return visitor.return_val;
 }
-void GradientInlined::fill(span<const uint8_t> input,
+void GradientInlined::fill(span<const fl::u8> input,
                            span<CRGB> output) const {
     VisitorFill visitor(input, output);
     mVariant.visit(visitor);

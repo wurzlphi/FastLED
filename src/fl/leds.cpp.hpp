@@ -1,6 +1,7 @@
 #ifndef __AVR__
 
 #include "fl/leds.h"
+#include "fl/int.h"
 #include "crgb.h"
 #include "fl/assert.h"
 #include "fl/xymap.h"
@@ -39,7 +40,7 @@ const CRGB *Leds::operator[](int y) const {
     return &mLeds[mXyMap(0, y)];
 }
 
-Leds::Leds(CRGB *leds, uint16_t width, uint16_t height)
+Leds::Leds(CRGB *leds, fl::u16 width, fl::u16 height)
     : Leds(leds, XYMap::constructRectangularGrid(width, height)) {}
 
 

@@ -2,12 +2,13 @@
 #include "fl/tile2x2.h"
 #include "fl/splat.h"
 #include "fl/math.h"
+#include "fl/int.h"
 
 namespace fl {
 
-static uint8_t to_uint8(float f) {
+static fl::u8 to_uint8(float f) {
     // convert to [0..255] range
-    uint8_t i = static_cast<uint8_t>(f * 255.0f + .5f);
+    fl::u8 i = static_cast<fl::u8>(f * 255.0f + .5f);
     return MIN(i, 255);
 }
 
@@ -17,8 +18,8 @@ Tile2x2_u8 splat(vec2f xy) {
     float y = xy.y;
 
     // 2) integer cell indices
-    int16_t cx = static_cast<int16_t>(floorf(x));
-    int16_t cy = static_cast<int16_t>(floorf(y));
+    fl::i16 cx = static_cast<fl::i16>(floorf(x));
+    fl::i16 cy = static_cast<fl::i16>(floorf(y));
 
     // 3) fractional offsets in [0..1)
     float fx = x - cx;
@@ -31,7 +32,7 @@ Tile2x2_u8 splat(vec2f xy) {
     float w_ur = fx * fy;             // upper‑right
 
     // 5) build Tile2x2_u8 anchored at (cx,cy)
-    Tile2x2_u8 out(vec2<int16_t>(cx, cy));
+    Tile2x2_u8 out(vec2<fl::i16>(cx, cy));
     out.lower_left() = to_uint8(w_ll);
     out.lower_right() = to_uint8(w_lr);
     out.upper_left() = to_uint8(w_ul);

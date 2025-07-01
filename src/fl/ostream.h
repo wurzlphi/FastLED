@@ -44,21 +44,21 @@ public:
         return *this;
     }
 
-    ostream& operator<<(int8_t n) {
+    ostream& operator<<(fl::i8 n) {
         string temp;
-        temp.append(int16_t(n));
+        temp.append(fl::i16(n));
         print(temp.c_str());
         return *this;
     }
 
-    ostream& operator<<(uint8_t n) {
+    ostream& operator<<(fl::u8 n) {
         string temp;
         temp.append(u16(n));
         print(temp.c_str());
         return *this;
     }
 
-    ostream& operator<<(int16_t n) {
+    ostream& operator<<(fl::i16 n) {
         string temp;
         temp.append(n);
         print(temp.c_str());
@@ -72,14 +72,14 @@ public:
         return *this;
     }
 
-    ostream& operator<<(int32_t n) {
+    ostream& operator<<(fl::i32 n) {
         string temp;
         temp.append(n);
         print(temp.c_str());
         return *this;
     }
 
-    ostream& operator<<(uint32_t n) {
+    ostream& operator<<(fl::u32 n) {
         string temp;
         temp.append(n);
         print(temp.c_str());
@@ -110,7 +110,7 @@ public:
 #if FASTLED_STRSTREAM_USES_SIZE_T
     ostream& operator<<(size_t n) {
         string temp;
-        temp.append(uint32_t(n));
+        temp.append(fl::u32(n));
         print(temp.c_str());
         return *this;
     }

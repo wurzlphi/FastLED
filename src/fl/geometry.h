@@ -48,7 +48,7 @@ template <typename T> struct vec3 {
         return *this;
     }
 
-    vec3 &operator/=(const uint16_t &d) {
+    vec3 &operator/=(const fl::u16 &d) {
         x /= d;
         y /= d;
         z /= d;
@@ -215,7 +215,7 @@ template <typename T> struct vec2 {
         return *this;
     }
 
-    vec2 &operator/=(const uint16_t &d) {
+    vec2 &operator/=(const fl::u16 &d) {
         // *this = point_xy_math::div(*this, d);
         x /= d;
         y /= d;
@@ -324,8 +324,8 @@ template <typename T> struct vec2 {
 };
 
 using vec2f = vec2<float>; // Full precision but slow.
-using vec2u8 = vec2<uint8_t>; // 8-bit unsigned integer vector.
-using vec2i16 = vec2<int16_t>; // 16-bit signed integer vector.
+using vec2u8 = vec2<fl::u8>; // 8-bit unsigned integer vector.
+using vec2i16 = vec2<fl::i16>; // 16-bit signed integer vector.
 
 // Legacy support for vec3
 using pair_xyz_float = vec3<float>; // Legacy name for vec3f
@@ -423,9 +423,9 @@ template <typename T> struct rect {
     rect(rect &&other) noexcept = default;
     rect &operator=(rect &&other) noexcept = default;
 
-    uint16_t width() const { return mMax.x - mMin.x; }
+    fl::u16 width() const { return mMax.x - mMin.x; }
 
-    uint16_t height() const { return mMax.y - mMin.y; }
+    fl::u16 height() const { return mMax.y - mMin.y; }
 
     bool empty() const { return (mMin.x == mMax.x && mMin.y == mMax.y); }
 

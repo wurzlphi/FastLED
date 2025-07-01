@@ -60,12 +60,12 @@ public:
     // Stream input operators
     istream_real& operator>>(string& str);
     istream_real& operator>>(char& c);
-    istream_real& operator>>(int8_t& n);
-    istream_real& operator>>(uint8_t& n);
-    istream_real& operator>>(int16_t& n);
+    istream_real& operator>>(fl::i8& n);
+    istream_real& operator>>(fl::u8& n);
+    istream_real& operator>>(fl::i16& n);
     istream_real& operator>>(u16& n);
-    istream_real& operator>>(int32_t& n);
-    istream_real& operator>>(uint32_t& n);
+    istream_real& operator>>(fl::i32& n);
+    istream_real& operator>>(fl::u32& n);
     istream_real& operator>>(float& f);
     istream_real& operator>>(double& d);
     
@@ -152,7 +152,7 @@ public:
         return *this;
     }
     
-    istream& operator>>(int8_t& n) {
+    istream& operator>>(fl::i8& n) {
 #if SKETCH_HAS_LOTS_OF_MEMORY
         real_stream_ >> n;
 #else
@@ -162,7 +162,7 @@ public:
         return *this;
     }
     
-    istream& operator>>(uint8_t& n) {
+    istream& operator>>(fl::u8& n) {
 #if SKETCH_HAS_LOTS_OF_MEMORY
         real_stream_ >> n;
 #else
@@ -172,7 +172,7 @@ public:
         return *this;
     }
     
-    istream& operator>>(int16_t& n) {
+    istream& operator>>(fl::i16& n) {
 #if SKETCH_HAS_LOTS_OF_MEMORY
         real_stream_ >> n;
 #else
@@ -192,7 +192,7 @@ public:
         return *this;
     }
     
-    istream& operator>>(int32_t& n) {
+    istream& operator>>(fl::i32& n) {
 #if SKETCH_HAS_LOTS_OF_MEMORY
         real_stream_ >> n;
 #else
@@ -202,7 +202,7 @@ public:
         return *this;
     }
     
-    istream& operator>>(uint32_t& n) {
+    istream& operator>>(fl::u32& n) {
 #if SKETCH_HAS_LOTS_OF_MEMORY
         real_stream_ >> n;
 #else

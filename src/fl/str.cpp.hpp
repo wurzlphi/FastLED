@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "fl/int.h"
 
 #include "fl/str.h"
 
@@ -43,7 +44,7 @@ static void ftoa(float value, char *buffer, int precision = 2) {
     }
 
     // Extract integer part
-    uint32_t intPart = (uint32_t)value;
+    fl::u32 intPart = (fl::u32)value;
 
     // Convert integer part to string (reversed)
     char intBuf[12]; // Enough for 32-bit integers
@@ -61,7 +62,7 @@ static void ftoa(float value, char *buffer, int precision = 2) {
     *buffer++ = '.'; // Decimal point
 
     // Extract fractional part
-    float fracPart = value - (uint32_t)value;
+    float fracPart = value - (fl::u32)value;
     for (int j = 0; j < precision; ++j) {
         fracPart *= 10.0f;
         int digit = (int)fracPart;
@@ -163,7 +164,7 @@ static float atoff(const char *str, size_t len) {
 
 } // namespace string_functions
 
-void StringFormatter::append(int32_t val, StrN<64> *dst) {
+void StringFormatter::append(fl::i32 val, StrN<64> *dst) {
     char buf[63] = {0};
     string_functions::itoa(val, buf, 10);
     dst->write(buf, strlen(buf));
@@ -263,7 +264,7 @@ string &string::append(const Tile2x2_u8_wrap &tile) {
     append("Tile2x2_u8_wrap(");
     for (int i = 0; i < 4; i++) {
         vec2i16 pos = data[i].first;
-        uint8_t alpha = data[i].second;
+        fl::u8 alpha = data[i].second;
         append("(");
         append(pos.x);
         append(",");

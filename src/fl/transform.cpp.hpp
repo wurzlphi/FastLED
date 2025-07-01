@@ -1,4 +1,5 @@
 
+#include "fl/int.h"
 #include <math.h>
 
 #include "fl/lut.h"
@@ -49,9 +50,9 @@ Transform16 Transform16::ToBounds(alpha16 max_value) {
     alpha16 scale16 = 0;
     if (max_value) {
         // numerator = max_value * 2^16
-        uint32_t numer = static_cast<uint32_t>(max_value) << 16;
+        fl::u32 numer = static_cast<fl::u32>(max_value) << 16;
         // denom = 0xFFFF; use ceil so 0xFFFF→max_value exactly:
-        uint32_t scale32 = numer / 0xFFFF;
+        fl::u32 scale32 = numer / 0xFFFF;
         scale16 = static_cast<alpha16>(scale32);
     }
     tx.scale_x = scale16;
@@ -70,17 +71,17 @@ Transform16 Transform16::ToBounds(const vec2<alpha16> &min,
     alpha16 scale16 = 0;
     if (max.x > min.x) {
         // numerator = max_value * 2^16
-        uint32_t numer = static_cast<uint32_t>(max.x - min.x) << 16;
+        fl::u32 numer = static_cast<fl::u32>(max.x - min.x) << 16;
         // denom = 0xFFFF; use ceil so 0xFFFF→max_value exactly:
-        uint32_t scale32 = numer / 0xFFFF;
+        fl::u32 scale32 = numer / 0xFFFF;
         scale16 = static_cast<alpha16>(scale32);
     }
     tx.scale_x = scale16;
     if (max.y > min.y) {
         // numerator = max_value * 2^16
-        uint32_t numer = static_cast<uint32_t>(max.y - min.y) << 16;
+        fl::u32 numer = static_cast<fl::u32>(max.y - min.y) << 16;
         // denom = 0xFFFF; use ceil so 0xFFFF→max_value exactly:
-        uint32_t scale32 = numer / 0xFFFF;
+        fl::u32 scale32 = numer / 0xFFFF;
         scale16 = static_cast<alpha16>(scale32);
     }
     tx.scale_y = scale16;
@@ -95,19 +96,19 @@ vec2<alpha16> Transform16::transform(const vec2<alpha16> &xy) const {
 
     // 1) Rotate around the 16‑bit center first
     if (rotation != 0) {
-        constexpr int32_t MID = 0x7FFF; // center of 0…0xFFFF interval
+        constexpr fl::i32 MID = 0x7FFF; // center of 0…0xFFFF interval
 
         // bring into signed centered coords
-        int32_t x = int32_t(out.x) - MID;
-        int32_t y = int32_t(out.y) - MID;
+        fl::i32 x = fl::i32(out.x) - MID;
+        fl::i32 y = fl::i32(out.y) - MID;
 
         // Q15 cosine & sine
-        int32_t c = cos16(rotation); // [-32768..+32767]
-        int32_t s = sin16(rotation);
+        fl::i32 c = cos16(rotation); // [-32768..+32767]
+        fl::i32 s = sin16(rotation);
 
         // rotate & truncate
-        int32_t xr = (x * c - y * s) >> 15;
-        int32_t yr = (x * s + y * c) >> 15;
+        fl::i32 xr = (x * c - y * s) >> 15;
+        fl::i32 yr = (x * s + y * c) >> 15;
 
         // shift back into [0…0xFFFF]
         out.x = alpha16(xr + MID);
@@ -116,11 +117,11 @@ vec2<alpha16> Transform16::transform(const vec2<alpha16> &xy) const {
 
     // 2) Then scale in X/Y (Q16 → map32_to_16)
     if (scale_x != 0xFFFF) {
-        uint32_t tx = uint32_t(out.x) * scale_x;
+        fl::u32 tx = fl::u32(out.x) * scale_x;
         out.x = map32_to_16(tx);
     }
     if (scale_y != 0xFFFF) {
-        uint32_t ty = uint32_t(out.y) * scale_y;
+        fl::u32 ty = fl::u32(out.y) * scale_y;
         out.y = map32_to_16(ty);
     }
 

@@ -8,6 +8,7 @@
 #include "fl/json.h"
 #include "fl/algorithm.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "platforms/shared/ui/json/ui.h"
 
 namespace fl {
@@ -149,7 +150,7 @@ void JsonConsole::parseCommand(const fl::string& command) {
     FL_WARN("JsonConsole::parseCommand: Parsing command '" << command.c_str() << "'");
     
     // Look for pattern: "name: value"
-    int16_t colonPos = command.find(':');
+    fl::i16 colonPos = command.find(':');
     FL_WARN("JsonConsole::parseCommand: Colon position: " << colonPos);
     
     if (colonPos == -1) {

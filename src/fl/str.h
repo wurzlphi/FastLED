@@ -78,7 +78,7 @@ FASTLED_SMART_PTR(StringHolder);
 
 class StringFormatter {
   public:
-    static void append(int32_t val, StrN<FASTLED_STR_INLINED_SIZE> *dst);
+    static void append(fl::i32 val, StrN<FASTLED_STR_INLINED_SIZE> *dst);
     static bool isSpace(char c) {
         return c == ' ' || c == '\t' || c == '\n' || c == '\r';
     }
@@ -211,7 +211,7 @@ template <size_t SIZE = FASTLED_STR_INLINED_SIZE> class StrN {
 
     size_t capacity() const { return mHeapData ? mHeapData->capacity() : SIZE; }
 
-    size_t write(const uint8_t *data, size_t n) {
+    size_t write(const fl::u8 *data, size_t n) {
         const char *str = reinterpret_cast<const char *>(data);
         return write(str, n);
     }
@@ -249,32 +249,32 @@ template <size_t SIZE = FASTLED_STR_INLINED_SIZE> class StrN {
 
     size_t write(char c) { return write(&c, 1); }
 
-    size_t write(uint8_t c) {
+    size_t write(fl::u8 c) {
         const char *str = reinterpret_cast<const char *>(&c);
         return write(str, 1);
     }
 
-    size_t write(const uint16_t &n) {
+    size_t write(const fl::u16 &n) {
         StrN<FASTLED_STR_INLINED_SIZE> dst;
         StringFormatter::append(n, &dst); // Inlined size should suffice
         return write(dst.c_str(), dst.size());
     }
 
-    size_t write(const uint32_t &val) {
+    size_t write(const fl::u32 &val) {
         StrN<FASTLED_STR_INLINED_SIZE> dst;
         StringFormatter::append(val, &dst); // Inlined size should suffice
         return write(dst.c_str(), dst.size());
     }
 
-    size_t write(const int32_t &val) {
+    size_t write(const fl::i32 &val) {
         StrN<FASTLED_STR_INLINED_SIZE> dst;
         StringFormatter::append(val, &dst); // Inlined size should suffice
         return write(dst.c_str(), dst.size());
     }
 
-    size_t write(const int8_t val) {
+    size_t write(const fl::i8 val) {
         StrN<FASTLED_STR_INLINED_SIZE> dst;
-        StringFormatter::append(int16_t(val),
+        StringFormatter::append(fl::i16(val),
                                 &dst); // Inlined size should suffice
         return write(dst.c_str(), dst.size());
     }
@@ -515,11 +515,11 @@ class string : public StrN<FASTLED_STR_INLINED_SIZE> {
 
     // Generic integral append: only enabled if T is an integral type. This is
     // needed because on some platforms type(int) is not one of the integral
-    // types like int8_t, int16_t, int32_t, int64_t etc. In such a has just case
-    // the value to int32_t and then append it.
+    // types like fl::i8, fl::i16, fl::i32, int64_t etc. In such a has just case
+    // the value to fl::i32 and then append it.
     template <typename T, typename = fl::enable_if_t<fl::is_integral<T>::value>>
     string &append(const T &val) {
-        write(int32_t(val));
+        write(fl::i32(val));
         return *this;
     }
 
@@ -557,28 +557,28 @@ class string : public StrN<FASTLED_STR_INLINED_SIZE> {
         return *this;
     }
     // string& append(char c) { write(&c, 1); return *this; }
-    string &append(const int8_t &c) {
+    string &append(const fl::i8 &c) {
         const char *str = reinterpret_cast<const char *>(&c);
         write(str, 1);
         return *this;
     }
-    string &append(const uint8_t &c) {
-        write(uint16_t(c));
+    string &append(const fl::u8 &c) {
+        write(fl::u16(c));
         return *this;
     }
-    string &append(const uint16_t &val) {
+    string &append(const fl::u16 &val) {
         write(val);
         return *this;
     }
-    string &append(const int16_t &val) {
-        write(int32_t(val));
+    string &append(const fl::i16 &val) {
+        write(fl::i32(val));
         return *this;
     }
-    string &append(const uint32_t &val) {
+    string &append(const fl::u32 &val) {
         write(val);
         return *this;
     }
-    string &append(const int32_t &c) {
+    string &append(const fl::i32 &c) {
         write(c);
         return *this;
     }
