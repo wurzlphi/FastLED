@@ -1325,6 +1325,18 @@ audio::-webkit-media-controls-mute-button {
     margin: 8px 0;
     width: 100%;
     box-sizing: border-box;
+    /* Remove border styling to prevent HR bar appearance */
+    border-bottom: none !important;
+}
+
+/* Restore border for paired number fields in groups, but only when not the last element */
+.ui-group .ui-control.number-pair-control:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Ensure single number fields within paired controls never get borders */
+.ui-group .ui-control.number-pair-control .single-number-field {
+    border-bottom: none !important;
 }
 
 .ui-control.number-pair-control .single-number-field {
@@ -1335,6 +1347,8 @@ audio::-webkit-media-controls-mute-button {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    /* Ensure nested single fields don't get group borders */
+    border-bottom: none !important;
 }
 
 .ui-control.number-pair-control .single-number-field label {
