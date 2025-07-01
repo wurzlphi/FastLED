@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>  // for u16
 #include "fl/math.h"
 #include "fl/compiler_control.h"
 #include "fl/move.h"
@@ -48,7 +49,7 @@ template <typename T> struct vec3 {
         return *this;
     }
 
-    vec3 &operator/=(const u16 &d) {
+    vec3 &operator/=(const uint16_t &d) {
         x /= d;
         y /= d;
         z /= d;
@@ -215,7 +216,7 @@ template <typename T> struct vec2 {
         return *this;
     }
 
-    vec2 &operator/=(const u16 &d) {
+    vec2 &operator/=(const uint16_t &d) {
         // *this = point_xy_math::div(*this, d);
         x /= d;
         y /= d;
@@ -423,9 +424,9 @@ template <typename T> struct rect {
     rect(rect &&other) noexcept = default;
     rect &operator=(rect &&other) noexcept = default;
 
-    u16 width() const { return mMax.x - mMin.x; }
+    uint16_t width() const { return mMax.x - mMin.x; }
 
-    u16 height() const { return mMax.y - mMin.y; }
+    uint16_t height() const { return mMax.y - mMin.y; }
 
     bool empty() const { return (mMin.x == mMax.x && mMin.y == mMax.y); }
 

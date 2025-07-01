@@ -13,6 +13,7 @@
 #include "fl/tile2x2.h"
 #include "fl/transform.h"
 
+#include "fl/int.h"
 namespace fl {
 
 FASTLED_SMART_PTR(XYPathGenerator);
@@ -35,7 +36,7 @@ class XYPathRenderer : public Referent {
     // be centered on the width and height such that 0,0 -> maps to .5,.5,
     // which is convenient for drawing since each float pixel can be truncated
     // to an integer type.
-    void setDrawBounds(uint16_t width, uint16_t height);
+    void setDrawBounds(u16 width, u16 height);
     bool hasDrawBounds() const { return mDrawBoundsSet; }
 
     void onTransformFloatChanged();

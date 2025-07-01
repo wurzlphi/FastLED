@@ -5,6 +5,7 @@
 #include "fl/variant.h"
 #include "fl/stdint.h"
 
+#include "fl/int.h"
 namespace fl {
 
 template <uint32_t N> class BitsetInlined;
@@ -219,7 +220,7 @@ template <uint32_t N> class BitsetFixed {
 };
 
 /// A Bitset implementation with inline storage that can grow if needed.
-/// T is the storage type (uint8_t, uint16_t, uint32_t, uint64_t)
+/// T is the storage type (uint8_t, u16, uint32_t, uint64_t)
 /// N is the initial number of bits to store inline
 template <uint32_t N = 256> // Default size is 256 bits, or 32 bytes
 class BitsetInlined {

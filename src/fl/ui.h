@@ -2,6 +2,7 @@
 
 #include "fl/stdint.h"
 
+#include "fl/int.h"
 #include "fl/audio.h"
 #include "fl/engine_events.h"
 #include "fl/function_list.h"

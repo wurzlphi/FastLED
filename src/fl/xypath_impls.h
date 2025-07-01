@@ -4,7 +4,7 @@
 // This is a drawing/graphics related class.
 //
 // XYPath represents a parameterized (x,y) path. The input will always be
-// an alpha value between 0->1 (float) or 0->0xffff (uint16_t).
+// an alpha value between 0->1 (float) or 0->0xffff (u16).
 // A look up table can be used to optimize path calculations when steps > 0.
 //
 // We provide common paths discovered throughout human history, for use in
@@ -19,6 +19,7 @@
 #include "fl/vector.h"
 #include "fl/warn.h"
 
+#include "fl/int.h"
 namespace fl {
 
 class XYRasterU8Sparse;

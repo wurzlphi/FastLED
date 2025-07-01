@@ -2,6 +2,7 @@
 
 #include "fl/stdint.h"
 
+#include "fl/int.h"
 #include "fl/force_inline.h"
 #include "fl/lut.h"
 #include "fl/ptr.h"
@@ -51,7 +52,7 @@ class ScreenMap {
 
     const vec2f &operator[](uint32_t x) const;
 
-    void set(uint16_t index, const vec2f &p);
+    void set(u16 index, const vec2f &p);
 
     void addOffset(const vec2f &p);
     void addOffsetX(float x);

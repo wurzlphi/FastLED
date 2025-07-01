@@ -1,9 +1,10 @@
-THIS SHOULD BE A LINTER ERROR/// @file crgb.h
+/// @file crgb.h
 /// Defines the red, green, and blue (RGB) pixel struct
 
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "chsv.h"
 #include "fl/namespace.h"

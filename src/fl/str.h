@@ -5,7 +5,9 @@
 
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include <string.h>
+#include <stdint.h>  // for u16
 
 #ifdef __EMSCRIPTEN__
 #include <string>
@@ -18,6 +20,7 @@
 #include "fl/template_magic.h"
 #include "fl/vector.h"
 #include "fl/span.h"
+#include "fl/force_inline.h"
 
 #ifndef FASTLED_STR_INLINED_SIZE
 #define FASTLED_STR_INLINED_SIZE 64

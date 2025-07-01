@@ -1,6 +1,8 @@
 
 #pragma once
 
+
+#include "fl/int.h"
 /*
 Experimental bilinearn downscaling algorithm. Not tested yet and completely
 "vibe-coded" by ai.
@@ -22,7 +24,7 @@ void downscale(const CRGB *src, const XYMap &srcXY, CRGB *dst,
 // functions. It's important to note that downscale(...) will invoke
 // downscaleHalf(...) automatically when the source and destination are half the
 // size of each other.
-void downscaleHalf(const CRGB *src, uint16_t srcWidth, uint16_t srcHeight,
+void downscaleHalf(const CRGB *src, u16 srcWidth, u16 srcHeight,
                    CRGB *dst);
 void downscaleHalf(const CRGB *src, const XYMap &srcXY, CRGB *dst,
                    const XYMap &dstXY);

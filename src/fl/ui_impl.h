@@ -2,6 +2,7 @@
 
 #include "fl/stdint.h"
 
+#include "fl/int.h"
 #include "fl/audio.h"
 #include "fl/math_macros.h"
 #include "fl/namespace.h"
