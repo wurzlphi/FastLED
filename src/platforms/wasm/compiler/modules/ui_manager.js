@@ -691,6 +691,60 @@ function hideTooltip(tooltip) {
 }
 
 /**
+ * Creates a pair of number input fields in a flexbox layout for space optimization
+ * @param {Object} leftElement - Left element configuration object
+ * @param {Object} rightElement - Right element configuration object
+ * @returns {HTMLDivElement} Container div with both number inputs in a flex layout
+ */
+function createNumberFieldPair(leftElement, rightElement) {
+  const pairContainer = document.createElement('div');
+  pairContainer.className = 'ui-control number-control-pair';
+
+  // Create left number field (without the outer container)
+  const leftField = createNumberFieldInternal(leftElement);
+  const rightField = createNumberFieldInternal(rightElement);
+
+  pairContainer.appendChild(leftField);
+  pairContainer.appendChild(rightField);
+
+  return pairContainer;
+}
+
+/**
+ * Internal function to create a single number field without the outer container
+ * @param {Object} element - Element configuration object
+ * @returns {HTMLDivElement} Container div with label and number input
+ */
+function createNumberFieldInternal(element) {
+  const controlDiv = document.createElement('div');
+  controlDiv.className = 'number-field-single';
+
+  const label = document.createElement('label');
+  label.textContent = element.name;
+  label.htmlFor = `number-${element.id}`;
+  label.style.display = 'block';
+  label.style.fontWeight = '500';
+  label.style.color = '#E0E0E0';
+  label.style.marginBottom = '4px';
+  label.style.fontSize = '0.9em';
+
+  const numberInput = document.createElement('input');
+  numberInput.type = 'number';
+  numberInput.id = `number-${element.id}`;
+  numberInput.value = element.value;
+  numberInput.min = element.min;
+  numberInput.max = element.max;
+  numberInput.step = (element.step !== undefined) ? element.step : 'any';
+  numberInput.style.width = '100%';
+  numberInput.style.boxSizing = 'border-box';
+
+  controlDiv.appendChild(label);
+  controlDiv.appendChild(numberInput);
+
+  return controlDiv;
+}
+
+/**
  * Main UI Manager class for FastLED WebAssembly applications
  * Handles dynamic UI creation, change tracking, and synchronization with the FastLED backend
  */
@@ -1091,6 +1145,9 @@ export class JsonUiManager {
       }
     });
 
+    // Optimize number field pairs for better space utilization
+    this.optimizeNumberFieldPairs(groupedElements, ungroupedElements);
+
     // Optimize layout based on current screen size and element count
     this.optimizeLayoutForElements(groupedElements, ungroupedElements);
 
@@ -1172,6 +1229,67 @@ export class JsonUiManager {
     if (data.type === 'help' || data.name.toLowerCase().includes('debug')) {
       data._layoutHint = 'full-width';
     }
+  }
+
+  /**
+   * Optimize number field pairs for better space utilization
+   * Groups adjacent number fields into pairs when possible
+   */
+  optimizeNumberFieldPairs(groupedElements, ungroupedElements) {
+    // Process ungrouped elements
+    this.pairAdjacentNumberFields(ungroupedElements);
+
+    // Process each group's elements
+    for (const [groupName, elements] of groupedElements) {
+      this.pairAdjacentNumberFields(elements);
+    }
+  }
+
+  /**
+   * Pair adjacent number fields in an array of elements
+   * @param {Array} elements - Array of UI element configurations
+   */
+  pairAdjacentNumberFields(elements) {
+    const pairedElements = [];
+    let i = 0;
+
+    while (i < elements.length) {
+      const currentElement = elements[i];
+      
+      // Check if this is a number field and if the next element is also a number field
+      if (currentElement.type === 'number' && 
+          i + 1 < elements.length && 
+          elements[i + 1].type === 'number') {
+        
+        const nextElement = elements[i + 1];
+        
+        // Create a paired element
+        const pairedElement = {
+          type: 'number_pair',
+          id: `pair_${currentElement.id}_${nextElement.id}`,
+          name: `${currentElement.name} / ${nextElement.name}`,
+          group: currentElement.group,
+          leftElement: currentElement,
+          rightElement: nextElement,
+          _layoutHint: 'paired'
+        };
+        
+        pairedElements.push(pairedElement);
+        i += 2; // Skip both elements since we paired them
+        
+        if (this.debugMode) {
+          console.log(`🎵 Paired number fields: ${currentElement.name} + ${nextElement.name}`);
+        }
+      } else {
+        // Not a number field or can't be paired, keep as-is
+        pairedElements.push(currentElement);
+        i++;
+      }
+    }
+
+    // Replace the original elements array with the paired version
+    elements.length = 0;
+    elements.push(...pairedElements);
   }
 
   /**
@@ -1344,6 +1462,8 @@ export class JsonUiManager {
       control = createButton(data);
     } else if (data.type === 'number') {
       control = createNumberField(data);
+    } else if (data.type === 'number_pair') {
+      control = createNumberFieldPair(data.leftElement, data.rightElement);
     } else if (data.type === 'audio') {
       control = createAudioField(data);
     } else if (data.type === 'dropdown') {
@@ -1355,28 +1475,49 @@ export class JsonUiManager {
 
   // Register a control element for state tracking
   registerControlElement(control, data) {
-    if (data.type === 'button') {
-      this.uiElements[data.id] = control.querySelector('button');
-    } else if (data.type === 'dropdown') {
-      this.uiElements[data.id] = control.querySelector('select');
+    if (data.type === 'number_pair') {
+      // Register both elements in the pair
+      const leftInput = control.querySelector(`#number-${data.leftElement.id}`);
+      const rightInput = control.querySelector(`#number-${data.rightElement.id}`);
+      
+      this.uiElements[data.leftElement.id] = leftInput;
+      this.uiElements[data.rightElement.id] = rightInput;
+      
+      this.previousUiState[data.leftElement.id] = data.leftElement.value;
+      this.previousUiState[data.rightElement.id] = data.rightElement.value;
+      
+      if (this.debugMode) {
+        console.log(
+          `🎵 UI Registered paired elements: '${data.leftElement.id}' + '${data.rightElement.id}' - Total: ${Object.keys(this.uiElements).length}`,
+        );
+      }
     } else {
-      this.uiElements[data.id] = control.querySelector('input');
+      if (data.type === 'button') {
+        this.uiElements[data.id] = control.querySelector('button');
+      } else if (data.type === 'dropdown') {
+        this.uiElements[data.id] = control.querySelector('select');
+      } else {
+        this.uiElements[data.id] = control.querySelector('input');
+      }
+      
+      this.previousUiState[data.id] = data.value;
+
+      if (this.debugMode) {
+        console.log(
+          `🎵 UI Registered element: ID '${data.id}' (${data.type}${
+            data._layoutHint ? ', ' + data._layoutHint : ''
+          }) - Total: ${Object.keys(this.uiElements).length}`,
+        );
+      }
     }
-    this.previousUiState[data.id] = data.value;
 
     // Add layout classes based on element hints
     if (data._layoutHint === 'wide') {
       control.classList.add('wide-control');
     } else if (data._layoutHint === 'full-width') {
       control.classList.add('full-width-control');
-    }
-
-    if (this.debugMode) {
-      console.log(
-        `🎵 UI Registered element: ID '${data.id}' (${data.type}${
-          data._layoutHint ? ', ' + data._layoutHint : ''
-        }) - Total: ${Object.keys(this.uiElements).length}`,
-      );
+    } else if (data._layoutHint === 'paired') {
+      control.classList.add('paired-control');
     }
   }
 
