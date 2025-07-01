@@ -1,9 +1,12 @@
-#ifdef ESP32
+#if defined(ESP32) || defined(CONFIG_IDF_TARGET_ESP32) || defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32S3) || defined(CONFIG_IDF_TARGET_ESP32C3) || defined(CONFIG_IDF_TARGET_ESP32C6) || defined(CONFIG_IDF_TARGET_ESP32H2) || defined(CONFIG_IDF_TARGET_ESP32P4)
 
 #include "fl/stdint.h"
 #include "third_party/espressif/led_strip/src/enabled.h"
 
-#if FASTLED_RMT5
+// Temporarily disable conditional compilation to fix ESP32S3 linking issues
+// TODO: Fix the FASTLED_RMT5 define detection properly
+// #if FASTLED_RMT5
+#if 1
 
 #include "strip_rmt.h"
 
