@@ -2,6 +2,7 @@
 #define __INC_CLOCKLESS_ARM_RP2040
 
 #include "hardware/structs/sio.h"
+#include "fl/memset.h"
 
 #if FASTLED_RP2040_CLOCKLESS_M0_FALLBACK || !FASTLED_RP2040_CLOCKLESS_PIO
 #include "../common/m0clockless.h"
@@ -274,7 +275,7 @@ public:
             dma_buf_size = req_buf_size;
             
             // fill with zeroes to ensure XTRA0s are really zero without needing extra work
-            memset(dma_buf, 0, dma_buf_size * 4);
+            fl::memset(dma_buf, 0, dma_buf_size * 4);
         }
         
         unsigned int bitpos = 0;

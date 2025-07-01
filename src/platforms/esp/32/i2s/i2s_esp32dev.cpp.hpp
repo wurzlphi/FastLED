@@ -15,6 +15,7 @@
 #include "fl/namespace.h"
 #include "fl/stdint.h"
 #include <string.h> // for memset
+#include "fl/memset.h"
 
 #include "platforms/esp/esp_version.h"
 
@@ -97,7 +98,7 @@ static DMABuffer *allocateDMABuffer(int bytes) {
         (DMABuffer *)heap_caps_malloc(sizeof(DMABuffer), MALLOC_CAP_DMA);
 
     b->buffer = (uint8_t *)heap_caps_malloc(bytes, MALLOC_CAP_DMA);
-    memset(b->buffer, 0, bytes);
+            fl::memset(b->buffer, 0, bytes);
 
     b->descriptor.length = bytes;
     b->descriptor.size = bytes;
@@ -339,8 +340,8 @@ void i2s_define_bit_patterns(int T1, int T2, int T3) {
         ++i;
     }
 
-    memset(gPixelRow, 0, NUM_COLOR_CHANNELS * 32);
-    memset(gPixelBits, 0, NUM_COLOR_CHANNELS * 32);
+            fl::memset(gPixelRow, 0, NUM_COLOR_CHANNELS * 32);
+            fl::memset(gPixelBits, 0, NUM_COLOR_CHANNELS * 32);
 }
 
 bool i2s_is_initialized() { return gInitialized; }

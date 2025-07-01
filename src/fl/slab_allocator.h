@@ -7,6 +7,7 @@
 #include "fl/type_traits.h"
 #include "fl/unused.h"
 #include "fl/assert.h"
+#include "fl/memset.h"
 
 namespace fl {
 
@@ -130,14 +131,14 @@ public:
             // Fall back to regular malloc for bulk allocations
             void* ptr = malloc(sizeof(T) * n);
             if (ptr) {
-                memset(ptr, 0, sizeof(T) * n);
+                fl::memset(ptr, 0, sizeof(T) * n);
             }
             return static_cast<T*>(ptr);
         }
         
         void* ptr = allocateFromSlab();
         if (ptr) {
-            memset(ptr, 0, sizeof(T));
+            fl::memset(ptr, 0, sizeof(T));
         }
         return static_cast<T*>(ptr);
     }

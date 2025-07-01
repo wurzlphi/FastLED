@@ -2,6 +2,7 @@
 #include "fl/rectangular_draw_buffer.h"
 #include "fl/allocator.h"
 #include "fl/namespace.h"
+#include "fl/memset.h"
 #include "rgbw.h"
 
 namespace fl {
@@ -23,7 +24,7 @@ RectangularDrawBuffer::getLedsBufferBytesForPin(uint8_t pin, bool clear_first) {
     }
     fl::span<uint8_t> slice = it->second;
     if (clear_first) {
-        memset(slice.data(), 0, slice.size() * sizeof(slice[0]));
+        fl::memset(slice.data(), 0, slice.size() * sizeof(slice[0]));
     }
     return slice;
 }
@@ -37,7 +38,7 @@ bool RectangularDrawBuffer::onQueuingStart() {
     mDrawList.swap(mPrevDrawList);
     mDrawList.clear();
     if (mAllLedsBufferUint8Size > 0) {
-        memset(mAllLedsBufferUint8.get(), 0, mAllLedsBufferUint8Size);
+        fl::memset(mAllLedsBufferUint8.get(), 0, mAllLedsBufferUint8Size);
     }
     return true;
 }

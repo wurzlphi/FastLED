@@ -5,6 +5,7 @@
 #include "fl/inplacenew.h"
 #include "fl/type_traits.h"
 #include "fl/unused.h"
+#include "fl/memset.h"
 
 namespace fl {
 
@@ -68,7 +69,7 @@ template <typename T> class allocator {
         if (ptr == nullptr) {
             return nullptr; // Handle allocation failure
         }
-        memset(ptr, 0, sizeof(T) * n); // Zero-initialize the memory
+        fl::memset(ptr, 0, sizeof(T) * n); // Zero-initialize the memory
         return static_cast<T*>(ptr);
     }
 

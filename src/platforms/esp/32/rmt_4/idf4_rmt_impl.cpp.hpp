@@ -12,6 +12,7 @@
 
 #include "FastLED.h"
 #include "fl/force_inline.h"
+#include "fl/memset.h"
 #include "platforms/esp/32/rmt_4/idf4_rmt.h"
 #include "platforms/esp/32/rmt_4/idf4_rmt_impl.h"
 #include "platforms/esp/32/clock_cycles.h"
@@ -369,7 +370,7 @@ void ESP32RMTController::init(gpio_num_t pin, bool built_in_driver)
 
         // -- RMT configuration for transmission
         rmt_config_t rmt_tx;
-        memset(&rmt_tx, 0, sizeof(rmt_config_t));
+        fl::memset(&rmt_tx, 0, sizeof(rmt_config_t));
         rmt_tx.channel = rmt_channel_t(i);
         rmt_tx.rmt_mode = RMT_MODE_TX;
         rmt_tx.gpio_num = pin;

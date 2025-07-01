@@ -1,6 +1,8 @@
 #ifndef __INC_BLOCK_CLOCKLESS_ARM_MXRT1062_H
 #define __INC_BLOCK_CLOCKLESS_ARM_MXRT1062_H
 
+#include "fl/memset.h"
+
 FASTLED_NAMESPACE_BEGIN
 
 // Definition for a single channel clockless controller for the teensy4
@@ -36,7 +38,7 @@ public:
 
     virtual void init() {
         // pre-initialize
-        memset(m_bitOffsets,0,16);
+        fl::memset(m_bitOffsets,0,16);
         m_nActualLanes = 0;
         m_nLowBit = 33;
         m_nHighBit = 0;

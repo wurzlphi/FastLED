@@ -19,6 +19,7 @@
 #include "fl/audio.h"
 #include "fl/fft.h"
 #include "fl/fft_impl.h"
+#include "fl/memset.h"
 #include "fl/str.h"
 #include "fl/unused.h"
 #include "fl/vector.h"
@@ -41,7 +42,7 @@ class FFTContext {
   public:
     FFTContext(int samples, int bands, float fmin, float fmax, int sample_rate)
         : m_fftr_cfg(nullptr), m_kernels(nullptr) {
-        memset(&m_cq_cfg, 0, sizeof(m_cq_cfg));
+        fl::memset(&m_cq_cfg, 0, sizeof(m_cq_cfg));
         m_cq_cfg.samples = samples;
         m_cq_cfg.bands = bands;
         m_cq_cfg.fmin = fmin;

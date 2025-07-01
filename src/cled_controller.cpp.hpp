@@ -3,6 +3,7 @@
 
 #define FASTLED_INTERNAL
 #include "FastLED.h"
+#include "fl/memset.h"
 
 #include "cled_controller.h"
 
@@ -24,7 +25,7 @@ void CLEDController::clearLedDataInternal(int nLeds) {
     if(m_Data) {
         nLeds = (nLeds < 0) ? m_nLeds : nLeds;
         nLeds = (nLeds > m_nLeds) ? m_nLeds : nLeds;
-        memset((void*)m_Data, 0, sizeof(struct CRGB) * nLeds);
+        fl::memset((void*)m_Data, 0, sizeof(struct CRGB) * nLeds);
     }
 
 }
@@ -44,5 +45,3 @@ ColorAdjustment CLEDController::getAdjustmentData(uint8_t brightness) {
 
 
 FASTLED_NAMESPACE_END
-
-

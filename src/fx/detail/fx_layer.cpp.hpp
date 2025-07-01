@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "fx_layer.h"
+#include "fl/memset.h"
 
 
 \
@@ -23,7 +24,7 @@ void FxLayer::draw(uint32_t now) {
 
     if (!running) {
         // Clear the frame
-        memset((uint8_t*)frame->rgb(), 0, frame->size() * sizeof(CRGB));
+        fl::memset((uint8_t*)frame->rgb(), 0, frame->size() * sizeof(CRGB));
         fx->resume(now);
         running = true;
     }
