@@ -365,7 +365,7 @@ enum EBlockChipsets {
 /// @param scale the initial brightness scale value
 /// @param data max power data, in milliwatts
 /// @returns the brightness scale, limited to max power
-typedef uint8_t (*power_func)(uint8_t scale, uint32_t data);
+typedef uint8_t (*power_func)(uint8_t scale, fl::u32 data);
 
 /// High level controller interface for FastLED.
 /// This class manages controllers, global settings, and trackings such as brightness
