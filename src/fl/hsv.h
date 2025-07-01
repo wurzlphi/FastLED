@@ -6,9 +6,7 @@
 #include "fl/stdint.h"
 #include "fl/int.h"
 
-#include "fl/namespace.h"
-
-FL_NAMESPACE_BEGIN
+namespace fl {
 
 /// @addtogroup PixelTypes Pixel Data Types (CRGB/CHSV)
 /// @{
@@ -108,4 +106,4 @@ typedef enum {
 
 /// @} PixelTypes
 
-FL_NAMESPACE_END
+}  // namespace fl

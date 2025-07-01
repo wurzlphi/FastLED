@@ -7,6 +7,7 @@
 Legacy header. Prefer to use fl/hsv.h instead.
 */
 #include "fl/hsv.h"
+#include "fl/namespace.h"
 
 FASTLED_NAMESPACE_BEGIN
 
