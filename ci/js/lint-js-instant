@@ -2,9 +2,12 @@
 # FastLED JavaScript Instant Check
 # Fastest possible JavaScript validation for all files
 
-DENO_BINARY=".js-tools/deno/deno"
+DENO_BINARY="../../.js-tools/deno/deno"
 
 echo "⚡ Instant JS check (8 files)"
+
+# Change to project root for file paths
+cd ../../
 
 # Check all 8 files with syntax validation (much faster than linting)
 # Using deno check instead of deno lint for speed
@@ -20,11 +23,11 @@ FILES=(
 )
 
 # Check all files in one command for maximum speed
-if "$DENO_BINARY" check "${FILES[@]}" >/dev/null 2>&1; then
+if ".js-tools/deno/deno" check "${FILES[@]}" >/dev/null 2>&1; then
     echo "✅ All files OK"
     exit 0
 else
     echo "❌ Syntax errors detected:"
-    "$DENO_BINARY" check "${FILES[@]}"
+    ".js-tools/deno/deno" check "${FILES[@]}"
     exit 1
 fi

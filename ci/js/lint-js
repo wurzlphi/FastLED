@@ -10,11 +10,18 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}🔍 FastLED JavaScript Linting (Deno)${NC}"
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 # Check if Deno is installed
-if [ ! -f ".js-tools\deno\deno.exe" ]; then
+if [ ! -f "$PROJECT_ROOT/.js-tools/deno/deno" ]; then
     echo -e "${RED}❌ Deno not found. Run: uv run ci/setup-js-linting.py${NC}"
     exit 1
 fi
+
+# Change to project root
+cd "$PROJECT_ROOT"
 
 # Find JavaScript files in WASM platform
 JS_FILES=$(find src/platforms/wasm -name "*.js" -type f 2>/dev/null)
@@ -29,7 +36,7 @@ echo "$JS_FILES" | sed 's/^/  /'
 
 # Run Deno linting
 echo -e "${BLUE}Running Deno lint...${NC}"
-if ".js-tools\deno\deno.exe" lint --config deno.json; then
+if ".js-tools/deno/deno" lint --config deno.json; then
     echo -e "${GREEN}✅ JavaScript linting completed successfully${NC}"
 else
     echo -e "${RED}❌ JavaScript linting failed${NC}"
@@ -38,8 +45,8 @@ fi
 
 # Optionally run formatting check
 echo -e "${BLUE}Checking JavaScript formatting...${NC}"
-if ".js-tools\deno\deno.exe" fmt --config deno.json --check; then
+if ".js-tools/deno/deno" fmt --config deno.json --check; then
     echo -e "${GREEN}✅ JavaScript formatting is correct${NC}"
 else
-    echo -e "${YELLOW}⚠️  JavaScript formatting issues found. Run: .js-tools\deno\deno.exe fmt --config deno.json${NC}"
+    echo -e "${YELLOW}⚠️  JavaScript formatting issues found. Run: .js-tools/deno/deno fmt --config deno.json${NC}"
 fi

@@ -9,15 +9,20 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-DENO_BINARY=".js-tools/deno/deno"
-
 echo -e "${BLUE}🔍 FastLED JavaScript Enhanced Linting (Deno-based)${NC}"
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 # Check if Deno is installed
-if [ ! -f "$DENO_BINARY" ]; then
+if [ ! -f "$PROJECT_ROOT/.js-tools/deno/deno" ]; then
     echo -e "${RED}❌ Deno not found. Run: uv run ci/setup-js-linting.py${NC}"
     exit 1
 fi
+
+# Change to project root
+cd "$PROJECT_ROOT"
 
 # Find JavaScript files in WASM platform
 JS_FILES=$(find src/platforms/wasm -name "*.js" -type f 2>/dev/null)
@@ -45,20 +50,20 @@ for file in $JS_FILES; do
     echo -e "${BLUE}Checking: $file${NC}"
     
     # First run linting
-    if ! "$DENO_BINARY" lint --config deno.json "$file" 2>/dev/null; then
+    if ! ".js-tools/deno/deno" lint --config deno.json "$file" 2>/dev/null; then
         echo -e "${YELLOW}  ⚠️  Lint issues found in $file...${NC}"
-        "$DENO_BINARY" lint --config deno.json "$file"
+        ".js-tools/deno/deno" lint --config deno.json "$file"
         TYPE_ERRORS=$((TYPE_ERRORS + 1))
         continue
     fi
     
     # Then run type checking if enabled
     if [[ "$CHECK_JS_ENABLED" != "false" ]]; then
-        if "$DENO_BINARY" check --config deno.json "$file" 2>/dev/null; then
+        if ".js-tools/deno/deno" check --config deno.json "$file" 2>/dev/null; then
             echo -e "${GREEN}  ✅ $file - No lint or type errors${NC}"
         else
             echo -e "${YELLOW}  🔍 Type checking $file...${NC}"
-            "$DENO_BINARY" check --config deno.json "$file"
+            ".js-tools/deno/deno" check --config deno.json "$file"
             TYPE_ERRORS=$((TYPE_ERRORS + 1))
         fi
     else
