@@ -2,10 +2,10 @@
 
 #include "fl/str.h"
 #include "fl/template_magic.h"
-#include "fl/stdint.h"
 #include "fl/int.h"
+#include "fl/stdint.h"
+#include "fl/force_inline.h"
 #include <string.h>
-#include <stdint.h>  // for uint16_t
 
 namespace fl {
 

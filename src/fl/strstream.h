@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>  // for uint16_t
 #include "fl/int.h"
+#include "fl/str.h"
 #include "crgb.h"
 #include "str.h"
 

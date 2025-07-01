@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stdint.h>  // for uint16_t
+#include "fl/int.h"
 #include "fl/namespace.h"
 #include "fl/force_inline.h"
 #include "fl/pair.h"
-#include "fl/int.h"
 #include <string.h>
 
 #include "crgb.h"

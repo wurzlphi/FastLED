@@ -1,4 +1,4 @@
-#pragma once
+THIS SHOULD BE A LINTER ERROR#pragma once
 #ifndef __INC_FASTSPI_LED2_H
 #define __INC_FASTSPI_LED2_H
 

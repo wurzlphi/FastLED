@@ -1,10 +1,9 @@
 #pragma once
 
-#include <stdint.h>  // for u16
+#include "fl/int.h"
 #include "fl/math.h"
 #include "fl/compiler_control.h"
 #include "fl/move.h"
-#include "fl/int.h"
 
 namespace fl {
 

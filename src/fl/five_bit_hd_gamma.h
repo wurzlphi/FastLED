@@ -158,7 +158,7 @@ inline uint8_t five_bit_bitshift(u16 r16, u16 g16, u16 b16,
     // driver brightness.
     u16 max_component = max3(r16, g16, b16);
     // five_bit_color_bitshift(&r16, &g16, &b16, &v5);
-    uint8_t shifts = brightness_bitshifter16(&v5, &max_component, 4, 2);
+    uint8_t shifts = brightness_bitshifter16(&v5, reinterpret_cast<uint16_t*>(&max_component), 4, 2);
     if (shifts) {
         r16 = r16 << shifts;
         g16 = g16 << shifts;
