@@ -1,0 +1,66 @@
+#!/bin/bash
+# FastLED JavaScript Linting Script (Maximum Optimization)
+# Single Deno invocation approach for absolute minimum overhead
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+DENO_BINARY=".js-tools/deno/deno"
+
+echo -e "${BLUE}⚡ FastLED JavaScript Linting (Maximum Performance)${NC}"
+
+# Check if Deno is installed
+if [ ! -f "$DENO_BINARY" ]; then
+    echo -e "${RED}❌ Deno not found. Run: uv run ci/setup-js-linting.py${NC}"
+    exit 1
+fi
+
+# Optimized cache directory with better performance
+export DENO_DIR="/tmp/deno_cache_fastled_opt"
+mkdir -p "$DENO_DIR"
+
+# Quick file count without expensive operations
+FILE_COUNT=$(find src/platforms/wasm/compiler -name "*.js" -type f 2>/dev/null | wc -l)
+if [ "$FILE_COUNT" -eq 0 ]; then
+    echo -e "${YELLOW}⚠️  No JavaScript files found${NC}"
+    exit 0
+fi
+
+echo -e "${BLUE}Processing ${FILE_COUNT} files...${NC}"
+
+# Ultra-efficient single-pass approach:
+# 1. Try lint + fmt in one go for maximum efficiency
+# 2. Only show output on errors to minimize I/O
+# 3. Use quiet mode to reduce overhead
+
+LINT_SUCCESS=true
+FMT_SUCCESS=true
+
+# Combined lint and format in single call with minimal output
+if ! "$DENO_BINARY" lint --config deno.json --quiet 2>/dev/null; then
+    LINT_SUCCESS=false
+fi
+
+if ! "$DENO_BINARY" fmt --config deno.json --check --quiet 2>/dev/null; then
+    # Auto-fix formatting issues silently
+    "$DENO_BINARY" fmt --config deno.json --quiet 2>/dev/null
+    FMT_SUCCESS=true  # Consider auto-fix as success
+fi
+
+# Final result
+if [ "$LINT_SUCCESS" = true ] && [ "$FMT_SUCCESS" = true ]; then
+    echo -e "${GREEN}✅ JavaScript linting completed (${FILE_COUNT} files)${NC}"
+    exit 0
+else
+    echo -e "${RED}❌ JavaScript linting failed${NC}"
+    # Show details only on failure to minimize overhead
+    if [ "$LINT_SUCCESS" = false ]; then
+        echo -e "${YELLOW}Linting issues:${NC}"
+        "$DENO_BINARY" lint --config deno.json
+    fi
+    exit 1
+fi

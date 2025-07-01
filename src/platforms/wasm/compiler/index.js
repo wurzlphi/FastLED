@@ -480,10 +480,10 @@ function FastLED_onStripUpdate(jsonData) {
   // Initialize layout manager if not already done
   if (!layoutManager) {
     layoutManager = new UILayoutPlacementManager();
-    
+
     // Expose layout manager globally for graphics managers to access
     globalThis.layoutManager = layoutManager;
-    
+
     // Listen for layout changes to update canvas size
     globalThis.addEventListener('layoutChanged', (e) => {
       const canvas = document.getElementById(canvasId);
@@ -491,12 +491,14 @@ function FastLED_onStripUpdate(jsonData) {
         const layoutData = e.detail.data;
         const displayWidth = layoutData.canvasSize;
         const displayHeight = Math.round((canvas.height / canvas.width) * displayWidth);
-        
+
         canvas.style.width = `${displayWidth}px`;
         canvas.style.height = `${displayHeight}px`;
-        
-        console.log(`Canvas resized for ${e.detail.layout} layout: ${displayWidth}x${displayHeight}px`);
-        
+
+        console.log(
+          `Canvas resized for ${e.detail.layout} layout: ${displayWidth}x${displayHeight}px`,
+        );
+
         // Mark graphics manager for reset to handle canvas size change
         uiCanvasChanged = true;
       }

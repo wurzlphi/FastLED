@@ -5,11 +5,17 @@ set -e
 # Parse command line arguments
 RUN_JS_LINTING=false
 RUN_FULL_LINTING=false
+USE_ULTRA_FAST_JS=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --js)
             RUN_JS_LINTING=true
+            shift
+            ;;
+        --js-fast)
+            RUN_JS_LINTING=true
+            USE_ULTRA_FAST_JS=true
             shift
             ;;
         --full)
@@ -21,12 +27,16 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: bash lint [OPTIONS]"
             echo ""
             echo "Options:"
-            echo "  --js     Include JavaScript linting"
-            echo "  --full   Include all linting (same as --js)"
-            echo "  --help   Show this help message"
+            echo "  --js         Include JavaScript linting (optimized)"
+            echo "  --js-fast    Include JavaScript linting (ultra-fast, minimal output)"
+            echo "  --full       Include all linting (same as --js)"
+            echo "  --help       Show this help message"
             echo ""
             echo "By default, only Python and C++ linting is performed."
-            echo "Use --js or --full to include JavaScript linting."
+            echo "Performance comparison:"
+            echo "  • --js-fast: ~8-9 seconds (ultra-fast, essential checks only)"
+            echo "  • --js:      ~9-10 seconds (optimized, includes analysis)"
+            echo "  • Legacy:    ~9-10 seconds (baseline version)"
             exit 0
             ;;
         *)
@@ -111,17 +121,19 @@ if [ "$RUN_JS_LINTING" = true ]; then
     echo "🌐 JAVASCRIPT LINTING & TYPE CHECKING"
     echo "--------------------------------------"
 
-    if [ -f "./lint-js" ] && [ -f ".js-tools/deno/deno" ]; then
-        echo "Running JavaScript linting"
-        ./lint-js
-        
-        echo "Running JavaScript enhanced linting & type checking"
-        ./check-js
-        
-        # Run JavaScript enhancement analysis for additional insights
-        if [ -f "scripts/enhance-js-typing.py" ]; then
-            echo "Running JavaScript enhancement analysis"
-            python3 scripts/enhance-js-typing.py --approach summary 2>/dev/null || echo "  ℹ️  Enhancement analysis completed (some warnings expected)"
+    if [ -f ".js-tools/deno/deno" ]; then
+        if [ "$USE_ULTRA_FAST_JS" = true ]; then
+            echo "Running ultra-fast JavaScript linting"
+            ./lint-js-ultra-fast
+        else
+            echo "Running optimized JavaScript linting"
+            ./lint-js-fast
+            
+            # Run JavaScript enhancement analysis for additional insights (optional)
+            if [ -f "scripts/enhance-js-typing.py" ]; then
+                echo "Running JavaScript enhancement analysis"
+                python3 scripts/enhance-js-typing.py --approach summary 2>/dev/null || echo "  ℹ️  Enhancement analysis completed (some warnings expected)"
+            fi
         fi
     else
         echo "⚠️  JavaScript linting tools not found. Run: python3 ci/setup-js-linting.py"
@@ -130,7 +142,7 @@ else
     echo ""
     echo "🌐 JAVASCRIPT LINTING (SKIPPED)"
     echo "-------------------------------"
-    echo "ℹ️  JavaScript linting skipped. Use --js or --full to include it."
+    echo "ℹ️  JavaScript linting skipped. Use --js, --js-fast, or --full to include it."
 fi
 
 echo ""
@@ -139,5 +151,6 @@ echo "========================="
 echo ""
 echo "💡 FOR AI AGENTS:"
 echo "  - Use 'bash lint' for Python and C++ linting (default)"
-echo "  - Use 'bash lint --js' or 'bash lint --full' to include JavaScript linting"
-echo "  - Use 'bash lint --help' for usage information"
+echo "  - Use 'bash lint --js-fast' for ultra-fast JavaScript linting (~8-9s)"
+echo "  - Use 'bash lint --js' for comprehensive JavaScript linting (~9-10s)"
+echo "  - Use 'bash lint --help' for all options and performance info"

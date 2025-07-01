@@ -240,7 +240,7 @@ export class GraphicsManagerThreeJS {
         console.log(`Using computed canvas size: ${targetWidth}px`);
       }
     }
-    
+
     const aspectRatio = screenMapWidth / screenMapHeight;
     const targetHeight = Math.round(targetWidth / aspectRatio);
 
@@ -258,7 +258,9 @@ export class GraphicsManagerThreeJS {
     canvas.style.maxWidth = `${targetWidth}px`;
     canvas.style.maxHeight = `${targetHeight}px`;
 
-    console.log(`ThreeJS canvas dimensions: ${targetWidth}x${targetHeight}px display, ${this.SCREEN_WIDTH}x${this.SCREEN_HEIGHT}px internal`);
+    console.log(
+      `ThreeJS canvas dimensions: ${targetWidth}x${targetHeight}px display, ${this.SCREEN_WIDTH}x${this.SCREEN_HEIGHT}px internal`,
+    );
 
     // Store the bounds for orthographic camera calculations
     this.screenBounds = {
