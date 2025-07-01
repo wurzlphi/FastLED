@@ -27,7 +27,7 @@ FASTLED_SMART_PTR(ByteStreamMemory);
 // a file handle or a byte stream to read the video data.
 class Video : public Fx1d { // Fx1d because video can be irregular.
   public:
-    static size_t DefaultFrameHistoryCount() {
+    static fl::sz DefaultFrameHistoryCount() {
 #ifdef __AVR__
         return 1;
 #else
@@ -41,8 +41,8 @@ class Video : public Fx1d { // Fx1d because video can be irregular.
     // to increase this number to allow momentary re-wind. If you'd like to use
     // a Video as a buffer for an fx effect then please see VideoFxWrapper.
     Video();
-    Video(size_t pixelsPerFrame, float fps = 30.0f,
-          size_t frameHistoryCount =
+    Video(fl::sz pixelsPerFrame, float fps = 30.0f,
+          fl::sz frameHistoryCount =
               DefaultFrameHistoryCount()); // Please use FileSytem to construct
                                            // a Video.
     ~Video();
@@ -65,7 +65,7 @@ class Video : public Fx1d { // Fx1d because video can be irregular.
     float timeScale() const;
     Str error() const;
     void setError(const Str &error) { mError = error; }
-    size_t pixelsPerFrame() const;
+    fl::sz pixelsPerFrame() const;
     void pause(uint32_t now) override;
     void resume(uint32_t now) override;
     void setFade(uint32_t fadeInTime, uint32_t fadeOutTime);

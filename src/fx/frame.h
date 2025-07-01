@@ -29,7 +29,7 @@ class Frame : public fl::Referent {
     ~Frame() override;
     CRGB *rgb() { return mRgb.data(); }
     const CRGB *rgb() const { return mRgb.data(); }
-    size_t size() const { return mPixelsCount; }
+    fl::sz size() const { return mPixelsCount; }
     void copy(const Frame &other);
     void interpolate(const Frame &frame1, const Frame &frame2,
                      uint8_t amountOfFrame2);
@@ -41,7 +41,7 @@ class Frame : public fl::Referent {
     void clear();
 
   private:
-    const size_t mPixelsCount;
+    const fl::sz mPixelsCount;
     fl::vector<CRGB, fl::allocator_psram<CRGB>> mRgb;
 };
 

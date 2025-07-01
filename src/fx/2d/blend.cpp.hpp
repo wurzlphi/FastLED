@@ -22,7 +22,7 @@ Blend2d::Blend2d(const XYMap &xymap) : Fx2d(xymap) {
 
 Str Blend2d::fxName() const {
     fl::string out = "LayeredFx2d(";
-    for (size_t i = 0; i < mLayers.size(); ++i) {
+    for (fl::sz i = 0; i < mLayers.size(); ++i) {
         out += mLayers[i].fx->fxName();
         if (i != mLayers.size() - 1) {
             out += ",";

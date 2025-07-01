@@ -29,7 +29,7 @@ void Frame::draw(CRGB *leds, DrawMode draw_mode) const {
             break;
         }
         case DRAW_MODE_BLEND_BY_MAX_BRIGHTNESS: {
-            for (size_t i = 0; i < mPixelsCount; ++i) {
+            for (fl::sz i = 0; i < mPixelsCount; ++i) {
                 leds[i] = CRGB::blendAlphaMaxChannel(mRgb[i], leds[i]);
             }
             break;
@@ -87,7 +87,7 @@ void Frame::interpolate(const Frame &frame1, const Frame &frame2,
         return;
     }
 
-    for (size_t i = 0; i < frame2.size(); ++i) {
+    for (fl::sz i = 0; i < frame2.size(); ++i) {
         pixels[i] = CRGB::blend(rgbFirst[i], rgbSecond[i], amountofFrame2);
     }
     // We will eventually do something with alpha.

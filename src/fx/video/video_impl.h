@@ -27,8 +27,8 @@ class VideoImpl : public fl::Referent {
     // frameHistoryCount is the number of frames to keep in the buffer after
     // draw. This allows for time based effects like syncing video speed to
     // audio triggers.
-    VideoImpl(size_t pixelsPerFrame, float fpsVideo,
-              size_t frameHistoryCount = 0);
+    VideoImpl(fl::sz pixelsPerFrame, float fpsVideo,
+              fl::sz frameHistoryCount = 0);
     ~VideoImpl();
     // Api
     void begin(fl::FileHandlePtr h);
@@ -42,7 +42,7 @@ class VideoImpl : public fl::Referent {
     bool full() const;
     void setTimeScale(float timeScale);
     float timeScale() const { return mTimeScale; }
-    size_t pixelsPerFrame() const { return mPixelsPerFrame; }
+    fl::sz pixelsPerFrame() const { return mPixelsPerFrame; }
     void pause(uint32_t now);
     void resume(uint32_t now);
     bool needsFrame(uint32_t now) const;

@@ -9,8 +9,8 @@
 
 namespace fl {
 
-VideoImpl::VideoImpl(size_t pixelsPerFrame, float fpsVideo,
-                     size_t nFramesInBuffer)
+VideoImpl::VideoImpl(fl::sz pixelsPerFrame, float fpsVideo,
+                     fl::sz nFramesInBuffer)
     : mPixelsPerFrame(pixelsPerFrame),
       mFrameInterpolator(
           FrameInterpolatorPtr::New(MAX(1, nFramesInBuffer), fpsVideo)) {}
@@ -139,11 +139,11 @@ bool VideoImpl::draw(uint32_t now, CRGB *leds) {
     }
     if (brightness < 255) {
         if (brightness == 0) {
-            for (size_t i = 0; i < mPixelsPerFrame; ++i) {
+            for (fl::sz i = 0; i < mPixelsPerFrame; ++i) {
                 leds[i] = CRGB::Black;
             }
         } else {
-            for (size_t i = 0; i < mPixelsPerFrame; ++i) {
+            for (fl::sz i = 0; i < mPixelsPerFrame; ++i) {
                 leds[i].nscale8(brightness);
             }
         }
@@ -181,12 +181,12 @@ bool VideoImpl::updateBufferFromStream(uint32_t now) {
     if (!has_current_frame) {
         frame_numbers.push_back(currFrameNumber);
     }
-    size_t capacity = mFrameInterpolator->capacity();
+    fl::sz capacity = mFrameInterpolator->capacity();
     if (capacity > 1 && !has_next_frame) {
         frame_numbers.push_back(nextFrameNumber);
     }
 
-    for (size_t i = 0; i < frame_numbers.size(); ++i) {
+    for (fl::sz i = 0; i < frame_numbers.size(); ++i) {
         FramePtr recycled_frame;
         if (mFrameInterpolator->full()) {
             uint32_t frame_to_erase = 0;
@@ -262,7 +262,7 @@ bool VideoImpl::updateBufferFromFile(uint32_t now, bool forward) {
         frame_numbers.push_back(nextFrameNumber);
     }
 
-    for (size_t i = 0; i < frame_numbers.size(); ++i) {
+    for (fl::sz i = 0; i < frame_numbers.size(); ++i) {
         FramePtr recycled_frame;
         if (mFrameInterpolator->full()) {
             uint32_t frame_to_erase = 0;

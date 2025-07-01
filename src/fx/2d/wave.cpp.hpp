@@ -29,14 +29,14 @@ struct BatchDraw {
         span<const uint8_t> alphas(mAlphas);
         CRGB rgb[kMaxBatchSize] = {};
         mGradient->fill(mAlphas, rgb);
-        for (size_t i = 0; i < mIndices.size(); i++) {
+        for (fl::sz i = 0; i < mIndices.size(); i++) {
             mLeds[mIndices[i]] = rgb[i];
         }
         mAlphas.clear();
         mIndices.clear();
     }
 
-    static const size_t kMaxBatchSize = 32;
+    static const fl::sz kMaxBatchSize = 32;
     using ArrayIndices = fl::FixedVector<uint32_t, kMaxBatchSize>;
     using ArrayAlphas = fl::FixedVector<uint8_t, kMaxBatchSize>;
     ArrayIndices mIndices;

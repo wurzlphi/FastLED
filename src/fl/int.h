@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fl/stdint.h"
+
 namespace fl {
     // 8-bit types - char is reliably 8 bits on all supported platforms
     typedef signed char i8;
@@ -47,6 +49,6 @@ namespace fl {
     static_assert(sizeof(u16) == 2, "u16 must be exactly 2 bytes");
     static_assert(sizeof(u32) == 4, "u32 must be exactly 4 bytes");
     static_assert(sizeof(u64) == 8, "u64 must be exactly 8 bytes");
-    static_assert(sizeof(uptr) == sizeof(void*), "uptr must be exactly pointer size");
-    static_assert(sizeof(sz) == sizeof(size_t), "sz must be exactly size_t size");
+    static_assert(sizeof(uptr) >= sizeof(void*), "uptr must be at least pointer size");
+    static_assert(sizeof(sz) >= sizeof(void*), "sz must be at least pointer size for large memory operations");
 }

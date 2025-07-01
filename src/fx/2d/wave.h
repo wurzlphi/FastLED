@@ -121,18 +121,18 @@ class WaveFx : public Fx2d {
         mWaveSim.setEasingMode(mode);
     }
 
-    void setf(size_t x, size_t y, float value) {
+    void setf(fl::sz x, fl::sz y, float value) {
         // Set the value at the given coordinates in the wave simulation.
         mWaveSim.setf(x, y, value);
     }
 
-    void addf(size_t x, size_t y, float value) {
+    void addf(fl::sz x, fl::sz y, float value) {
         // Add a value at the given coordinates in the wave simulation.
         float sum = value + mWaveSim.getf(x, y);
         mWaveSim.setf(x, y, MIN(1.0f, sum));
     }
 
-    uint8_t getu8(size_t x, size_t y) const {
+    uint8_t getu8(fl::sz x, fl::sz y) const {
         // Get the 8-bit value at the given coordinates in the wave simulation.
         return mWaveSim.getu8(x, y);
     }

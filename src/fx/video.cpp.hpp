@@ -26,7 +26,7 @@ FASTLED_SMART_PTR(Frame);
 
 Video::Video() : Fx1d(0) {}
 
-Video::Video(size_t pixelsPerFrame, float fps, size_t frame_history_count)
+Video::Video(fl::sz pixelsPerFrame, float fps, fl::sz frame_history_count)
     : Fx1d(pixelsPerFrame) {
     mImpl = VideoImplPtr::New(pixelsPerFrame, fps, frame_history_count);
 }
@@ -137,7 +137,7 @@ float Video::timeScale() const {
 
 Str Video::error() const { return mError; }
 
-size_t Video::pixelsPerFrame() const {
+fl::sz Video::pixelsPerFrame() const {
     if (!mImpl) {
         return 0;
     }

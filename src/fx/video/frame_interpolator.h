@@ -19,7 +19,7 @@ class FrameInterpolator : public fl::Referent {
         bool operator()(uint32_t a, uint32_t b) const { return a < b; }
     };
     typedef fl::SortedHeapMap<uint32_t, FramePtr, Less> FrameBuffer;
-    FrameInterpolator(size_t nframes, float fpsVideo);
+    FrameInterpolator(fl::sz nframes, float fpsVideo);
 
     // Will search through the array, select the two frames that are closest to
     // the current time and then interpolate between them, storing the results
@@ -64,7 +64,7 @@ class FrameInterpolator : public fl::Referent {
     }
 
     bool full() const { return mFrames.full(); }
-    size_t capacity() const { return mFrames.capacity(); }
+    fl::sz capacity() const { return mFrames.capacity(); }
 
     FrameBuffer *getFrames() { return &mFrames; }
 
