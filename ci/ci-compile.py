@@ -355,13 +355,23 @@ def compile_with_pio_ci(
                 ]
             )
 
-        # Add defines
+        # Add defines and include paths
         all_defines = defines.copy()
         if board.defines:
             all_defines.extend(board.defines)
 
+        # Build the build_flags with defines and include paths
+        build_flags_parts = []
+        
+        # Add defines
         if all_defines:
-            build_flags = " ".join(f"-D{define}" for define in all_defines)
+            build_flags_parts.extend(f"-D{define}" for define in all_defines)
+        
+        # Add example directory to include path so sketch can find its local files
+        build_flags_parts.append(f"-I{example_path}")
+        
+        if build_flags_parts:
+            build_flags = " ".join(build_flags_parts)
             cmd_list.extend(["--project-option", f"build_flags={build_flags}"])
 
         # Add custom SDK config if specified
