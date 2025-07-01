@@ -144,6 +144,7 @@
 // #include "pixelslib.h"
 #else
 #include "___pixeltypes.h"
+#include "fl/memset.h"
 #endif
 
 #define LCD_DRIVER_PSRAM_DATA_ALIGNMENT 64
@@ -405,7 +406,7 @@ class I2SClocklessLedDriveresp32S3 {
             8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                 __OFFSET_END,
             MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-        memset(led_output, 0,
+        fl::memset(led_output, 0,
                8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                    __OFFSET_END);
 
@@ -414,7 +415,7 @@ class I2SClocklessLedDriveresp32S3 {
             8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                 __OFFSET_END,
             MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-        memset(led_output2, 0,
+        fl::memset(led_output2, 0,
                8 * _nb_components * NUM_LED_PER_STRIP * 3 * 2 + __OFFSET +
                    __OFFSET_END);
         buffers[0] = led_output;

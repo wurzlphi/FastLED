@@ -6,6 +6,7 @@
 #ifdef ESP32
 #include "esp_heap_caps.h"
 #include "esp_system.h"
+#include "fl/memset.h"
 #endif
 
 namespace fl {
@@ -40,7 +41,7 @@ void SetPSRamAllocator(void *(*alloc)(fl::sz), void (*free)(void *)) {
 void *PSRamAllocate(fl::sz size, bool zero) {
     void *ptr = Alloc(size);
     if (ptr && zero) {
-        memset(ptr, 0, size);
+        fl::memset(ptr, 0, size);
     }
     return ptr;
 }

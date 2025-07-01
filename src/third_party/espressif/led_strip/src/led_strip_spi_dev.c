@@ -20,6 +20,7 @@
 #include "led_strip_interface.h"
 #include "fl/unused.h"
 
+#include "fl/memset.h"
 #define LED_STRIP_SPI_DEFAULT_RESOLUTION (2.5 * 1000 * 1000) // 2.5MHz resolution
 #define LED_STRIP_SPI_DEFAULT_TRANS_QUEUE_SIZE 4
 
@@ -72,7 +73,7 @@ static esp_err_t led_strip_spi_set_pixel(led_strip_t *strip, uint32_t index, uin
     uint32_t start = index * spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE;
     uint8_t *pixel_buf = spi_strip->pixel_buf;
     led_color_component_format_t component_fmt = spi_strip->component_fmt;
-    memset(pixel_buf + start, 0, spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE);
+    fl::memset(pixel_buf + start, 0, spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE);
 
     __led_strip_spi_bit(red, &pixel_buf[start + SPI_BYTES_PER_COLOR_BYTE * component_fmt.format.r_pos]);
     __led_strip_spi_bit(green, &pixel_buf[start + SPI_BYTES_PER_COLOR_BYTE * component_fmt.format.g_pos]);
@@ -94,7 +95,7 @@ static esp_err_t led_strip_spi_set_pixel_rgbw(led_strip_t *strip, uint32_t index
     // LED_PIXEL_FORMAT_GRBW takes 96bits(12bytes)
     uint32_t start = index * spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE;
     uint8_t *pixel_buf = spi_strip->pixel_buf;
-    memset(pixel_buf + start, 0, spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE);
+    fl::memset(pixel_buf + start, 0, spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE);
 
     __led_strip_spi_bit(red, &pixel_buf[start + SPI_BYTES_PER_COLOR_BYTE * component_fmt.format.r_pos]);
     __led_strip_spi_bit(green, &pixel_buf[start + SPI_BYTES_PER_COLOR_BYTE * component_fmt.format.g_pos]);
@@ -109,7 +110,7 @@ static esp_err_t spi_led_strip_refresh_async(led_strip_t *strip)
 {
     led_strip_spi_obj *spi_strip = __containerof(strip, led_strip_spi_obj, base);
     spi_transaction_t tx_conf;
-    memset(&tx_conf, 0, sizeof(tx_conf));
+    fl::memset(&tx_conf, 0, sizeof(tx_conf));
 
     tx_conf.length = spi_strip->strip_len * spi_strip->bytes_per_pixel * SPI_BITS_PER_COLOR_BYTE;
     tx_conf.tx_buffer = spi_strip->pixel_buf;
@@ -140,7 +141,7 @@ static esp_err_t led_strip_spi_clear(led_strip_t *strip)
 {
     led_strip_spi_obj *spi_strip = __containerof(strip, led_strip_spi_obj, base);
     //Write zero to turn off all leds
-    memset(spi_strip->pixel_buf, 0, spi_strip->strip_len * spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE);
+    fl::memset(spi_strip->pixel_buf, 0, spi_strip->strip_len * spi_strip->bytes_per_pixel * SPI_BYTES_PER_COLOR_BYTE);
     uint8_t *buf = spi_strip->pixel_buf;
     for (int index = 0; index < spi_strip->strip_len * spi_strip->bytes_per_pixel; index++) {
         __led_strip_spi_bit(0, buf);

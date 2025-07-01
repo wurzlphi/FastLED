@@ -62,6 +62,7 @@ GOIO9List = { 2, 3, 4, 5, 29, 33, 48, 49, 50, 51, 52, 53, 54 }  //6 top, 7 botto
 #else
 #include "ObjectFLED.h"
 
+#include "fl/memset.h"
 #ifndef MIN
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #endif
@@ -146,7 +147,7 @@ void ObjectFLED::begin(uint16_t period, uint16_t t0h, uint16_t t1h, uint16_t lat
 void ObjectFLED::begin(void) {
 	numpins = numpinsLocal;		//needed to compute pin mask/offset & bitmask since static for isr
 	// Set each pin's bitmask bit, store offset & bit# for pin
-	memset(bitmask, 0, sizeof(bitmask));
+	fl::memset(bitmask, 0, sizeof(bitmask));
 	for (uint32_t i=0; i < numpins; i++) {
 		uint8_t pin = pinlist[i];
 		if (pin >= NUM_DIGITAL_PINS) continue;	// ignore illegal pins
@@ -478,7 +479,7 @@ void ObjectFLED::show(void) {
 	XBARA1_CTRL1 |= XBARA_CTRL_STS0;
 
 	// fill the DMA transmit buffer
-	memset(bitdata, 0, sizeof(bitdata));			//BYTES_PER_DMA * 64 words32
+	fl::memset(bitdata, 0, sizeof(bitdata));			//BYTES_PER_DMA * 64 words32
 	uint32_t count = numbytes;						//bytes per strip
 	if (count > BYTES_PER_DMA*2) count = BYTES_PER_DMA*2;
 	framebuffer_index = count;						//ptr to framebuffer last byte output
@@ -548,7 +549,7 @@ void ObjectFLED::isr(void)
 		dma_first = true;
 		dest = bitdata + BYTES_PER_DMA*32;
 	}
-	memset(dest, 0, sizeof(bitdata)/2);
+	fl::memset(dest, 0, sizeof(bitdata)/2);
 	uint32_t index = framebuffer_index;
 	uint32_t count = numbytes - framebuffer_index;
 	if (count > BYTES_PER_DMA) count = BYTES_PER_DMA;

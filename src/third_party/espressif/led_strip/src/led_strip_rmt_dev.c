@@ -24,6 +24,7 @@
 #include "led_strip_interface.h"
 #include "led_strip_rmt_encoder.h"
 
+#include "fl/memset.h"
 #define LED_STRIP_RMT_DEFAULT_RESOLUTION 10000000 // 10MHz resolution
 #define LED_STRIP_RMT_DEFAULT_TRANS_QUEUE_SIZE 4
 
@@ -127,7 +128,7 @@ static esp_err_t led_strip_rmt_clear(led_strip_t *strip)
 {
     led_strip_rmt_obj *rmt_strip = __containerof(strip, led_strip_rmt_obj, base);
     // Write zero to turn off all leds
-    memset(rmt_strip->pixel_buf, 0, rmt_strip->strip_len * rmt_strip->bytes_per_pixel);
+    fl::memset(rmt_strip->pixel_buf, 0, rmt_strip->strip_len * rmt_strip->bytes_per_pixel);
     return led_strip_rmt_refresh(strip);
 }
 

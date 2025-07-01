@@ -4,6 +4,7 @@
 #include "fl/namespace.h"
 #include "rgbw.h"
 
+#include "fl/memset.h"
 namespace fl {
 
 DrawItem::DrawItem(uint8_t pin, uint16_t numLeds, bool is_rgbw)
@@ -23,7 +24,7 @@ RectangularDrawBuffer::getLedsBufferBytesForPin(uint8_t pin, bool clear_first) {
     }
     fl::span<uint8_t> slice = it->second;
     if (clear_first) {
-        memset(slice.data(), 0, slice.size() * sizeof(slice[0]));
+        fl::memset(slice.data(), 0, slice.size() * sizeof(slice[0]));
     }
     return slice;
 }
@@ -37,7 +38,7 @@ bool RectangularDrawBuffer::onQueuingStart() {
     mDrawList.swap(mPrevDrawList);
     mDrawList.clear();
     if (mAllLedsBufferUint8Size > 0) {
-        memset(mAllLedsBufferUint8.get(), 0, mAllLedsBufferUint8Size);
+        fl::memset(mAllLedsBufferUint8.get(), 0, mAllLedsBufferUint8Size);
     }
     return true;
 }
