@@ -4,18 +4,19 @@
 #ifdef USE_OCTOWS2811
 
 #include "OctoWS2811.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
-template<EOrder RGB_ORDER = GRB, uint8_t CHIP = WS2811_800kHz>
+template<EOrder RGB_ORDER = GRB, fl::u8 CHIP = WS2811_800kHz>
 class COctoWS2811Controller : public CPixelLEDController<RGB_ORDER, 8, 0xFF> {
   OctoWS2811  *pocto;
-  uint8_t *drawbuffer,*framebuffer;
+  fl::u8 *drawbuffer,*framebuffer;
 
   void _init(int nLeds) {
     if(pocto == NULL) {
-      drawbuffer = (uint8_t*)malloc(nLeds * 8 * 3);
-      framebuffer = (uint8_t*)malloc(nLeds * 8 * 3);
+      drawbuffer = (fl::u8*)malloc(nLeds * 8 * 3);
+      framebuffer = (fl::u8*)malloc(nLeds * 8 * 3);
 
       // byte ordering is handled in show by the pixel controller
       int config = WS2811_RGB;
@@ -40,9 +41,9 @@ public:
     uint32_t index = 0;
     while (pixels.has(1)) {
       for (int lane = 0; lane < 8; lane++) {
-        uint8_t r = pixels.loadAndScale0(lane);
-        uint8_t g = pixels.loadAndScale1(lane);
-        uint8_t b = pixels.loadAndScale2(lane);
+        fl::u8 r = pixels.loadAndScale0(lane);
+        fl::u8 g = pixels.loadAndScale1(lane);
+        fl::u8 b = pixels.loadAndScale2(lane);
         pocto->setPixel(index, r, g, b);
         index += size;
       }

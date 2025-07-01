@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/colorutils.h"
+#include "fl/int.h"
 #include "fl/function.h"
 #include "fl/span.h"
 #include "fl/type_traits.h"
@@ -15,7 +16,7 @@ class GradientInlined;
 
 class Gradient {
   public:
-    using GradientFunction = fl::function<CRGB(uint8_t index)>;
+    using GradientFunction = fl::function<CRGB(fl::u8 index)>;
     Gradient() = default;
     Gradient(const GradientInlined &other);
 
@@ -31,8 +32,8 @@ class Gradient {
     void set(const CRGBPalette256 *palette);
     void set(const GradientFunction &func);
 
-    CRGB colorAt(uint8_t index) const;
-    void fill(span<const uint8_t> input, span<CRGB> output) const;
+    CRGB colorAt(fl::u8 index) const;
+    void fill(span<const fl::u8> input, span<CRGB> output) const;
 
   private:
     using GradientVariant =
@@ -43,7 +44,7 @@ class Gradient {
 
 class GradientInlined {
   public:
-    using GradientFunction = fl::function<CRGB(uint8_t index)>;
+    using GradientFunction = fl::function<CRGB(fl::u8 index)>;
     using GradientVariant =
         Variant<CRGBPalette16, CRGBPalette32, CRGBPalette256, GradientFunction>;
     GradientInlined() = default;
@@ -57,8 +58,8 @@ class GradientInlined {
     void set(const CRGBPalette256 &palette) { mVariant = palette; }
     void set(const GradientFunction &func) { mVariant = func; }
 
-    CRGB colorAt(uint8_t index) const;
-    void fill(span<const uint8_t> input, span<CRGB> output) const;
+    CRGB colorAt(fl::u8 index) const;
+    void fill(span<const fl::u8> input, span<CRGB> output) const;
 
     GradientVariant &variant() { return mVariant; }
     const GradientVariant &variant() const { return mVariant; }

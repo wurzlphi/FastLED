@@ -2,6 +2,7 @@
 #define __INC_FASTPIN_ARM_SAM_H
 
 #include "fl/force_inline.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -17,7 +18,7 @@ FASTLED_NAMESPACE_BEGIN
 /// uses the full port GPIO registers.  In theory, in some way, bit-band register access -should- be faster, however I have found
 /// that something about the way gcc does register allocation results in the bit-band code being slower.  It will need more fine tuning.
 /// The registers are data register, set output register, clear output register, set data direction register
-template<uint8_t PIN, uint32_t _MASK, typename _PDOR, typename _PSOR, typename _PCOR, typename _PDDR> class _DUEPIN {
+template<fl::u8 PIN, uint32_t _MASK, typename _PDOR, typename _PSOR, typename _PCOR, typename _PDDR> class _DUEPIN {
 public:
 	typedef volatile uint32_t * port_ptr_t;
 	typedef uint32_t port_t;
@@ -48,7 +49,7 @@ public:
 
 /// Template definition for DUE  style ARM pins using bit banding, providing direct access to the various GPIO registers.  GCC
 /// does a poor job of optimizing around these accesses so they are not being used just yet.
-template<uint8_t PIN, uint32_t _BIT, typename _PDOR, typename _PSOR, typename _PCOR, typename _PDDR> class _DUEPIN_BITBAND {
+template<fl::u8 PIN, uint32_t _BIT, typename _PDOR, typename _PSOR, typename _PCOR, typename _PDDR> class _DUEPIN_BITBAND {
 public:
 	typedef volatile uint32_t * port_ptr_t;
 	typedef uint32_t port_t;

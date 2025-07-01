@@ -2,6 +2,7 @@
 
 #include "FastLED.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fx/fx1d.h"
 
 namespace fl {
@@ -43,8 +44,8 @@ class DemoReel100 : public Fx1d {
     fl::string fxName() const override { return "DemoReel100"; }
 
   private:
-    uint8_t current_pattern_number = 0;
-    uint8_t hue = 0;
+    fl::u8 current_pattern_number = 0;
+    fl::u8 hue = 0;
     unsigned long start_time = 0;
 
     void nextPattern() {
@@ -109,9 +110,9 @@ class DemoReel100 : public Fx1d {
 
     void bpm(CRGB *leds) {
         // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-        uint8_t BeatsPerMinute = 62;
+        fl::u8 BeatsPerMinute = 62;
         CRGBPalette16 palette = PartyColors_p;
-        uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
+        fl::u8 beat = beatsin8(BeatsPerMinute, 64, 255);
         for (uint16_t i = 0; i < mNumLeds; i++) {
             leds[i] =
                 ColorFromPalette(palette, hue + (i * 2), beat - hue + (i * 10));
@@ -121,7 +122,7 @@ class DemoReel100 : public Fx1d {
     void juggle(CRGB *leds) {
         // eight colored dots, weaving in and out of sync with each other
         fadeToBlackBy(leds, mNumLeds, 20);
-        uint8_t dothue = 0;
+        fl::u8 dothue = 0;
         for (uint16_t i = 0; i < 8; i++) {
             leds[beatsin16(i + 7, 0, mNumLeds - 1)] |= CHSV(dothue, 200, 255);
             dothue += 32;

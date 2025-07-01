@@ -1,3 +1,5 @@
+#include "fl/int.h"
+
 #ifndef __FASTSPI_ARM_NRF52_H
 #define __FASTSPI_ARM_NRF52_H
 
@@ -21,7 +23,7 @@
      */
 
     /// SPI_CLOCK_DIVIDER is number of CPU clock cycles per SPI transmission bit?
-    template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+    template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
     class NRF52SPIOutput {
     private:
         // static variables -- always using same SPIM instance
@@ -41,8 +43,8 @@
         //         avoid use of single-transaction writeBytes()
         //         as cannot control where that memory lies....
         */
-        static uint8_t  s_BufferIndex;
-        static uint8_t  s_Buffer[2][2]; // 2x two-byte buffers, allows one buffer currently being sent, and a second one being prepped to send.
+        static fl::u8  s_BufferIndex;
+        static fl::u8  s_Buffer[2][2]; // 2x two-byte buffers, allows one buffer currently being sent, and a second one being prepped to send.
 
         // This allows saving the configuration of the SPIM instance
         // upon select(), and restoring the configuration upon release().
@@ -185,10 +187,10 @@
         }
 
         /// write a byte out via SPI (returns immediately on writing register)
-        static void writeByte(uint8_t b) {
+        static void writeByte(fl::u8 b) {
             wait();
             // cannot use pointer to stack, so copy to m_buffer[]
-            uint8_t i = (s_BufferIndex ? 1u : 0u);
+            fl::u8 i = (s_BufferIndex ? 1u : 0u);
             s_BufferIndex = !s_BufferIndex; // 1 <==> 0 swap
 
             s_Buffer[i][0u] = b; // cannot use the stack location, so copy to a more permanent buffer...
@@ -210,7 +212,7 @@
         static void writeWord(uint16_t w) {
             wait();
             // cannot use pointer to stack, so copy to m_buffer[]
-            uint8_t i = (s_BufferIndex ? 1u : 0u);
+            fl::u8 i = (s_BufferIndex ? 1u : 0u);
             s_BufferIndex = !s_BufferIndex; // 1 <==> 0 swap
 
             s_Buffer[i][0u] = (w >> 8u); // cannot use the stack location, so copy to a more permanent buffer...
@@ -230,12 +232,12 @@
         }
 
         /// A raw set of writing byte values, assumes setup/init/waiting done elsewhere (static for use by adjustment classes)
-        static void writeBytesValueRaw(uint8_t value, int len) {
+        static void writeBytesValueRaw(fl::u8 value, int len) {
             while (len--) { writeByte(value); }
         }
 
         /// A full cycle of writing a value for len bytes, including select, release, and waiting
-        void writeBytesValue(uint8_t value, int len) {
+        void writeBytesValue(fl::u8 value, int len) {
             select();
             writeBytesValueRaw(value, len);
             waitFully();
@@ -243,7 +245,7 @@
         }
 
         /// A full cycle of writing a raw block of data out, including select, release, and waiting
-        void writeBytes(uint8_t *data, int len) {
+        void writeBytes(fl::u8 *data, int len) {
             // This is a special-case, with no adjustment of the bytes... write them directly...
             select();
             wait();
@@ -262,8 +264,8 @@
         }
 
         /// A full cycle of writing a raw block of data out, including select, release, and waiting
-        template<class D> void writeBytes(uint8_t *data, int len) {
-            uint8_t * end = data + len;
+        template<class D> void writeBytes(fl::u8 *data, int len) {
+            fl::u8 * end = data + len;
             select();
             wait();
             while(data != end) {
@@ -274,12 +276,12 @@
             release();
         }
         /// specialization for DATA_NOP ...
-        //template<DATA_NOP> void writeBytes(uint8_t * data, int len) {
+        //template<DATA_NOP> void writeBytes(fl::u8 * data, int len) {
         //    writeBytes(data, len);
         //}
 
         /// write a single bit out, which bit from the passed in byte is determined by template parameter
-        template <uint8_t BIT> inline static void writeBit(uint8_t b) {
+        template <fl::u8 BIT> inline static void writeBit(fl::u8 b) {
             // SPIM instance must be finished transmitting and then disabled
             waitFully();
             nrf_spim_disable(FASTLED_NRF52_SPIM);
@@ -299,7 +301,7 @@
         }
 
         /// write out pixel data from the given PixelController object, including select, release, and waiting
-        template <uint8_t FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
+        template <fl::u8 FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
             select();
             int len = pixels.mLen;
             // TODO: If user indicates a pre-allocated double-buffer,
@@ -324,14 +326,14 @@
 
     // Static member definition and initialization using templates.
     // see https://stackoverflow.com/questions/3229883/static-member-initialization-in-a-class-template#answer-3229919
-    template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+    template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
     bool NRF52SPIOutput<_DATA_PIN, _CLOCK_PIN, _SPI_CLOCK_DIVIDER>::s_InUse = false;
-    template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+    template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
     bool NRF52SPIOutput<_DATA_PIN, _CLOCK_PIN, _SPI_CLOCK_DIVIDER>::s_NeedToWait = false;
-    template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
-    uint8_t NRF52SPIOutput<_DATA_PIN, _CLOCK_PIN, _SPI_CLOCK_DIVIDER>::s_BufferIndex = 0;
-    template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
-    uint8_t NRF52SPIOutput<_DATA_PIN, _CLOCK_PIN, _SPI_CLOCK_DIVIDER>::s_Buffer[2][2] = {{0,0},{0,0}};
+    template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+    fl::u8 NRF52SPIOutput<_DATA_PIN, _CLOCK_PIN, _SPI_CLOCK_DIVIDER>::s_BufferIndex = 0;
+    template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+    fl::u8 NRF52SPIOutput<_DATA_PIN, _CLOCK_PIN, _SPI_CLOCK_DIVIDER>::s_Buffer[2][2] = {{0,0},{0,0}};
 
 #endif // #ifndef FASTLED_FORCE_SOFTWARE_SPI
 

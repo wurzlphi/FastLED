@@ -25,8 +25,8 @@ template <> struct StrStreamHelper<int> {
     static void append(string &str, const int &n) { str.append(int32_t(n)); }
 };
 
-template <> struct StrStreamHelper<uint8_t> {
-    static void append(string &str, const uint8_t &n) { str.append(u16(n)); }
+template <> struct StrStreamHelper<fl::u8> {
+    static void append(string &str, const fl::u8 &n) { str.append(u16(n)); }
 };
 
 template <> struct StrStreamHelper<char> {
@@ -68,7 +68,7 @@ class StrStream {
         return *this;
     }
 
-    StrStream &operator=(const uint8_t &n) {
+    StrStream &operator=(const fl::u8 &n) {
         mStr.clear();
         (*this) << n;
         return *this;
@@ -124,7 +124,7 @@ class StrStream {
         return *this;
     }
 
-    StrStream &operator<<(const uint8_t &n) {
+    StrStream &operator<<(const fl::u8 &n) {
         if (mTreatCharAsInt) {
             mStr.append(u16(n));
         } else {
@@ -195,7 +195,7 @@ class FakeStrStream {
     FakeStrStream &operator<<(size_t) { return *this; }
 #endif
 
-    FakeStrStream &operator<<(uint8_t) { return *this; }
+    FakeStrStream &operator<<(fl::u8) { return *this; }
     FakeStrStream &operator<<(uint16_t) { return *this; }
     FakeStrStream &operator<<(int16_t) { return *this; }
     FakeStrStream &operator<<(uint32_t) { return *this; }
@@ -204,7 +204,7 @@ class FakeStrStream {
     FakeStrStream &operator=(const string &) { return *this; }
     FakeStrStream &operator=(const CRGB &) { return *this; }
     FakeStrStream &operator=(u16) { return *this; }
-    FakeStrStream &operator=(uint8_t) { return *this; }
+    FakeStrStream &operator=(fl::u8) { return *this; }
     FakeStrStream &operator=(char) { return *this; }
 };
 

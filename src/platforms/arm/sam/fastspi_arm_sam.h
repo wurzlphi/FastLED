@@ -1,3 +1,5 @@
+#include "fl/int.h"
+
 #ifndef __INC_FASTSPI_ARM_SAM_H
 #define __INC_FASTSPI_ARM_SAM_H
 
@@ -6,7 +8,7 @@ FASTLED_NAMESPACE_BEGIN
 #if defined(__SAM3X8E__)
 #define m_SPI ((Spi*)SPI0)
 
-template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
+template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER>
 class SAMHardwareSPIOutput {
 	Selectable *m_pSelect;
 
@@ -79,7 +81,7 @@ public:
 	void waitFully() { while((m_SPI->SPI_SR & SPI_SR_TXEMPTY) == 0); }
 
 	// write a byte out via SPI (returns immediately on writing register)
-	static void writeByte(uint8_t b) {
+	static void writeByte(fl::u8 b) {
 		writeBits<8>(b);
 	}
 
@@ -89,17 +91,17 @@ public:
 	}
 
 	// A raw set of writing byte values, assumes setup/init/waiting done elsewhere
-	static void writeBytesValueRaw(uint8_t value, int len) {
+	static void writeBytesValueRaw(fl::u8 value, int len) {
 		while(len--) { writeByte(value); }
 	}
 
 	// A full cycle of writing a value for len bytes, including select, release, and waiting
-	void writeBytesValue(uint8_t value, int len) {
+	void writeBytesValue(fl::u8 value, int len) {
 		select(); writeBytesValueRaw(value, len); release();
 	}
 
-	template <class D> void writeBytes(FASTLED_REGISTER uint8_t *data, int len) {
-		uint8_t *end = data + len;
+	template <class D> void writeBytes(FASTLED_REGISTER fl::u8 *data, int len) {
+		fl::u8 *end = data + len;
 		select();
 		// could be optimized to write 16bit words out instead of 8bit bytes
 		while(data != end) {
@@ -110,11 +112,11 @@ public:
 		release();
 	}
 
-	void writeBytes(FASTLED_REGISTER uint8_t *data, int len) { writeBytes<DATA_NOP>(data, len); }
+	void writeBytes(FASTLED_REGISTER fl::u8 *data, int len) { writeBytes<DATA_NOP>(data, len); }
 
 	// write a single bit out, which bit from the passed in byte is determined by template parameter
 	// not the most efficient mechanism in the world - but should be enough for sm16716 and friends
-	template <uint8_t BIT> inline void writeBit(uint8_t b) {
+	template <fl::u8 BIT> inline void writeBit(fl::u8 b) {
 		// need to wait for all exisiting data to go out the door, first
 		waitFully();
 		disableSPI();
@@ -131,7 +133,7 @@ public:
 
 	// write a block of uint8_ts out in groups of three.  len is the total number of uint8_ts to write out.  The template
 	// parameters indicate how many uint8_ts to skip at the beginning and/or end of each grouping
-	template <uint8_t FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
+	template <fl::u8 FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
 		select();
 		int len = pixels.mLen;
 

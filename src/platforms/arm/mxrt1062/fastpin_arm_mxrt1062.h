@@ -2,6 +2,7 @@
 #define __FASTPIN_ARM_MXRT1062_H
 
 #include "fl/force_inline.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -15,7 +16,7 @@ FASTLED_NAMESPACE_BEGIN
 /// Template definition for teensy 4.0 style ARM pins, providing direct access to the various GPIO registers.  Note that this
 /// uses the full port GPIO registers.  It calls through to pinMode for setting input/output on pins
 /// The registers are data output, set output, clear output, toggle output, input, and direction
-template<uint8_t PIN, uint32_t _BIT, uint32_t _MASK, typename _GPIO_DR, typename _GPIO_DR_SET, typename _GPIO_DR_CLEAR, typename _GPIO_DR_TOGGLE> class _ARMPIN {
+template<fl::u8 PIN, uint32_t _BIT, uint32_t _MASK, typename _GPIO_DR, typename _GPIO_DR_SET, typename _GPIO_DR_CLEAR, typename _GPIO_DR_TOGGLE> class _ARMPIN {
 public:
 	typedef volatile uint32_t * port_ptr_t;
 	typedef uint32_t port_t;

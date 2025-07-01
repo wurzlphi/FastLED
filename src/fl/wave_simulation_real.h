@@ -9,6 +9,7 @@ Based on works and code by Shawn Silverman.
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/math_macros.h" // if needed for MAX/MIN macros
 #include "fl/namespace.h"
@@ -70,19 +71,19 @@ class WaveSimulation1D_Real {
 
     // If mHalfDuplex is set then the the values are adjusted so that negative
     // values will instead be represented by zero.
-    uint8_t getu8(size_t x) const {
+    fl::u8 getu8(size_t x) const {
         int16_t value = geti16(x);
         // Rebase the range from [-32768, 32767] to [0, 65535] then extract the
         // upper 8 bits.
-        // return static_cast<uint8_t>(((static_cast<uint16_t>(value) + 32768))
+        // return static_cast<fl::u8>(((static_cast<uint16_t>(value) + 32768))
         // >>
         //                            8);
         if (mHalfDuplex) {
             uint16_t v2 = static_cast<uint16_t>(value);
             v2 *= 2;
-            return static_cast<uint8_t>(v2 >> 8);
+            return static_cast<fl::u8>(v2 >> 8);
         } else {
-            return static_cast<uint8_t>(
+            return static_cast<fl::u8>(
                 ((static_cast<uint16_t>(value) + 32768)) >> 8);
         }
     }
@@ -149,19 +150,19 @@ class WaveSimulation2D_Real {
         return static_cast<int8_t>(geti16(x, y) >> 8);
     }
 
-    uint8_t getu8(size_t x, size_t y) const {
+    fl::u8 getu8(size_t x, size_t y) const {
         int16_t value = geti16(x, y);
         // Rebase the range from [-32768, 32767] to [0, 65535] then extract the
         // upper 8 bits.
-        // return static_cast<uint8_t>(((static_cast<uint16_t>(value) + 32768))
+        // return static_cast<fl::u8>(((static_cast<uint16_t>(value) + 32768))
         // >>
         //                             8);
         if (mHalfDuplex) {
             uint16_t v2 = static_cast<uint16_t>(value);
             v2 *= 2;
-            return static_cast<uint8_t>(v2 >> 8);
+            return static_cast<fl::u8>(v2 >> 8);
         } else {
-            return static_cast<uint8_t>(
+            return static_cast<fl::u8>(
                 ((static_cast<uint16_t>(value) + 32768)) >> 8);
         }
     }

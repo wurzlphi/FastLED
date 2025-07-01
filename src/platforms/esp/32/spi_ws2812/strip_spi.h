@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 
 FASTLED_NAMESPACE_BEGIN
@@ -29,14 +30,14 @@ class ISpiStripWs2812 {
         ~OutputIterator();
 
         void flush();
-        void operator()(uint8_t value);
+        void operator()(fl::u8 value);
         void finish();  // Must call this at the end.
 
         uint32_t mPosition = 0;
         uint32_t mWritten = 0; // whenever this hits 3, we flush.
-        uint8_t mRed = 0;
-        uint8_t mGreen = 0;
-        uint8_t mBlue = 0;
+        fl::u8 mRed = 0;
+        fl::u8 mGreen = 0;
+        fl::u8 mBlue = 0;
         ISpiStripWs2812 *mStrip;
         uint32_t mNumLeds;
     };
@@ -53,7 +54,7 @@ class ISpiStripWs2812 {
     virtual void waitDone() = 0;
     virtual bool isDrawing() = 0;
 
-    virtual void fill(uint8_t red, uint8_t green, uint8_t blue) = 0;
+    virtual void fill(fl::u8 red, fl::u8 green, fl::u8 blue) = 0;
     virtual uint32_t numPixels() = 0;
 
     // Useful for iterating over the LEDs in a strip, especially RGBW mode which the spi
@@ -62,8 +63,8 @@ class ISpiStripWs2812 {
 
 protected:
     // Don't use this Use outputIterator() instead.
-    virtual void setPixel(uint32_t index, uint8_t red, uint8_t green,
-                          uint8_t blue) = 0;
+    virtual void setPixel(uint32_t index, fl::u8 red, fl::u8 green,
+                          fl::u8 blue) = 0;
 };
 
 FASTLED_NAMESPACE_END

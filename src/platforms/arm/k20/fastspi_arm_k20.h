@@ -2,6 +2,7 @@
 #define __INC_FASTSPI_ARM_H
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -95,7 +96,7 @@ template <int VAL> void getScalars(uint32_t & preScalar, uint32_t & scalar, uint
 
 #define SPIX (*(SPI_t*)pSPIX)
 
-template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER, uint32_t pSPIX>
+template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_DIVIDER, uint32_t pSPIX>
 class ARMHardwareSPIOutput {
 	Selectable *m_pSelect;
 	SPIState gState;
@@ -323,7 +324,7 @@ public:
 			if(WAIT_STATE == POST) { wait(); }
 		}
 
-		static void writeByte(uint8_t b) __attribute__((always_inline)) {
+		static void writeByte(fl::u8 b) __attribute__((always_inline)) {
 			if(WAIT_STATE == PRE) { wait(); }
 			cli();
 			SPIX.PUSHR = ((LAST_STATE == LAST) ? SPI_PUSHR_EOQ : 0) |
@@ -338,19 +339,19 @@ public:
 	static void writeWord(uint16_t w) __attribute__((always_inline)) { wait(); cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(1) | (w & 0xFFFF); SPIX.SR |= SPI_SR_TCF; sei(); }
 	static void writeWordNoWait(uint16_t w) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(1) | (w & 0xFFFF); SPIX.SR |= SPI_SR_TCF; sei(); }
 
-	static void writeByte(uint8_t b) __attribute__((always_inline)) { wait(); cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF; sei(); }
-	static void writeBytePostWait(uint8_t b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(0) | (b & 0xFF);SPIX.SR |= SPI_SR_TCF; sei(); wait(); }
-	static void writeByteNoWait(uint8_t b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF; sei(); }
+	static void writeByte(fl::u8 b) __attribute__((always_inline)) { wait(); cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF; sei(); }
+	static void writeBytePostWait(fl::u8 b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(0) | (b & 0xFF);SPIX.SR |= SPI_SR_TCF; sei(); wait(); }
+	static void writeByteNoWait(fl::u8 b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF; sei(); }
 
 	static void writeWordCont(uint16_t w) __attribute__((always_inline)) { wait(); cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(1) | (w & 0xFFFF); SPIX.SR |= SPI_SR_TCF; sei(); }
 	static void writeWordContNoWait(uint16_t w) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(1) | (w & 0xFFFF); SPIX.SR |= SPI_SR_TCF;  sei();}
 
-	static void writeByteCont(uint8_t b) __attribute__((always_inline)) { wait(); cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF;  sei(); }
-	static void writeByteContPostWait(uint8_t b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF;  sei(); wait(); }
-	static void writeByteContNoWait(uint8_t b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF; sei(); }
+	static void writeByteCont(fl::u8 b) __attribute__((always_inline)) { wait(); cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF;  sei(); }
+	static void writeByteContPostWait(fl::u8 b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF;  sei(); wait(); }
+	static void writeByteContNoWait(fl::u8 b) __attribute__((always_inline)) { cli(); SPIX.PUSHR = SPI_PUSHR_CONT | SPI_PUSHR_CTAS(0) | (b & 0xFF); SPIX.SR |= SPI_SR_TCF; sei(); }
 
 	// not the most efficient mechanism in the world - but should be enough for sm16716 and friends
-	template <uint8_t BIT> inline static void writeBit(uint8_t b) {
+	template <fl::u8 BIT> inline static void writeBit(fl::u8 b) {
 		uint32_t ctar1_save = SPIX.CTAR1;
 
 		// Clear out the FMSZ bits, reset them for 1 bit transferd for the start bit
@@ -375,11 +376,11 @@ public:
 		restore_spi_state();
 	}
 
-	static void writeBytesValueRaw(uint8_t value, int len) {
+	static void writeBytesValueRaw(fl::u8 value, int len) {
 		while(len--) { Write<CM, WM, NOTLAST>::writeByte(value); }
 	}
 
-	void writeBytesValue(uint8_t value, int len) {
+	void writeBytesValue(fl::u8 value, int len) {
 		select();
 		while(len--) {
 			writeByte(value);
@@ -389,8 +390,8 @@ public:
 	}
 
 	// Write a block of n uint8_ts out
-	template <class D> void writeBytes(FASTLED_REGISTER uint8_t *data, int len) {
-		uint8_t *end = data + len;
+	template <class D> void writeBytes(FASTLED_REGISTER fl::u8 *data, int len) {
+		fl::u8 *end = data + len;
 		select();
 		// could be optimized to write 16bit words out instead of 8bit bytes
 		while(data != end) {
@@ -401,11 +402,11 @@ public:
 		release();
 	}
 
-	void writeBytes(FASTLED_REGISTER uint8_t *data, int len) { writeBytes<DATA_NOP>(data, len); }
+	void writeBytes(FASTLED_REGISTER fl::u8 *data, int len) { writeBytes<DATA_NOP>(data, len); }
 
 	// write a block of uint8_ts out in groups of three.  len is the total number of uint8_ts to write out.  The template
 	// parameters indicate how many uint8_ts to skip at the beginning and/or end of each grouping
-	template <uint8_t FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
+	template <fl::u8 FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
 		select();
 		int len = pixels.mLen;
 

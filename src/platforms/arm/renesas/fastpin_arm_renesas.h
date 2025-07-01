@@ -11,13 +11,14 @@ FASTLED_NAMESPACE_BEGIN
 #else
 
 #include "bsp_api.h"
+#include "fl/int.h"
 
 /// Template definition for STM32 style ARM pins, providing direct access to the various GPIO registers.  Note that this
 /// uses the full port GPIO registers.  In theory, in some way, bit-band register access -should- be faster, however I have found
 /// that something about the way gcc does register allocation results in the bit-band code being slower.  It will need more fine tuning.
 /// The registers are data output, set output, clear output, toggle output, input, and direction
 
-template<uint8_t PIN, bsp_io_port_pin_t bspPin, uint32_t _PORT> class _ARMPIN {
+template<fl::u8 PIN, bsp_io_port_pin_t bspPin, uint32_t _PORT> class _ARMPIN {
 public:
 
     typedef volatile uint16_t * port_ptr_t;

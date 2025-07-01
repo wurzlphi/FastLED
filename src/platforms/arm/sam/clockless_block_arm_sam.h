@@ -1,3 +1,5 @@
+#include "fl/int.h"
+
  #ifndef __INC_BLOCK_CLOCKLESS_H
 #define __INC_BLOCK_CLOCKLESS_H
 
@@ -21,7 +23,7 @@ FASTLED_NAMESPACE_BEGIN
 #define PORTB_FIRST_PIN 90
 
 typedef union {
-    uint8_t bytes[8];
+    fl::u8 bytes[8];
     uint32_t raw[2];
 } Lines;
 
@@ -29,7 +31,7 @@ typedef union {
 #define TOTAL ( (T1+TADJUST) + (T2+TADJUST) + (T3+TADJUST) )
 #define T1_MARK (TOTAL - (T1+TADJUST))
 #define T2_MARK (T1_MARK - (T2+TADJUST))
-template <uint8_t LANES, int FIRST_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
+template <fl::u8 LANES, int FIRST_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
 class InlineBlockClocklessController : public CPixelLEDController<RGB_ORDER, LANES, PORT_MASK> {
 	typedef typename FastPin<FIRST_PIN>::port_ptr_t data_ptr_t;
 	typedef typename FastPin<FIRST_PIN>::port_t data_t;
@@ -98,7 +100,7 @@ public:
         Lines b0,b1,b2;
 
         allpixels.preStepFirstByteDithering();
-        for(uint8_t i = 0; i < LANES; i++) {
+        for(fl::u8 i = 0; i < LANES; i++) {
             b0.bytes[i] = allpixels.loadAndScale0(i);
         }
 
@@ -144,8 +146,8 @@ public:
         Lines b2;
         transpose8x1(b.bytes,b2.bytes);
 
-        FASTLED_REGISTER uint8_t d = pixels.template getd<PX>(pixels);
-        FASTLED_REGISTER uint8_t scale = pixels.template getscale<PX>(pixels);
+        FASTLED_REGISTER fl::u8 d = pixels.template getd<PX>(pixels);
+        FASTLED_REGISTER fl::u8 scale = pixels.template getscale<PX>(pixels);
 
         for(uint32_t i = 0; (i < LANES) && (i<8); i++) {
             while(DUE_TIMER_VAL < next_mark);

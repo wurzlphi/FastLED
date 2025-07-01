@@ -10,6 +10,7 @@
 #include "pixel_iterator.h"
 #include "spi_ws2812/strip_spi.h"
 #include "fl/scoped_ptr.h"
+#include "fl/int.h"
 #include "fl/assert.h"
 
 template <int DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 5>
@@ -44,7 +45,7 @@ protected:
         }
         auto output_iterator = mLedStrip->outputIterator();
         if (is_rgbw) {
-            uint8_t r, g, b, w;
+            fl::u8 r, g, b, w;
             for (uint16_t i = 0; iterator.has(1); i++) {
                 iterator.loadAndScaleRGBW(&r, &g, &b, &w);
                 output_iterator(r);
@@ -55,7 +56,7 @@ protected:
                 iterator.stepDithering();
             }
         } else {
-            uint8_t r, g, b;
+            fl::u8 r, g, b;
             for (uint16_t i = 0; iterator.has(1); i++) {
                 iterator.loadAndScaleRGB(&r, &g, &b);
                 output_iterator(r);

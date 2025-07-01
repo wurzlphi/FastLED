@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fl/stdint.h"
 
 namespace fl {
@@ -11,7 +12,7 @@ class Transition {
     Transition() : mStart(0), mDuration(0), mNotStarted(true) {}
     ~Transition() {}
 
-    uint8_t getProgress(uint32_t now) {
+    fl::u8 getProgress(uint32_t now) {
         if (mNotStarted) {
             return 0;
         }

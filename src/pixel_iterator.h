@@ -4,6 +4,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include <string.h>
 
 #include "fl/namespace.h"
@@ -20,19 +21,19 @@ FASTLED_NAMESPACE_BEGIN
 
 template<typename PixelControllerT>
 struct PixelControllerVtable {
-  static void loadAndScaleRGBW(void* pixel_controller, Rgbw rgbw, uint8_t* b0_out, uint8_t* b1_out, uint8_t* b2_out, uint8_t* b3_out) {
+  static void loadAndScaleRGBW(void* pixel_controller, Rgbw rgbw, fl::u8* b0_out, fl::u8* b1_out, fl::u8* b2_out, fl::u8* b3_out) {
     PixelControllerT* pc = static_cast<PixelControllerT*>(pixel_controller);
     pc->loadAndScaleRGBW(rgbw, b0_out, b1_out, b2_out, b3_out);
   }
 
-  static void loadAndScaleRGB(void* pixel_controller, uint8_t* r_out, uint8_t* g_out, uint8_t* b_out) {
+  static void loadAndScaleRGB(void* pixel_controller, fl::u8* r_out, fl::u8* g_out, fl::u8* b_out) {
     PixelControllerT* pc = static_cast<PixelControllerT*>(pixel_controller);
     pc->loadAndScaleRGB(r_out, g_out, b_out);
   }
 
   #if FASTLED_PIXEL_ITERATOR_HAS_APA102_HD
 
-  static void loadAndScale_APA102_HD(void* pixel_controller, uint8_t* b0_out, uint8_t* b1_out, uint8_t* b2_out, uint8_t* brightness_out) {
+  static void loadAndScale_APA102_HD(void* pixel_controller, fl::u8* b0_out, fl::u8* b1_out, fl::u8* b2_out, fl::u8* brightness_out) {
     PixelControllerT* pc = static_cast<PixelControllerT*>(pixel_controller);
     pc->loadAndScale_APA102_HD(b0_out, b1_out, b2_out, brightness_out);
   }
@@ -65,25 +66,25 @@ struct PixelControllerVtable {
 
   // function for getHdScale
   #if FASTLED_HD_COLOR_MIXING
-  static void getHdScale(void* pixel_controller, uint8_t* c0, uint8_t* c1, uint8_t* c2, uint8_t* brightness) {
+  static void getHdScale(void* pixel_controller, fl::u8* c0, fl::u8* c1, fl::u8* c2, fl::u8* brightness) {
     PixelControllerT* pc = static_cast<PixelControllerT*>(pixel_controller);
     pc->getHdScale(c0, c1, c2, brightness);
   }
   #endif
 };
 
-typedef void (*loadAndScaleRGBWFunction)(void* pixel_controller, Rgbw rgbw, uint8_t* b0_out, uint8_t* b1_out, uint8_t* b2_out, uint8_t* b3_out);
-typedef void (*loadAndScaleRGBFunction)(void* pixel_controller, uint8_t* r_out, uint8_t* g_out, uint8_t* b_out);
+typedef void (*loadAndScaleRGBWFunction)(void* pixel_controller, Rgbw rgbw, fl::u8* b0_out, fl::u8* b1_out, fl::u8* b2_out, fl::u8* b3_out);
+typedef void (*loadAndScaleRGBFunction)(void* pixel_controller, fl::u8* r_out, fl::u8* g_out, fl::u8* b_out);
 #if FASTLED_PIXEL_ITERATOR_HAS_APA102_HD
-typedef void (*loadAndScale_APA102_HDFunction)(void* pixel_controller, uint8_t* b0_out, uint8_t* b1_out, uint8_t* b2_out, uint8_t* brightness_out);
+typedef void (*loadAndScale_APA102_HDFunction)(void* pixel_controller, fl::u8* b0_out, fl::u8* b1_out, fl::u8* b2_out, fl::u8* brightness_out);
 #endif
 typedef void (*loadAndScale_WS2816_HDFunction)(void* pixel_controller, uint16_t* b0_out, uint16_t* b1_out, uint16_t* b2_out);
 typedef void (*stepDitheringFunction)(void* pixel_controller);
 typedef void (*advanceDataFunction)(void* pixel_controller);
 typedef int (*sizeFunction)(void* pixel_controller);
 typedef bool (*hasFunction)(void* pixel_controller, int n);
-typedef uint8_t (*globalBrightness)(void* pixel_controller);
-typedef void (*getHdScaleFunction)(void* pixel_controller, uint8_t* c0, uint8_t* c1, uint8_t* c2, uint8_t* brightness);
+typedef fl::u8 (*globalBrightness)(void* pixel_controller);
+typedef void (*getHdScaleFunction)(void* pixel_controller, fl::u8* c0, fl::u8* c1, fl::u8* c2, fl::u8* brightness);
 
 
 // PixelIterator is turns a PixelController<> into a concrete object that can be used to iterate
@@ -138,14 +139,14 @@ class PixelIterator {
     }
 
     bool has(int n) { return mHas(mPixelController, n); }
-    void loadAndScaleRGBW(uint8_t *b0_out, uint8_t *b1_out, uint8_t *b2_out, uint8_t *w_out) {
+    void loadAndScaleRGBW(fl::u8 *b0_out, fl::u8 *b1_out, fl::u8 *b2_out, fl::u8 *w_out) {
       mLoadAndScaleRGBW(mPixelController, mRgbw, b0_out, b1_out, b2_out, w_out);
     }
-    void loadAndScaleRGB(uint8_t *r_out, uint8_t *g_out, uint8_t *b_out) {
+    void loadAndScaleRGB(fl::u8 *r_out, fl::u8 *g_out, fl::u8 *b_out) {
       mLoadAndScaleRGB(mPixelController, r_out, g_out, b_out);
     }
     #if FASTLED_PIXEL_ITERATOR_HAS_APA102_HD
-    void loadAndScale_APA102_HD(uint8_t *b0_out, uint8_t *b1_out, uint8_t *b2_out, uint8_t *brightness_out) {
+    void loadAndScale_APA102_HD(fl::u8 *b0_out, fl::u8 *b1_out, fl::u8 *b2_out, fl::u8 *brightness_out) {
       mLoadAndScale_APA102_HD(mPixelController, b0_out, b1_out, b2_out, brightness_out);
     }
     #endif
@@ -160,7 +161,7 @@ class PixelIterator {
     Rgbw get_rgbw() const { return mRgbw; }
 
     #if FASTLED_HD_COLOR_MIXING
-    void getHdScale(uint8_t* c0, uint8_t* c1, uint8_t* c2, uint8_t* brightness) {
+    void getHdScale(fl::u8* c0, fl::u8* c1, fl::u8* c2, fl::u8* brightness) {
       mGetHdScale(mPixelController, c0, c1, c2, brightness);
     }
     #endif

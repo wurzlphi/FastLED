@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/audio.h"
 #include "fl/math_macros.h"
@@ -71,7 +72,7 @@ class UISliderImpl {
     float getMin() const { return mMin; }
     void setValue(float value) { mValue = MAX(mMin, MIN(mMax, value)); }
     operator float() const { return mValue; }
-    operator uint8_t() const { return static_cast<uint8_t>(mValue); }
+    operator fl::u8() const { return static_cast<fl::u8>(mValue); }
     operator uint16_t() const { return static_cast<uint16_t>(mValue); }
     operator int() const { return static_cast<int>(mValue); }
     template <typename T> T as() const { return static_cast<T>(mValue); }

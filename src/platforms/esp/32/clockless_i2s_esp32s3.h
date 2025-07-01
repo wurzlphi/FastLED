@@ -12,6 +12,7 @@
 #include "cpixel_ledcontroller.h"
 #include "pixel_iterator.h"
 #include "fl/vector.h"
+#include "fl/int.h"
 #include "eorder.h"
 
 #ifndef FASTLED_INTERNAL
@@ -37,18 +38,18 @@ class InternalI2SDriver {
     static InternalI2SDriver* create();
     virtual ~InternalI2SDriver() {};
     virtual void initled(
-      uint8_t* led_block,
+      fl::u8* led_block,
       const int* pins,  // array of ints representing the gpio pins.
       int number_of_strips,  // the number of strips, also describes the size of the pins array.
       int number_of_leds_per_strip) = 0;
-    virtual void setBrightness(uint8_t brightness) = 0;
+    virtual void setBrightness(fl::u8 brightness) = 0;
     virtual void show() = 0;
 };
 
 class I2S_Esp32 {
   public:
     void beginShowLeds(int data_pin, int nleds);
-    void showPixels(uint8_t data_pin, PixelIterator& pixel_iterator);
+    void showPixels(fl::u8 data_pin, PixelIterator& pixel_iterator);
     void endShowLeds();
 };
 

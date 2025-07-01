@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/register.h"
 #include "fl/namespace.h"
@@ -13,7 +14,7 @@ FASTLED_NAMESPACE_BEGIN
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wvolatile"
 
-template<uint8_t PIN, uint32_t MASK, bool VALIDPIN> class _ESPPIN {
+template<fl::u8 PIN, uint32_t MASK, bool VALIDPIN> class _ESPPIN {
 public:
   typedef volatile uint32_t * port_ptr_t;
   typedef uint32_t port_t;

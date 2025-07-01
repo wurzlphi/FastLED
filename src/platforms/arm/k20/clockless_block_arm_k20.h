@@ -2,6 +2,7 @@
 #define __INC_BLOCK_CLOCKLESS_ARM_K20_H
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 
 // Definition for a single channel clockless controller for the k20 family of chips, like that used in the teensy 3.0/3.1
 // See clockless.h for detailed info on how the template parameters are used.
@@ -20,7 +21,7 @@
 
 FASTLED_NAMESPACE_BEGIN
 
-template <uint8_t LANES, int FIRST_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = GRB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 40>
+template <fl::u8 LANES, int FIRST_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = GRB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 40>
 class InlineBlockClocklessController : public CPixelLEDController<RGB_ORDER, LANES, PORT_MASK> {
 	typedef typename FastPin<FIRST_PIN>::port_ptr_t data_ptr_t;
 	typedef typename FastPin<FIRST_PIN>::port_t data_t;
@@ -79,7 +80,7 @@ public:
 	virtual uint16_t getMaxRefreshRate() const { return 400; }
 
 	typedef union {
-		uint8_t bytes[12];
+		fl::u8 bytes[12];
 		uint16_t shorts[6];
 		uint32_t raw[3];
 	} Lines;
@@ -92,8 +93,8 @@ public:
 		} else {
 			transpose8x1(b.bytes,b2.bytes);
 		}
-		FASTLED_REGISTER uint8_t d = pixels.template getd<PX>(pixels);
-		FASTLED_REGISTER uint8_t scale = pixels.template getscale<PX>(pixels);
+		FASTLED_REGISTER fl::u8 d = pixels.template getd<PX>(pixels);
+		FASTLED_REGISTER fl::u8 scale = pixels.template getscale<PX>(pixels);
 
 		for(FASTLED_REGISTER uint32_t i = 0; i < (USED_LANES/2); ++i) {
 			while(ARM_DWT_CYCCNT < next_mark);
@@ -191,7 +192,7 @@ public:
 #define PMASK_HI (PMASK>>8 & 0xFF)
 #define PMASK_LO (PMASK & 0xFF)
 
-template <uint8_t LANES, int T1, int T2, int T3, EOrder RGB_ORDER = GRB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
+template <fl::u8 LANES, int T1, int T2, int T3, EOrder RGB_ORDER = GRB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
 class SixteenWayInlineBlockClocklessController : public CPixelLEDController<RGB_ORDER, LANES, PMASK> {
 	typedef typename FastPin<PORTC_FIRST_PIN>::port_ptr_t data_ptr_t;
 	typedef typename FastPin<PORTC_FIRST_PIN>::port_t data_t;
@@ -241,7 +242,7 @@ public:
 	}
 
 	typedef union {
-		uint8_t bytes[16];
+		fl::u8 bytes[16];
 		uint16_t shorts[8];
 		uint32_t raw[4];
 	} Lines;
@@ -250,8 +251,8 @@ public:
 		FASTLED_REGISTER Lines b2;
 		transpose8x1(b.bytes,b2.bytes);
 		transpose8x1(b.bytes+8,b2.bytes+8);
-		FASTLED_REGISTER uint8_t d = pixels.template getd<PX>(pixels);
-		FASTLED_REGISTER uint8_t scale = pixels.template getscale<PX>(pixels);
+		FASTLED_REGISTER fl::u8 d = pixels.template getd<PX>(pixels);
+		FASTLED_REGISTER fl::u8 scale = pixels.template getscale<PX>(pixels);
 
 		for(FASTLED_REGISTER uint32_t i = 0; (i < LANES) && (i < 8); ++i) {
 			while(ARM_DWT_CYCCNT < next_mark);

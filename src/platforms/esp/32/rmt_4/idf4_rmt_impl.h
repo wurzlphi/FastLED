@@ -38,6 +38,7 @@ extern "C"
 
 #include "platforms/esp/32/esp_log_control.h"  // Control ESP logging before including esp_log.h
 #include "esp_log.h"
+#include "fl/int.h"
 
 #ifdef __cplusplus
 }
@@ -86,7 +87,7 @@ private:
     uint32_t mLastFill;
 
     // -- Pixel data
-    uint8_t *mPixelData;
+    fl::u8 *mPixelData;
     int mSize;
     int mCur;
     int mBufSize;
@@ -126,7 +127,7 @@ public:
 
     // -- Convert a byte into RMT pulses
     //    This function is only used when the built-in RMT driver is chosen
-    void ingest(uint8_t byteval);
+    void ingest(fl::u8 byteval);
 
 private:
     // -- Start up the next controller
@@ -166,7 +167,7 @@ private:
     void IRAM_ATTR fillNext(bool check_time);
 
     // -- Get or create the pixel data buffer
-    uint8_t *getPixelBuffer(int size_in_bytes);
+    fl::u8 *getPixelBuffer(int size_in_bytes);
 };
 
 

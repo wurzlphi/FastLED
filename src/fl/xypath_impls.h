@@ -11,6 +11,7 @@
 // your animations.
 
 #include "fl/lut.h"
+#include "fl/int.h"
 #include "fl/math_macros.h"
 #include "fl/ptr.h"
 #include "fl/tile2x2.h"
@@ -81,8 +82,8 @@ class PhyllotaxisParams : public XYPathParams {
 
 class RosePathParams : public XYPathParams {
   public:
-    uint8_t n = 3; // Numerator parameter (number of petals)
-    uint8_t d = 1; // Denominator parameter
+    fl::u8 n = 3; // Numerator parameter (number of petals)
+    fl::u8 d = 1; // Denominator parameter
 };
 
 class GielisCurveParams : public XYPathParams {
@@ -163,15 +164,15 @@ class HeartPath : public XYPathGenerator {
 
 class ArchimedeanSpiralPath : public XYPathGenerator {
   public:
-    ArchimedeanSpiralPath(uint8_t turns = 3, float radius = 1.0f);
+    ArchimedeanSpiralPath(fl::u8 turns = 3, float radius = 1.0f);
     vec2f compute(float alpha) override;
     const string name() const override;
 
-    void setTurns(uint8_t turns);
+    void setTurns(fl::u8 turns);
     void setRadius(float radius);
 
   private:
-    uint8_t mTurns; // Number of spiral turns
+    fl::u8 mTurns; // Number of spiral turns
     float mRadius;  // Maximum radius of the spiral
 };
 
@@ -183,15 +184,15 @@ class RosePath : public XYPathGenerator {
     // For n and d coprime: produces n petals if n is odd, 2n petals if n is
     // even
     RosePath(const Ptr<RosePathParams> &p = NewPtr<RosePathParams>());
-    RosePath(uint8_t n = 3, uint8_t d = 1);
+    RosePath(fl::u8 n = 3, fl::u8 d = 1);
     vec2f compute(float alpha) override;
     const string name() const override;
 
     RosePathParams &params();
     const RosePathParams &params() const;
 
-    void setN(uint8_t n);
-    void setD(uint8_t d);
+    void setN(fl::u8 n);
+    void setD(fl::u8 d);
 
   private:
     Ptr<RosePathParams> mParams;

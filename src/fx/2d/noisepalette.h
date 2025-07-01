@@ -5,6 +5,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "FastLED.h"
 #include "fl/ptr.h"
@@ -39,12 +40,12 @@ class NoisePalette : public Fx2d {
     Str fxName() const override { return "NoisePalette"; }
     void mapNoiseToLEDsUsingPalette(CRGB *leds);
 
-    uint8_t changeToRandomPalette();
+    fl::u8 changeToRandomPalette();
 
     // There are 12 palette indexes but they don't have names. Use this to set
     // which one you want.
-    uint8_t getPalettePresetCount() const { return 12; }
-    uint8_t getPalettePreset() const { return currentPaletteIndex; }
+    fl::u8 getPalettePresetCount() const { return 12; }
+    fl::u8 getPalettePreset() const { return currentPaletteIndex; }
     void setPalettePreset(int paletteIndex);
     void setPalette(const CRGBPalette16 &palette, uint16_t speed,
                     uint16_t scale, bool colorLoop) {
@@ -61,7 +62,7 @@ class NoisePalette : public Fx2d {
     uint16_t width, height;
     uint16_t speed = 0;
     uint16_t scale = 0;
-    fl::vector<uint8_t, fl::allocator_psram<uint8_t>> noise;
+    fl::vector<fl::u8, fl::allocator_psram<fl::u8>> noise;
     CRGBPalette16 currentPalette;
     bool colorLoop = 0;
     int currentPaletteIndex = 0;
@@ -69,7 +70,7 @@ class NoisePalette : public Fx2d {
 
     void fillnoise8();
 
-    uint16_t XY(uint8_t x, uint8_t y) const { return mXyMap.mapToIndex(x, y); }
+    uint16_t XY(fl::u8 x, fl::u8 y) const { return mXyMap.mapToIndex(x, y); }
 
     void SetupRandomPalette() {
         CRGBPalette16 newPalette;

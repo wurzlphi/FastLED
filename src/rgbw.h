@@ -4,6 +4,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/force_inline.h"
 #include "fl/namespace.h"
@@ -83,11 +84,11 @@ struct RgbwWhiteIsOff : public Rgbw {
     }
 };
 
-typedef void (*rgb_2_rgbw_function)(uint16_t w_color_temperature, uint8_t r,
-                                    uint8_t g, uint8_t b, uint8_t r_scale,
-                                    uint8_t g_scale, uint8_t b_scale,
-                                    uint8_t *out_r, uint8_t *out_g,
-                                    uint8_t *out_b, uint8_t *out_w);
+typedef void (*rgb_2_rgbw_function)(uint16_t w_color_temperature, fl::u8 r,
+                                    fl::u8 g, fl::u8 b, fl::u8 r_scale,
+                                    fl::u8 g_scale, fl::u8 b_scale,
+                                    fl::u8 *out_r, fl::u8 *out_g,
+                                    fl::u8 *out_b, fl::u8 *out_w);
 
 /// @brief Converts RGB to RGBW using a color transfer method
 /// from saturated color channels to white. This is designed to produce
@@ -102,10 +103,10 @@ typedef void (*rgb_2_rgbw_function)(uint16_t w_color_temperature, uint8_t r,
 /// RGB(255, 255, 255) -> RGBW(0, 0, 0, 85)
 /// RGB(255, 0, 0) -> RGBW(255, 0, 0, 0)
 /// ```
-void rgb_2_rgbw_exact(uint16_t w_color_temperature, uint8_t r, uint8_t g,
-                      uint8_t b, uint8_t r_scale, uint8_t g_scale,
-                      uint8_t b_scale, uint8_t *out_r, uint8_t *out_g,
-                      uint8_t *out_b, uint8_t *out_w);
+void rgb_2_rgbw_exact(uint16_t w_color_temperature, fl::u8 r, fl::u8 g,
+                      fl::u8 b, fl::u8 r_scale, fl::u8 g_scale,
+                      fl::u8 b_scale, fl::u8 *out_r, fl::u8 *out_g,
+                      fl::u8 *out_b, fl::u8 *out_w);
 
 /// The minimum brigthness of the RGB channels is used to set the W channel.
 /// This will allow the max brightness of the led chipset to be used. However
@@ -115,32 +116,32 @@ void rgb_2_rgbw_exact(uint16_t w_color_temperature, uint8_t r, uint8_t g,
 /// RGB(255, 255, 255) -> RGBW(255, 255, 255, 255)
 /// RGB(1, 0, 0) -> RGBW(1, 0, 0, 1)
 /// ```
-void rgb_2_rgbw_max_brightness(uint16_t w_color_temperature, uint8_t r,
-                               uint8_t g, uint8_t b, uint8_t r_scale,
-                               uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
-                               uint8_t *out_g, uint8_t *out_b, uint8_t *out_w);
+void rgb_2_rgbw_max_brightness(uint16_t w_color_temperature, fl::u8 r,
+                               fl::u8 g, fl::u8 b, fl::u8 r_scale,
+                               fl::u8 g_scale, fl::u8 b_scale, fl::u8 *out_r,
+                               fl::u8 *out_g, fl::u8 *out_b, fl::u8 *out_w);
 
 /// @brief Converts RGB to RGBW with the W channel set to black, always.
 ///
 /// ```
 /// RGB(255, 255, 255) -> RGBW(255, 255, 255, 0)
 /// ```
-void rgb_2_rgbw_null_white_pixel(uint16_t w_color_temperature, uint8_t r,
-                                 uint8_t g, uint8_t b, uint8_t r_scale,
-                                 uint8_t g_scale, uint8_t b_scale,
-                                 uint8_t *out_r, uint8_t *out_g, uint8_t *out_b,
-                                 uint8_t *out_w);
+void rgb_2_rgbw_null_white_pixel(uint16_t w_color_temperature, fl::u8 r,
+                                 fl::u8 g, fl::u8 b, fl::u8 r_scale,
+                                 fl::u8 g_scale, fl::u8 b_scale,
+                                 fl::u8 *out_r, fl::u8 *out_g, fl::u8 *out_b,
+                                 fl::u8 *out_w);
 
 /// @brief Converts RGB to RGBW with a boosted white channel.
-void rgb_2_rgbw_white_boosted(uint16_t w_color_temperature, uint8_t r,
-                              uint8_t g, uint8_t b, uint8_t r_scale,
-                              uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
-                              uint8_t *out_g, uint8_t *out_b, uint8_t *out_w);
+void rgb_2_rgbw_white_boosted(uint16_t w_color_temperature, fl::u8 r,
+                              fl::u8 g, fl::u8 b, fl::u8 r_scale,
+                              fl::u8 g_scale, fl::u8 b_scale, fl::u8 *out_r,
+                              fl::u8 *out_g, fl::u8 *out_b, fl::u8 *out_w);
 
-void rgb_2_rgbw_user_function(uint16_t w_color_temperature, uint8_t r,
-                              uint8_t g, uint8_t b, uint8_t r_scale,
-                              uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
-                              uint8_t *out_g, uint8_t *out_b, uint8_t *out_w);
+void rgb_2_rgbw_user_function(uint16_t w_color_temperature, fl::u8 r,
+                              fl::u8 g, fl::u8 b, fl::u8 r_scale,
+                              fl::u8 g_scale, fl::u8 b_scale, fl::u8 *out_r,
+                              fl::u8 *out_g, fl::u8 *out_b, fl::u8 *out_w);
 
 void set_rgb_2_rgbw_function(rgb_2_rgbw_function func);
 
@@ -148,9 +149,9 @@ void set_rgb_2_rgbw_function(rgb_2_rgbw_function func);
 /// @details Dynamic version of the rgb_w_rgbw function with less chance for
 ///          the compiler to optimize.
 FASTLED_FORCE_INLINE void rgb_2_rgbw(
-    RGBW_MODE mode, uint16_t w_color_temperature, uint8_t r, uint8_t g,
-    uint8_t b, uint8_t r_scale, uint8_t g_scale, uint8_t b_scale,
-    uint8_t *out_r, uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {
+    RGBW_MODE mode, uint16_t w_color_temperature, fl::u8 r, fl::u8 g,
+    fl::u8 b, fl::u8 r_scale, fl::u8 g_scale, fl::u8 b_scale,
+    fl::u8 *out_r, fl::u8 *out_g, fl::u8 *out_b, fl::u8 *out_w) {
     switch (mode) {
     case kRGBWInvalid:
     case kRGBWNullWhitePixel:
@@ -182,9 +183,9 @@ FASTLED_FORCE_INLINE void rgb_2_rgbw(
 // @brief Converts RGB to RGBW using one of the functions.
 template <RGBW_MODE MODE>
 FASTLED_FORCE_INLINE void
-rgb_2_rgbw(uint16_t w_color_temperature, uint8_t r, uint8_t g, uint8_t b,
-           uint8_t r_scale, uint8_t g_scale, uint8_t b_scale, uint8_t *out_r,
-           uint8_t *out_g, uint8_t *out_b, uint8_t *out_w) {
+rgb_2_rgbw(uint16_t w_color_temperature, fl::u8 r, fl::u8 g, fl::u8 b,
+           fl::u8 r_scale, fl::u8 g_scale, fl::u8 b_scale, fl::u8 *out_r,
+           fl::u8 *out_g, fl::u8 *out_b, fl::u8 *out_w) {
     // We trust that the compiler will inline all of this.
     rgb_2_rgbw(MODE, w_color_temperature, r, g, b, r_scale, g_scale, b_scale,
                out_r, out_g, out_b, out_w);
@@ -196,9 +197,9 @@ rgb_2_rgbw(uint16_t w_color_temperature, uint8_t r, uint8_t g, uint8_t b,
 // and out_b0-out_b3 are the output RGBW in native LED chipset order.
 // w is the white component that needs to be inserted into the RGB data at
 // the correct position.
-void rgbw_partial_reorder(EOrderW w_placement, uint8_t b0, uint8_t b1,
-                          uint8_t b2, uint8_t w, uint8_t *out_b0,
-                          uint8_t *out_b1, uint8_t *out_b2, uint8_t *out_b3);
+void rgbw_partial_reorder(EOrderW w_placement, fl::u8 b0, fl::u8 b1,
+                          fl::u8 b2, fl::u8 w, fl::u8 *out_b0,
+                          fl::u8 *out_b1, fl::u8 *out_b2, fl::u8 *out_b3);
 
 
 FASTLED_NAMESPACE_END

@@ -11,6 +11,7 @@
 // edits.
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "avr_pin.h"
 
 FASTLED_NAMESPACE_BEGIN
@@ -28,7 +29,7 @@ FASTLED_NAMESPACE_BEGIN
 /// AVR definitions for pins.  Getting around  the fact that I can't pass GPIO register addresses in as template arguments by instead creating
 /// a custom type for each GPIO register with a single, static, aggressively inlined function that returns that specific GPIO register.  A similar
 /// trick is used a bit further below for the ARM GPIO registers (of which there are far more than on AVR!)
-typedef volatile uint8_t & reg8_t;
+typedef volatile fl::u8 & reg8_t;
 
 #define _R(T) struct __gen_struct_ ## T
 #define _RD8(T) struct __gen_struct_ ## T { static inline reg8_t r() { return T; }};

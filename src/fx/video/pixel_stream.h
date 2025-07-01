@@ -2,6 +2,7 @@
 
 #include "crgb.h"
 #include "fl/bytestream.h"
+#include "fl/int.h"
 #include "fl/file_system.h"
 #include "fl/namespace.h"
 #include "fl/ptr.h"
@@ -32,7 +33,7 @@ class PixelStream : public fl::Referent {
     void close();
     int32_t bytesPerFrame();
     bool readPixel(CRGB *dst); // Convenience function to read a pixel
-    size_t readBytes(uint8_t *dst, size_t len);
+    size_t readBytes(fl::u8 *dst, size_t len);
 
     bool readFrame(Frame *frame);
     bool readFrameAt(uint32_t frameNumber, Frame *frame);

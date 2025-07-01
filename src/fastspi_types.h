@@ -7,6 +7,7 @@
 #define __INC_FASTSPI_TYPES_H
 
 #include "fl/force_inline.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 #include "fl/unused.h"
 
@@ -39,13 +40,13 @@ class DATA_NOP {
 public:
     /// Hook called to adjust a byte of data before writing it to the output. 
     /// In this dummy version, no adjustment is made.
-    static FASTLED_FORCE_INLINE uint8_t adjust(FASTLED_REGISTER uint8_t data) { return data; }
+    static FASTLED_FORCE_INLINE fl::u8 adjust(FASTLED_REGISTER fl::u8 data) { return data; }
 
-    /// @copybrief adjust(FASTLED_REGISTER uint8_t)
+    /// @copybrief adjust(FASTLED_REGISTER fl::u8)
     /// @param data input byte
     /// @param scale scale value
-    /// @returns input byte rescaled using ::scale8(uint8_t, uint8_t)
-    static FASTLED_FORCE_INLINE uint8_t adjust(FASTLED_REGISTER uint8_t data, FASTLED_REGISTER uint8_t scale) { return scale8(data, scale); }
+    /// @returns input byte rescaled using ::scale8(fl::u8, fl::u8)
+    static FASTLED_FORCE_INLINE fl::u8 adjust(FASTLED_REGISTER fl::u8 data, FASTLED_REGISTER fl::u8 scale) { return scale8(data, scale); }
 
     /// Hook called after a block of data is written to the output. 
     /// In this dummy version, no action is performed.

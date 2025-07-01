@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/namespace.h"
 
@@ -20,7 +21,7 @@ class FrameTracker {
     // time.
     void get_interval_frames(uint32_t now, uint32_t *frameNumber,
                              uint32_t *nextFrameNumber,
-                             uint8_t *amountOfNextFrame = nullptr) const;
+                             fl::u8 *amountOfNextFrame = nullptr) const;
 
     // Given a frame number, returns the exact timestamp in milliseconds that
     // the frame should be displayed.

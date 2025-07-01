@@ -13,6 +13,7 @@ Based on works and code by Shawn Silverman.
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/math_macros.h" // if needed for MAX/MIN macros
 #include "fl/namespace.h"
@@ -71,7 +72,7 @@ class WaveSimulation1D {
     float getSpeed() const;
 
     // Runs the simulator faster by updating it multiple times.
-    void setExtraFrames(uint8_t extra);
+    void setExtraFrames(fl::u8 extra);
 
     // Downsampled getter for the floating point value at index x.
     // It averages over the corresponding 'multiplier'-sized block in the
@@ -88,7 +89,7 @@ class WaveSimulation1D {
     // Downsampled getters for the 8-bit representations.
     int8_t geti8(size_t x) const;
 
-    uint8_t getu8(size_t x) const;
+    fl::u8 getu8(size_t x) const;
 
     // Check if x is within the bounds of the outer (downsampled) simulation.
     bool has(size_t x) const;
@@ -109,7 +110,7 @@ class WaveSimulation1D {
 
   private:
     uint32_t mOuterLength; // Length of the downsampled simulation.
-    uint8_t mExtraFrames = 0;
+    fl::u8 mExtraFrames = 0;
     uint32_t mMultiplier; // Supersampling multiplier (e.g., 2, 4, or 8).
     U8EasingFunction mU8Mode = WAVE_U8_MODE_LINEAR;
     // Internal high-resolution simulation.
@@ -139,7 +140,7 @@ class WaveSimulation2D {
     // Delegated simulation methods.
     void setSpeed(float speed);
 
-    void setExtraFrames(uint8_t extra);
+    void setExtraFrames(fl::u8 extra);
 
     void setDampening(int damp);
 
@@ -175,9 +176,9 @@ class WaveSimulation2D {
     // Downsampled getters for the 8-bit representations.
     int8_t geti8(size_t x, size_t y) const;
 
-    // Special function to get the value as a uint8_t for drawing / gradients.
+    // Special function to get the value as a fl::u8 for drawing / gradients.
     // Ease out functions are applied to this when in half duplex mode.
-    uint8_t getu8(size_t x, size_t y) const;
+    fl::u8 getu8(size_t x, size_t y) const;
 
     // Check if (x,y) is within the bounds of the outer (downsampled) grid.
     bool has(size_t x, size_t y) const;
@@ -203,7 +204,7 @@ class WaveSimulation2D {
   private:
     uint32_t mOuterWidth;  // Width of the downsampled (outer) grid.
     uint32_t mOuterHeight; // Height of the downsampled (outer) grid.
-    uint8_t mExtraFrames = 0;
+    fl::u8 mExtraFrames = 0;
     uint32_t mMultiplier = 1; // Supersampling multiplier (e.g., 1, 2, 4, or 8).
     U8EasingFunction mU8Mode = WAVE_U8_MODE_LINEAR;
     // Internal high-resolution simulation.

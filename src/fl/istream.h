@@ -61,7 +61,7 @@ public:
     istream_real& operator>>(string& str);
     istream_real& operator>>(char& c);
     istream_real& operator>>(int8_t& n);
-    istream_real& operator>>(uint8_t& n);
+    istream_real& operator>>(fl::u8& n);
     istream_real& operator>>(int16_t& n);
     istream_real& operator>>(u16& n);
     istream_real& operator>>(int32_t& n);
@@ -162,7 +162,7 @@ public:
         return *this;
     }
     
-    istream& operator>>(uint8_t& n) {
+    istream& operator>>(fl::u8& n) {
 #if SKETCH_HAS_LOTS_OF_MEMORY
         real_stream_ >> n;
 #else

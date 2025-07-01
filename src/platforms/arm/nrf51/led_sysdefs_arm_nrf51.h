@@ -19,13 +19,14 @@
 #endif
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include <nrf51.h>
 #include <core_cm0.h>
 
 typedef volatile uint32_t RoReg;
 typedef volatile uint32_t RwReg;
 typedef uint32_t prog_uint32_t;
-typedef uint8_t boolean;
+typedef fl::u8 boolean;
 
 #define PROGMEM
 #define NO_PROGMEM

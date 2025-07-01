@@ -111,6 +111,7 @@
 #define CONFIG_RMT_SUPPRESS_DEPRECATE_WARN 1
 
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "eorder.h"
 #include "rgbw.h"
 #include "pixel_iterator.h"
@@ -152,10 +153,10 @@ public:
     void showPixels(PixelIterator &pixels);
 
 private:
-    void ingest(uint8_t val);
+    void ingest(fl::u8 val);
     void showPixels();
     bool built_in_driver();
-    uint8_t *getPixelBuffer(int size_in_bytes);
+    fl::u8 *getPixelBuffer(int size_in_bytes);
     void initPulseBuffer(int size_in_bytes);
     void loadAllPixelsToRmtSymbolData(PixelIterator& pixels);
 

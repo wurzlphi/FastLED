@@ -4,6 +4,7 @@
 #define __INC_LIB8TION_RANDOM_H
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "lib8tion/lib8static.h"
 
@@ -43,12 +44,12 @@ extern uint16_t rand16seed; // = RAND16_SEED;
 
 /// Generate an 8-bit random number
 /// @returns random 8-bit number, in the range 0-255
-LIB8STATIC uint8_t random8() {
+LIB8STATIC fl::u8 random8() {
     rand16seed = APPLY_FASTLED_RAND16_2053(rand16seed) + FASTLED_RAND16_13849;
     // return the sum of the high and low bytes, for better
     //  mixing and non-sequential correlation
-    return (uint8_t)(((uint8_t)(rand16seed & 0xFF)) +
-                     ((uint8_t)(rand16seed >> 8)));
+    return (fl::u8)(((fl::u8)(rand16seed & 0xFF)) +
+                     ((fl::u8)(rand16seed >> 8)));
 }
 
 /// Generate a 16-bit random number
@@ -60,8 +61,8 @@ LIB8STATIC uint16_t random16() {
 
 /// Generate an 8-bit random number between 0 and lim
 /// @param lim the upper bound for the result, exclusive
-LIB8STATIC uint8_t random8(uint8_t lim) {
-    uint8_t r = random8();
+LIB8STATIC fl::u8 random8(fl::u8 lim) {
+    fl::u8 r = random8();
     r = (r * lim) >> 8;
     return r;
 }
@@ -69,9 +70,9 @@ LIB8STATIC uint8_t random8(uint8_t lim) {
 /// Generate an 8-bit random number in the given range
 /// @param min the lower bound for the random number, inclusive
 /// @param lim the upper bound for the random number, exclusive
-LIB8STATIC uint8_t random8(uint8_t min, uint8_t lim) {
-    uint8_t delta = lim - min;
-    uint8_t r = random8(delta) + min;
+LIB8STATIC fl::u8 random8(fl::u8 min, fl::u8 lim) {
+    fl::u8 delta = lim - min;
+    fl::u8 r = random8(delta) + min;
     return r;
 }
 

@@ -5,6 +5,7 @@
 #include "../../lib8tion.h"
 #include <avr/interrupt.h> // for cli/se definitions
 #include "../../fl/force_inline.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -55,9 +56,9 @@ FASTLED_NAMESPACE_BEGIN
 
 
 // Variations on the functions in delay.h - w/a loop var passed in to preserve registers across calls by the optimizer/compiler
-template<int CYCLES> inline void _dc(FASTLED_REGISTER uint8_t & loopvar);
+template<int CYCLES> inline void _dc(FASTLED_REGISTER fl::u8 & loopvar);
 
-template<int _LOOP, int PAD> FASTLED_FORCE_INLINE void _dc_AVR(FASTLED_REGISTER uint8_t & loopvar) {
+template<int _LOOP, int PAD> FASTLED_FORCE_INLINE void _dc_AVR(FASTLED_REGISTER fl::u8 & loopvar) {
 	_dc<PAD>(loopvar);
 	// The convolution in here is to ensure that the state of the carry flag coming into the delay loop is preserved
 	asm __volatile__ (  "BRCS L_PC%=\n\t"
@@ -68,40 +69,40 @@ template<int _LOOP, int PAD> FASTLED_FORCE_INLINE void _dc_AVR(FASTLED_REGISTER 
 							[loopvar] "+d" (loopvar) : [_LOOP] "M" (_LOOP) : );
 }
 
-template<int CYCLES> FASTLED_FORCE_INLINE void _dc(FASTLED_REGISTER uint8_t & loopvar) {
+template<int CYCLES> FASTLED_FORCE_INLINE void _dc(FASTLED_REGISTER fl::u8 & loopvar) {
 	_dc_AVR<CYCLES/6,CYCLES%6>(loopvar);
 }
-template<> FASTLED_FORCE_INLINE void _dc<-6>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc<-5>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc<-4>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc<-3>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc<-2>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc<-1>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc< 0>(FASTLED_REGISTER uint8_t & ) {}
-template<> FASTLED_FORCE_INLINE void _dc< 1>(FASTLED_REGISTER uint8_t & ) {asm __volatile__("mov r0,r0":::);}
+template<> FASTLED_FORCE_INLINE void _dc<-6>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc<-5>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc<-4>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc<-3>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc<-2>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc<-1>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc< 0>(FASTLED_REGISTER fl::u8 & ) {}
+template<> FASTLED_FORCE_INLINE void _dc< 1>(FASTLED_REGISTER fl::u8 & ) {asm __volatile__("mov r0,r0":::);}
 #if defined(__LGT8F__) 
-template<> FASTLED_FORCE_INLINE void _dc< 2>(FASTLED_REGISTER uint8_t & loopvar) { _dc<1>(loopvar); _dc<1>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 2>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<1>(loopvar); _dc<1>(loopvar); }
 #else
-template<> FASTLED_FORCE_INLINE void _dc< 2>(FASTLED_REGISTER uint8_t & ) {asm __volatile__("rjmp .+0":::);}
+template<> FASTLED_FORCE_INLINE void _dc< 2>(FASTLED_REGISTER fl::u8 & ) {asm __volatile__("rjmp .+0":::);}
 #endif
-template<> FASTLED_FORCE_INLINE void _dc< 3>(FASTLED_REGISTER uint8_t & loopvar) { _dc<2>(loopvar); _dc<1>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc< 4>(FASTLED_REGISTER uint8_t & loopvar) { _dc<2>(loopvar); _dc<2>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc< 5>(FASTLED_REGISTER uint8_t & loopvar) { _dc<2>(loopvar); _dc<3>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc< 6>(FASTLED_REGISTER uint8_t & loopvar) { _dc<2>(loopvar); _dc<2>(loopvar); _dc<2>(loopvar);}
-template<> FASTLED_FORCE_INLINE void _dc< 7>(FASTLED_REGISTER uint8_t & loopvar) { _dc<4>(loopvar); _dc<3>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc< 8>(FASTLED_REGISTER uint8_t & loopvar) { _dc<4>(loopvar); _dc<4>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc< 9>(FASTLED_REGISTER uint8_t & loopvar) { _dc<5>(loopvar); _dc<4>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<10>(FASTLED_REGISTER uint8_t & loopvar) { _dc<6>(loopvar); _dc<4>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<11>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<1>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<12>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<2>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<13>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<3>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<14>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<4>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<15>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<5>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<16>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<6>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<17>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<7>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<18>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<8>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<19>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<9>(loopvar); }
-template<> FASTLED_FORCE_INLINE void _dc<20>(FASTLED_REGISTER uint8_t & loopvar) { _dc<10>(loopvar); _dc<10>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 3>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<2>(loopvar); _dc<1>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 4>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<2>(loopvar); _dc<2>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 5>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<2>(loopvar); _dc<3>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 6>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<2>(loopvar); _dc<2>(loopvar); _dc<2>(loopvar);}
+template<> FASTLED_FORCE_INLINE void _dc< 7>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<4>(loopvar); _dc<3>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 8>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<4>(loopvar); _dc<4>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc< 9>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<5>(loopvar); _dc<4>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<10>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<6>(loopvar); _dc<4>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<11>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<1>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<12>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<2>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<13>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<3>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<14>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<4>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<15>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<5>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<16>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<6>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<17>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<7>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<18>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<8>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<19>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<9>(loopvar); }
+template<> FASTLED_FORCE_INLINE void _dc<20>(FASTLED_REGISTER fl::u8 & loopvar) { _dc<10>(loopvar); _dc<10>(loopvar); }
 
 #if (FASTLED_ALLOW_INTERRUPTS == 1)
 // If interrupts are enabled, HI1 actually takes 2 clocks due to cli().
@@ -134,12 +135,12 @@ template<> FASTLED_FORCE_INLINE void _dc<20>(FASTLED_REGISTER uint8_t & loopvar)
 #endif
 
 #if (!defined(NO_CLOCK_CORRECTION) || (NO_CLOCK_CORRECTION == 0)) && (FASTLED_ALLOW_INTERRUPTS == 0)
-static uint8_t gTimeErrorAccum256ths;
+static fl::u8 gTimeErrorAccum256ths;
 #endif
 
 #define FASTLED_HAS_CLOCKLESS 1
 
-template <uint8_t DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 10>
+template <fl::u8 DATA_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = RGB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 10>
 class ClocklessController : public CPixelLEDController<RGB_ORDER> {
 	static_assert(T1 >= 2 && T2 >= 2 && T3 >= 3, "Not enough cycles - use a higher clock speed");
 
@@ -420,20 +421,20 @@ protected:
 	// This method is made static to force making register Y available to use for data on AVR - if the method is non-static, then
 	// gcc will use register Y for the this pointer.
 	static void /*__attribute__((optimize("O0")))*/  /*__attribute__ ((always_inline))*/  showRGBInternal(PixelController<RGB_ORDER> & pixels)  {
-		uint8_t *data = (uint8_t*)pixels.mData;
+		fl::u8 *data = (fl::u8*)pixels.mData;
 		data_ptr_t port = FastPin<DATA_PIN>::port();
 		data_t mask = FastPin<DATA_PIN>::mask();
-		uint8_t scale_base = 0;
+		fl::u8 scale_base = 0;
 
-		// FASTLED_REGISTER uint8_t *end = data + nLeds;
+		// FASTLED_REGISTER fl::u8 *end = data + nLeds;
 		data_t hi = *port | mask;
 		data_t lo = *port & ~mask;
 		*port = lo;
 
 		// the byte currently being written out
-		uint8_t b0 = 0;
+		fl::u8 b0 = 0;
 		// the byte currently being worked on to write the next out
-		uint8_t b1 = 0;
+		fl::u8 b1 = 0;
 
 		// Setup the pixel controller
 		pixels.preStepFirstByteDithering();
@@ -444,20 +445,20 @@ protected:
 		int16_t advanceBy = pixels.advanceBy();
 		uint16_t count = pixels.mLen;
 
-		uint8_t s0 = pixels.mColorAdjustment.premixed.raw[RO(0)];
-		uint8_t s1 = pixels.mColorAdjustment.premixed.raw[RO(1)];
-		uint8_t s2 = pixels.mColorAdjustment.premixed.raw[RO(2)];
+		fl::u8 s0 = pixels.mColorAdjustment.premixed.raw[RO(0)];
+		fl::u8 s1 = pixels.mColorAdjustment.premixed.raw[RO(1)];
+		fl::u8 s2 = pixels.mColorAdjustment.premixed.raw[RO(2)];
 #if (FASTLED_SCALE8_FIXED==1)
 		s0++; s1++; s2++;
 #endif
-		uint8_t d0 = pixels.d[RO(0)];
-		uint8_t d1 = pixels.d[RO(1)];
-		uint8_t d2 = pixels.d[RO(2)];
-		uint8_t e0 = pixels.e[RO(0)];
-		uint8_t e1 = pixels.e[RO(1)];
-		uint8_t e2 = pixels.e[RO(2)];
+		fl::u8 d0 = pixels.d[RO(0)];
+		fl::u8 d1 = pixels.d[RO(1)];
+		fl::u8 d2 = pixels.d[RO(2)];
+		fl::u8 e0 = pixels.e[RO(0)];
+		fl::u8 e1 = pixels.e[RO(1)];
+		fl::u8 e2 = pixels.e[RO(2)];
 
-		uint8_t loopvar=0;
+		fl::u8 loopvar=0;
 
 		// This has to be done in asm to keep gcc from messing up the asm code further down
 		b0 = data[RO(0)];

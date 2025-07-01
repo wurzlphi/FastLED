@@ -2,6 +2,7 @@
 #define __INC_M0_CLOCKLESS_H
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,16 +37,16 @@ typedef struct {
 
 
 struct M0ClocklessData {
-  uint8_t d[3];
-  uint8_t e[3];
-  uint8_t adj;
-  uint8_t pad;
+  fl::u8 d[3];
+  fl::u8 e[3];
+  fl::u8 adj;
+  fl::u8 pad;
   uint32_t s[3];
 };
 
 
 template<int HI_OFFSET, int LO_OFFSET, int T1, int T2, int T3, EOrder RGB_ORDER, int WAIT_TIME>int
-showLedData(volatile uint32_t *_port, uint32_t _bitmask, const uint8_t *_leds, uint32_t num_leds, struct M0ClocklessData *pData) {
+showLedData(volatile uint32_t *_port, uint32_t _bitmask, const fl::u8 *_leds, uint32_t num_leds, struct M0ClocklessData *pData) {
   // Lo register variables
   FASTLED_REGISTER uint32_t scratch=0;
   FASTLED_REGISTER struct M0ClocklessData *base = pData;
@@ -57,7 +58,7 @@ showLedData(volatile uint32_t *_port, uint32_t _bitmask, const uint8_t *_leds, u
   FASTLED_REGISTER uint32_t bitmask = _bitmask;
 
   // high register variable
-  FASTLED_REGISTER const uint8_t *leds = _leds;
+  FASTLED_REGISTER const fl::u8 *leds = _leds;
 #if (FASTLED_SCALE8_FIXED == 1)
   ++pData->s[0];
   ++pData->s[1];

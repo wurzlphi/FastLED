@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/namespace.h"
 #include "fl/stdint.h"
@@ -11,7 +12,7 @@
 #if defined(ARDUNIO_CORE_SPI)
 FASTLED_NAMESPACE_BEGIN
 
-template <uint8_t _DATA_PIN, uint8_t _CLOCK_PIN, uint32_t _SPI_CLOCK_RATE, SPIClass & _SPIObject>
+template <fl::u8 _DATA_PIN, fl::u8 _CLOCK_PIN, uint32_t _SPI_CLOCK_RATE, SPIClass & _SPIObject>
 class ArdunioCoreSPIOutput {
 
 public:
@@ -38,7 +39,7 @@ public:
 	static void waitFully() { /* TODO */ }
 
 	// write a byte out via SPI (returns immediately on writing register) -
-	void inline writeByte(uint8_t b) __attribute__((always_inline)) {
+	void inline writeByte(fl::u8 b) __attribute__((always_inline)) {
 		_SPIObject.transfer(b);
 	}
 
@@ -48,18 +49,18 @@ public:
 	}
 
 	// A raw set of writing byte values, assumes setup/init/waiting done elsewhere
-	static void writeBytesValueRaw(uint8_t value, int len) {
+	static void writeBytesValueRaw(fl::u8 value, int len) {
 		while(len--) { _SPIObject.transfer(value); }
 	}
 
 	// A full cycle of writing a value for len bytes, including select, release, and waiting
-	void writeBytesValue(uint8_t value, int len) {
+	void writeBytesValue(fl::u8 value, int len) {
 		select(); writeBytesValueRaw(value, len); release();
 	}
 
 	// A full cycle of writing a value for len bytes, including select, release, and waiting
-	template <class D> void writeBytes(FASTLED_REGISTER uint8_t *data, int len) {
-		uint8_t *end = data + len;
+	template <class D> void writeBytes(FASTLED_REGISTER fl::u8 *data, int len) {
+		fl::u8 *end = data + len;
 		select();
 		// could be optimized to write 16bit words out instead of 8bit bytes
 		while(data != end) {
@@ -71,16 +72,16 @@ public:
 	}
 
 	// A full cycle of writing a value for len bytes, including select, release, and waiting
-	void writeBytes(FASTLED_REGISTER uint8_t *data, int len) { writeBytes<DATA_NOP>(data, len); }
+	void writeBytes(FASTLED_REGISTER fl::u8 *data, int len) { writeBytes<DATA_NOP>(data, len); }
 
 	// write a single bit out, which bit from the passed in byte is determined by template parameter
-	template <uint8_t BIT> inline void writeBit(uint8_t b) {
+	template <fl::u8 BIT> inline void writeBit(fl::u8 b) {
 		// todo
 	}
 
 	// write a block of uint8_ts out in groups of three.  len is the total number of uint8_ts to write out.  The template
 	// parameters indicate how many uint8_ts to skip at the beginning and/or end of each grouping
-	template <uint8_t FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
+	template <fl::u8 FLAGS, class D, EOrder RGB_ORDER> void writePixels(PixelController<RGB_ORDER> pixels, void* context = NULL) {
 		select();
     int len = pixels.mLen;
 

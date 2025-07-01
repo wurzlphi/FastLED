@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include <string.h>
 
 #include "crgb.h"
@@ -62,7 +63,7 @@ inline void FxCompositor::draw(uint32_t now, uint32_t warpedTime,
         return;
     }
     mLayers[0]->draw(warpedTime);
-    uint8_t progress = mTransition.getProgress(now);
+    fl::u8 progress = mTransition.getProgress(now);
     if (!progress) {
         memcpy(finalBuffer, mLayers[0]->getSurface(), sizeof(CRGB) * mNumLeds);
         return;

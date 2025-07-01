@@ -2,6 +2,7 @@
 
 #include "FastLED.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fx/fx1d.h"
 
 namespace fl {
@@ -37,7 +38,7 @@ class Pacifica : public Fx1d {
                                         0x001C70, 0x002080, 0x1040BF, 0x2060FF};
 
     void pacifica_one_layer(CRGB *leds, CRGBPalette16 &p, uint16_t cistart,
-                            uint16_t wavescale, uint8_t bri, uint16_t ioff);
+                            uint16_t wavescale, fl::u8 bri, uint16_t ioff);
     void pacifica_add_whitecaps(CRGB *leds);
     void pacifica_deepen_colors(CRGB *leds);
 };
@@ -89,7 +90,7 @@ void Pacifica::draw(DrawContext ctx) {
 // Add one layer of waves into the led array
 void Pacifica::pacifica_one_layer(CRGB *leds, CRGBPalette16 &p,
                                   uint16_t cistart, uint16_t wavescale,
-                                  uint8_t bri, uint16_t ioff) {
+                                  fl::u8 bri, uint16_t ioff) {
     uint16_t ci = cistart;
     uint16_t waveangle = ioff;
     uint16_t wavescale_half = (wavescale / 2) + 20;
@@ -99,7 +100,7 @@ void Pacifica::pacifica_one_layer(CRGB *leds, CRGBPalette16 &p,
         uint16_t cs = scale16(s16, wavescale_half) + wavescale_half;
         ci += cs;
         uint16_t sindex16 = sin16(ci) + 32768;
-        uint8_t sindex8 = scale16(sindex16, 240);
+        fl::u8 sindex8 = scale16(sindex16, 240);
         CRGB c = ColorFromPalette(p, sindex8, bri, LINEARBLEND);
         leds[i] += c;
     }
@@ -108,16 +109,16 @@ void Pacifica::pacifica_one_layer(CRGB *leds, CRGBPalette16 &p,
 // Add extra 'white' to areas where the four layers of light have lined up
 // brightly
 void Pacifica::pacifica_add_whitecaps(CRGB *leds) {
-    uint8_t basethreshold = beatsin8(9, 55, 65);
-    uint8_t wave = beat8(7);
+    fl::u8 basethreshold = beatsin8(9, 55, 65);
+    fl::u8 wave = beat8(7);
 
     for (uint16_t i = 0; i < mNumLeds; i++) {
-        uint8_t threshold = scale8(sin8(wave), 20) + basethreshold;
+        fl::u8 threshold = scale8(sin8(wave), 20) + basethreshold;
         wave += 7;
-        uint8_t l = leds[i].getAverageLight();
+        fl::u8 l = leds[i].getAverageLight();
         if (l > threshold) {
-            uint8_t overage = l - threshold;
-            uint8_t overage2 = qadd8(overage, overage);
+            fl::u8 overage = l - threshold;
+            fl::u8 overage2 = qadd8(overage, overage);
             leds[i] += CRGB(overage, overage2, qadd8(overage2, overage2));
         }
     }

@@ -7,6 +7,7 @@ Provides eanble_if and is_derived for compilers before C++14.
 #include <string.h>  // for memcpy
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/namespace.h"
 #include "fl/move.h"
@@ -33,7 +34,7 @@ using enable_if_t = typename enable_if<Condition, T>::type;
 // Define is_base_of to check inheritance relationship
 template <typename Base, typename Derived> struct is_base_of {
   private:
-    typedef uint8_t yes;
+    typedef fl::u8 yes;
     typedef uint16_t no;
     static yes test(Base *); // Matches if Derived is convertible to Base*
     static no test(...);     // Fallback if not convertible
@@ -569,16 +570,16 @@ struct common_type_impl<double, T, typename enable_if<(is_integral<T>::value || 
     using type = double;
 };
 
-// Explicitly forbid int8_t and uint8_t combinations 
+// Explicitly forbid int8_t and fl::u8 combinations 
 // No type member = clear compilation error when accessed
 template <>
-struct common_type_impl<int8_t, uint8_t, void> {
+struct common_type_impl<int8_t, fl::u8, void> {
     // Intentionally no 'type' member - will cause error: 
     // "no type named 'type' in 'struct fl::common_type_impl<signed char, unsigned char, void>'"
 };
 
 template <>
-struct common_type_impl<uint8_t, int8_t, void> {
+struct common_type_impl<fl::u8, int8_t, void> {
     // Intentionally no 'type' member - will cause error:
     // "no type named 'type' in 'struct fl::common_type_impl<unsigned char, signed char, void>'"
 };
@@ -588,8 +589,8 @@ template <typename T, typename U>
 struct common_type_impl<T, U, typename enable_if<
     is_integral<T>::value && is_integral<U>::value &&
     !is_same<T, U>::value &&
-    !((is_same<T, int8_t>::value && is_same<U, uint8_t>::value) ||
-      (is_same<T, uint8_t>::value && is_same<U, int8_t>::value))
+    !((is_same<T, int8_t>::value && is_same<U, fl::u8>::value) ||
+      (is_same<T, fl::u8>::value && is_same<U, int8_t>::value))
 >::type> {
     using type = typename integer_promotion_impl<T, U>::type;
 };
@@ -631,7 +632,7 @@ using is_derived = enable_if_t<is_base_of<Base, Derived>::value>;
 template <typename T> struct has_member_swap {
   private:
     // must be 1 byte vs. >1 byte for sizeof test
-    typedef uint8_t yes;
+    typedef fl::u8 yes;
     typedef uint16_t no;
 
     // helper<U, &U::swap> is only well-formed if U::swap(T&) exists with that

@@ -2,6 +2,7 @@
 #define __INC_FASTPIN_ARM_D51_H
 
 #include "fl/force_inline.h"
+#include "fl/int.h"
 
 FASTLED_NAMESPACE_BEGIN
 
@@ -17,7 +18,7 @@ FASTLED_NAMESPACE_BEGIN
 /// that something about the way gcc does register allocation results in the bit-band code being slower.  It will need more fine tuning.
 /// The registers are data output, set output, clear output, toggle output, input, and direction
 
-template<uint8_t PIN, uint8_t _BIT, uint32_t _MASK, int _GRP> class _ARMPIN {
+template<fl::u8 PIN, fl::u8 _BIT, uint32_t _MASK, int _GRP> class _ARMPIN {
 public:
     typedef volatile uint32_t * port_ptr_t;
     typedef uint32_t port_t;

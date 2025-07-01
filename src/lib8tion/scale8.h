@@ -3,6 +3,7 @@
 #include "lib8tion/config.h"
 #include "crgb.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fastled_config.h"
 #include "lib8static.h"
 
@@ -38,7 +39,7 @@ FASTLED_NAMESPACE_BEGIN
 /// @param scale scale factor, in n/256 units
 /// @returns scaled value
 /// @note Takes 4 clocks on AVR with MUL, 2 clocks on ARM
-LIB8STATIC_ALWAYS_INLINE uint8_t scale8(uint8_t i, fract8 scale) {
+LIB8STATIC_ALWAYS_INLINE fl::u8 scale8(fl::u8 i, fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
     return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
@@ -48,11 +49,11 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8(uint8_t i, fract8 scale) {
 #elif SCALE8_AVRASM == 1
 #if defined(LIB8_ATTINY)
 #if (FASTLED_SCALE8_FIXED == 1)
-    uint8_t work = i;
+    fl::u8 work = i;
 #else
-    uint8_t work = 0;
+    fl::u8 work = 0;
 #endif
-    uint8_t cnt = 0x80;
+    fl::u8 cnt = 0x80;
     asm volatile(
 #if (FASTLED_SCALE8_FIXED == 1)
         "  inc %[scale]                 \n\t"
@@ -108,7 +109,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8(uint8_t i, fract8 scale) {
 #endif
 }
 
-constexpr uint8_t scale8_constexpr(uint8_t i, fract8 scale) {
+constexpr fl::u8 scale8_constexpr(fl::u8 i, fract8 scale) {
     return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
 }
 
@@ -121,15 +122,15 @@ constexpr uint8_t scale8_constexpr(uint8_t i, fract8 scale) {
 /// @param scale scale factor, in n/256 units
 /// @returns scaled value
 /// @see scale8()
-LIB8STATIC_ALWAYS_INLINE uint8_t scale8_video(uint8_t i, fract8 scale) {
+LIB8STATIC_ALWAYS_INLINE fl::u8 scale8_video(fl::u8 i, fract8 scale) {
 #if SCALE8_C == 1 || defined(LIB8_ATTINY)
-    uint8_t j = (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
-    // uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
-    // uint8_t j = (i == 0) ? 0 : (((int)i * (int)(scale) ) >> 8) +
+    fl::u8 j = (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
+    // fl::u8 nonzeroscale = (scale != 0) ? 1 : 0;
+    // fl::u8 j = (i == 0) ? 0 : (((int)i * (int)(scale) ) >> 8) +
     // nonzeroscale;
     return j;
 #elif SCALE8_AVRASM == 1
-    uint8_t j = 0;
+    fl::u8 j = 0;
     asm volatile("  tst %[i]\n\t"
                  "  breq L_%=\n\t"
                  "  mul %[i], %[scale]\n\t"
@@ -142,7 +143,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8_video(uint8_t i, fract8 scale) {
                  : [i] "r"(i), [scale] "r"(scale)
                  : "r0", "r1");
     return j;
-    // uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
+    // fl::u8 nonzeroscale = (scale != 0) ? 1 : 0;
     // asm volatile(
     //      "      tst %0           \n"
     //      "      breq L_%=        \n"
@@ -174,7 +175,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8_video(uint8_t i, fract8 scale) {
 /// @param scale scale factor, in n/256 units
 /// @returns scaled value
 /// @see scale8()
-LIB8STATIC_ALWAYS_INLINE uint8_t scale8_LEAVING_R1_DIRTY(uint8_t i,
+LIB8STATIC_ALWAYS_INLINE fl::u8 scale8_LEAVING_R1_DIRTY(fl::u8 i,
                                                          fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
@@ -221,7 +222,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8_LEAVING_R1_DIRTY(uint8_t i,
 /// @param i input value to scale
 /// @param scale scale factor, in n/256 units
 /// @see scale8()
-LIB8STATIC_ALWAYS_INLINE void nscale8_LEAVING_R1_DIRTY(uint8_t &i,
+LIB8STATIC_ALWAYS_INLINE void nscale8_LEAVING_R1_DIRTY(fl::u8 &i,
                                                        fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
@@ -266,16 +267,16 @@ LIB8STATIC_ALWAYS_INLINE void nscale8_LEAVING_R1_DIRTY(uint8_t &i,
 /// @param scale scale factor, in n/256 units
 /// @returns scaled value
 /// @see scale8_video()
-LIB8STATIC_ALWAYS_INLINE uint8_t scale8_video_LEAVING_R1_DIRTY(uint8_t i,
+LIB8STATIC_ALWAYS_INLINE fl::u8 scale8_video_LEAVING_R1_DIRTY(fl::u8 i,
                                                                fract8 scale) {
 #if SCALE8_C == 1 || defined(LIB8_ATTINY)
-    uint8_t j = (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
-    // uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
-    // uint8_t j = (i == 0) ? 0 : (((int)i * (int)(scale) ) >> 8) +
+    fl::u8 j = (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
+    // fl::u8 nonzeroscale = (scale != 0) ? 1 : 0;
+    // fl::u8 j = (i == 0) ? 0 : (((int)i * (int)(scale) ) >> 8) +
     // nonzeroscale;
     return j;
 #elif SCALE8_AVRASM == 1
-    uint8_t j = 0;
+    fl::u8 j = 0;
     asm volatile("  tst %[i]\n\t"
                  "  breq L_%=\n\t"
                  "  mul %[i], %[scale]\n\t"
@@ -287,7 +288,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8_video_LEAVING_R1_DIRTY(uint8_t i,
                  : [i] "r"(i), [scale] "r"(scale)
                  : "r0", "r1");
     return j;
-    // uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
+    // fl::u8 nonzeroscale = (scale != 0) ? 1 : 0;
     // asm volatile(
     //      "      tst %0           \n"
     //      "      breq L_%=        \n"
@@ -315,7 +316,7 @@ LIB8STATIC_ALWAYS_INLINE uint8_t scale8_video_LEAVING_R1_DIRTY(uint8_t i,
 /// @param i input value to scale
 /// @param scale scale factor, in n/256 units
 /// @see scale8_video()
-LIB8STATIC_ALWAYS_INLINE void nscale8_video_LEAVING_R1_DIRTY(uint8_t &i,
+LIB8STATIC_ALWAYS_INLINE void nscale8_video_LEAVING_R1_DIRTY(fl::u8 &i,
                                                              fract8 scale) {
 #if SCALE8_C == 1 || defined(LIB8_ATTINY)
     i = (((int)i * (int)scale) >> 8) + ((i && scale) ? 1 : 0);
@@ -344,7 +345,7 @@ LIB8STATIC_ALWAYS_INLINE void cleanup_R1() {
 #endif
 }
 
-constexpr CRGB nscale8x3_constexpr(uint8_t r, uint8_t g, uint8_t b, fract8 scale) {
+constexpr CRGB nscale8x3_constexpr(fl::u8 r, fl::u8 g, fl::u8 b, fract8 scale) {
     return CRGB(((int)r * (int)(scale)) >> 8, ((int)g * (int)(scale)) >> 8,
                 ((int)b * (int)(scale)) >> 8);
 }
@@ -361,7 +362,7 @@ constexpr CRGB nscale8x3_constexpr(uint8_t r, uint8_t g, uint8_t b, fract8 scale
 /// @param g second value to scale
 /// @param b third value to scale
 /// @param scale scale factor, in n/256 units
-LIB8STATIC void nscale8x3(uint8_t &r, uint8_t &g, uint8_t &b, fract8 scale) {
+LIB8STATIC void nscale8x3(fl::u8 &r, fl::u8 &g, fl::u8 &b, fract8 scale) {
 #if SCALE8_C == 1
 #if (FASTLED_SCALE8_FIXED == 1)
     uint16_t scale_fixed = scale + 1;
@@ -395,10 +396,10 @@ LIB8STATIC void nscale8x3(uint8_t &r, uint8_t &g, uint8_t &b, fract8 scale) {
 /// @param g second value to scale
 /// @param b third value to scale
 /// @param scale scale factor, in n/256 units
-LIB8STATIC void nscale8x3_video(uint8_t &r, uint8_t &g, uint8_t &b,
+LIB8STATIC void nscale8x3_video(fl::u8 &r, fl::u8 &g, fl::u8 &b,
                                 fract8 scale) {
 #if SCALE8_C == 1
-    uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
+    fl::u8 nonzeroscale = (scale != 0) ? 1 : 0;
     r = (r == 0) ? 0 : (((int)r * (int)(scale)) >> 8) + nonzeroscale;
     g = (g == 0) ? 0 : (((int)g * (int)(scale)) >> 8) + nonzeroscale;
     b = (b == 0) ? 0 : (((int)b * (int)(scale)) >> 8) + nonzeroscale;
@@ -421,7 +422,7 @@ LIB8STATIC void nscale8x3_video(uint8_t &r, uint8_t &g, uint8_t &b,
 /// @param i first value to scale
 /// @param j second value to scale
 /// @param scale scale factor, in n/256 units
-LIB8STATIC void nscale8x2(uint8_t &i, uint8_t &j, fract8 scale) {
+LIB8STATIC void nscale8x2(fl::u8 &i, fl::u8 &j, fract8 scale) {
 #if SCALE8_C == 1
 #if FASTLED_SCALE8_FIXED == 1
     uint16_t scale_fixed = scale + 1;
@@ -451,9 +452,9 @@ LIB8STATIC void nscale8x2(uint8_t &i, uint8_t &j, fract8 scale) {
 /// @param i first value to scale
 /// @param j second value to scale
 /// @param scale scale factor, in n/256 units
-LIB8STATIC void nscale8x2_video(uint8_t &i, uint8_t &j, fract8 scale) {
+LIB8STATIC void nscale8x2_video(fl::u8 &i, fl::u8 &j, fract8 scale) {
 #if SCALE8_C == 1
-    uint8_t nonzeroscale = (scale != 0) ? 1 : 0;
+    fl::u8 nonzeroscale = (scale != 0) ? 1 : 0;
     i = (i == 0) ? 0 : (((int)i * (int)(scale)) >> 8) + nonzeroscale;
     j = (j == 0) ? 0 : (((int)j * (int)(scale)) >> 8) + nonzeroscale;
 #elif SCALE8_AVRASM == 1
@@ -592,7 +593,7 @@ LIB8STATIC uint16_t scale16(uint16_t i, fract16 scale) {
         : [i] "r"(i), [scale] "r"(scale)
         : "r0", "r1");
 
-    const uint8_t zero = 0;
+    const fl::u8 zero = 0;
     asm volatile(
         // result.B-D += i.B x scale.A
         "  mul %B[i], %A[scale]                 \n\t"
@@ -658,7 +659,7 @@ LIB8STATIC uint16_t scale16(uint16_t i, fract16 scale) {
         : [i] "r"(i), [scale] "r"(scale)
         : "r0", "r1");
 
-    const uint8_t zero = 0;
+    const fl::u8 zero = 0;
     asm volatile(
         // result.B-D += i.B x scale.A
         "  mul %B[i], %A[scale]                 \n\t"
@@ -708,14 +709,14 @@ LIB8STATIC uint16_t scale16(uint16_t i, fract16 scale) {
 
 /// Adjust a scaling value for dimming.
 /// @see scale8()
-LIB8STATIC uint8_t dim8_raw(uint8_t x) { return scale8(x, x); }
+LIB8STATIC fl::u8 dim8_raw(fl::u8 x) { return scale8(x, x); }
 
 /// Adjust a scaling value for dimming for video (value will never go below 1)
 /// @see scale8_video()
-LIB8STATIC uint8_t dim8_video(uint8_t x) { return scale8_video(x, x); }
+LIB8STATIC fl::u8 dim8_video(fl::u8 x) { return scale8_video(x, x); }
 
 /// Linear version of the dimming function that halves for values < 128
-LIB8STATIC uint8_t dim8_lin(uint8_t x) {
+LIB8STATIC fl::u8 dim8_lin(fl::u8 x) {
     if (x & 0x80) {
         x = scale8(x, x);
     } else {
@@ -726,20 +727,20 @@ LIB8STATIC uint8_t dim8_lin(uint8_t x) {
 }
 
 /// Brighten a value (inverse of dim8_raw())
-LIB8STATIC uint8_t brighten8_raw(uint8_t x) {
-    uint8_t ix = 255 - x;
+LIB8STATIC fl::u8 brighten8_raw(fl::u8 x) {
+    fl::u8 ix = 255 - x;
     return 255 - scale8(ix, ix);
 }
 
 /// Brighten a value (inverse of dim8_video())
-LIB8STATIC uint8_t brighten8_video(uint8_t x) {
-    uint8_t ix = 255 - x;
+LIB8STATIC fl::u8 brighten8_video(fl::u8 x) {
+    fl::u8 ix = 255 - x;
     return 255 - scale8_video(ix, ix);
 }
 
 /// Brighten a value (inverse of dim8_lin())
-LIB8STATIC uint8_t brighten8_lin(uint8_t x) {
-    uint8_t ix = 255 - x;
+LIB8STATIC fl::u8 brighten8_lin(fl::u8 x) {
+    fl::u8 ix = 255 - x;
     if (ix & 0x80) {
         ix = scale8(ix, ix);
     } else {

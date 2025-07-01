@@ -2,6 +2,7 @@
 
 #include "FastLED.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fx/fx1d.h"
 
 namespace fl {
@@ -36,10 +37,10 @@ void Pride2015::draw(Fx::DrawContext ctx) {
         return;
     }
 
-    uint8_t sat8 = beatsin88(87, 220, 250);
-    uint8_t brightdepth = beatsin88(341, 96, 224);
+    fl::u8 sat8 = beatsin88(87, 220, 250);
+    fl::u8 brightdepth = beatsin88(341, 96, 224);
     uint16_t brightnessthetainc16 = beatsin88(203, (25 * 256), (40 * 256));
-    uint8_t msmultiplier = beatsin88(147, 23, 60);
+    fl::u8 msmultiplier = beatsin88(147, 23, 60);
 
     uint16_t hue16 = mHue16;
     uint16_t hueinc16 = beatsin88(113, 1, 3000);
@@ -54,13 +55,13 @@ void Pride2015::draw(Fx::DrawContext ctx) {
     // set master brightness control
     for (uint16_t i = 0; i < mNumLeds; i++) {
         hue16 += hueinc16;
-        uint8_t hue8 = hue16 / 256;
+        fl::u8 hue8 = hue16 / 256;
 
         brightnesstheta16 += brightnessthetainc16;
         uint16_t b16 = sin16(brightnesstheta16) + 32768;
 
         uint16_t bri16 = (uint32_t)((uint32_t)b16 * (uint32_t)b16) / 65536;
-        uint8_t bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536;
+        fl::u8 bri8 = (uint32_t)(((uint32_t)bri16) * brightdepth) / 65536;
         bri8 += (255 - brightdepth);
 
         CRGB newcolor = CHSV(hue8, sat8, bri8);

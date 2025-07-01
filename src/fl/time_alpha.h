@@ -2,6 +2,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/math_macros.h"
 #include "fl/warn.h"
@@ -10,7 +11,7 @@ namespace fl {
 
 // Use this function to compute the alpha value based on the time elapsed
 // 0 -> 255
-uint8_t time_alpha8(uint32_t now, uint32_t start, uint32_t end);
+fl::u8 time_alpha8(uint32_t now, uint32_t start, uint32_t end);
 // 0 -> 65535
 uint16_t time_alpha16(uint32_t now, uint32_t start, uint32_t end);
 
@@ -28,7 +29,7 @@ class TimeAlpha {
   public:
     virtual ~TimeAlpha() = default;
     virtual void trigger(uint32_t now) = 0;
-    virtual uint8_t update8(uint32_t now) = 0;
+    virtual fl::u8 update8(uint32_t now) = 0;
     virtual uint16_t update16(uint32_t now) {
         return static_cast<uint16_t>(update8(now) << 8) + 0xFF;
     }
@@ -70,7 +71,7 @@ class TimeRamp : public TimeAlpha {
 
     /// Compute current 0–255 output based on how much time has elapsed since
     /// trigger().
-    uint8_t update8(uint32_t now) override;
+    fl::u8 update8(uint32_t now) override;
 
   private:
     uint32_t mLatchMs;
@@ -82,7 +83,7 @@ class TimeRamp : public TimeAlpha {
     uint32_t mFinishedFallingTime = 0;
 
     uint32_t mStart = 0;
-    uint8_t mLastValue = 0;
+    fl::u8 mLastValue = 0;
 };
 
 /*
@@ -125,13 +126,13 @@ class TimeClampedTransition : public TimeAlpha {
         return true;
     }
 
-    uint8_t update8(uint32_t now) override {
+    fl::u8 update8(uint32_t now) override {
         bool not_started = (mEnd == 0) && (mStart == 0);
         if (not_started) {
             // if we have not started, we are not active
             return 0;
         }
-        uint8_t out = time_alpha8(now, mStart, mEnd);
+        fl::u8 out = time_alpha8(now, mStart, mEnd);
         return out;
     }
 

@@ -4,6 +4,7 @@
 #define __INC_LIB8TION_TRIG_H
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "lib8tion/lib8static.h"
 
 /// @file trig8.h
@@ -46,7 +47,7 @@
 /// @param theta input angle from 0-65535
 /// @returns sin of theta, value between -32767 to 32767.
 LIB8STATIC int16_t sin16_avr(uint16_t theta) {
-    static const uint8_t data[] = {
+    static const fl::u8 data[] = {
         0,           0,           49, 0, 6393 % 256,  6393 / 256,  48, 0,
         12539 % 256, 12539 / 256, 44, 0, 18204 % 256, 18204 / 256, 38, 0,
         23170 % 256, 23170 / 256, 31, 0, 27245 % 256, 27245 / 256, 23, 0,
@@ -67,17 +68,17 @@ LIB8STATIC int16_t sin16_avr(uint16_t theta) {
     if (theta & 0x4000)
         offset = 2047 - offset;
 
-    uint8_t sectionX4;
+    fl::u8 sectionX4;
     sectionX4 = offset / 256;
     sectionX4 *= 4;
 
-    uint8_t m;
+    fl::u8 m;
 
     union {
         uint16_t b;
         struct {
-            uint8_t blo;
-            uint8_t bhi;
+            fl::u8 blo;
+            fl::u8 bhi;
         };
     } u;
 
@@ -86,7 +87,7 @@ LIB8STATIC int16_t sin16_avr(uint16_t theta) {
     u.bhi = data[sectionX4 + 1];
     m = data[sectionX4 + 2];
 
-    uint8_t secoffset8 = (uint8_t)(offset) / 2;
+    fl::u8 secoffset8 = (fl::u8)(offset) / 2;
 
     uint16_t mx = m * secoffset8;
 
@@ -113,17 +114,17 @@ LIB8STATIC int16_t sin16_avr(uint16_t theta) {
 LIB8STATIC int16_t sin16_C(uint16_t theta) {
     static const uint16_t base[] = {0,     6393,  12539, 18204,
                                     23170, 27245, 30273, 32137};
-    static const uint8_t slope[] = {49, 48, 44, 38, 31, 23, 14, 4};
+    static const fl::u8 slope[] = {49, 48, 44, 38, 31, 23, 14, 4};
 
     uint16_t offset = (theta & 0x3FFF) >> 3; // 0..2047
     if (theta & 0x4000)
         offset = 2047 - offset;
 
-    uint8_t section = offset / 256; // 0..7
+    fl::u8 section = offset / 256; // 0..7
     uint16_t b = base[section];
-    uint8_t m = slope[section];
+    fl::u8 m = slope[section];
 
-    uint8_t secoffset8 = (uint8_t)(offset) / 2;
+    fl::u8 secoffset8 = (fl::u8)(offset) / 2;
 
     uint16_t mx = m * secoffset8;
     int16_t y = mx + b;
@@ -153,7 +154,7 @@ LIB8STATIC int16_t cos16(uint16_t theta) { return sin16(theta + 16384); }
 // Fast 8-bit approximations of sin(x) & cos(x).
 
 /// Pre-calculated lookup table used in sin8() and cos8() functions
-const uint8_t b_m16_interleave[] = {0, 49, 49, 41, 90, 27, 117, 10};
+const fl::u8 b_m16_interleave[] = {0, 49, 49, 41, 90, 27, 117, 10};
 
 #if defined(__AVR__) && !defined(LIB8_ATTINY)
 /// Platform-independent alias of the fast sin implementation
@@ -167,8 +168,8 @@ const uint8_t b_m16_interleave[] = {0, 49, 49, 41, 90, 27, 117, 10};
 ///
 /// @param theta input angle from 0-255
 /// @returns sin of theta, value between 0 and 255
-LIB8STATIC uint8_t sin8_avr(uint8_t theta) {
-    uint8_t offset = theta;
+LIB8STATIC fl::u8 sin8_avr(fl::u8 theta) {
+    fl::u8 offset = theta;
 
     asm volatile("sbrc %[theta],6         \n\t"
                  "com  %[offset]           \n\t"
@@ -176,24 +177,24 @@ LIB8STATIC uint8_t sin8_avr(uint8_t theta) {
 
     offset &= 0x3F; // 0..63
 
-    uint8_t secoffset = offset & 0x0F; // 0..15
+    fl::u8 secoffset = offset & 0x0F; // 0..15
     if (theta & 0x40)
         ++secoffset;
 
-    uint8_t m16;
-    uint8_t b;
+    fl::u8 m16;
+    fl::u8 b;
 
-    uint8_t section = offset >> 4; // 0..3
-    uint8_t s2 = section * 2;
+    fl::u8 section = offset >> 4; // 0..3
+    fl::u8 s2 = section * 2;
 
-    const uint8_t *p = b_m16_interleave;
+    const fl::u8 *p = b_m16_interleave;
     p += s2;
     b = *p;
     ++p;
     m16 = *p;
 
-    uint8_t mx;
-    uint8_t xr1;
+    fl::u8 mx;
+    fl::u8 xr1;
     asm volatile("mul %[m16],%[secoffset]   \n\t"
                  "mov %[mx],r0              \n\t"
                  "mov %[xr1],r1             \n\t"
@@ -228,26 +229,26 @@ LIB8STATIC uint8_t sin8_avr(uint8_t theta) {
 ///
 /// @param theta input angle from 0-255
 /// @returns sin of theta, value between 0 and 255
-LIB8STATIC uint8_t sin8_C(uint8_t theta) {
-    uint8_t offset = theta;
+LIB8STATIC fl::u8 sin8_C(fl::u8 theta) {
+    fl::u8 offset = theta;
     if (theta & 0x40) {
-        offset = (uint8_t)255 - offset;
+        offset = (fl::u8)255 - offset;
     }
     offset &= 0x3F; // 0..63
 
-    uint8_t secoffset = offset & 0x0F; // 0..15
+    fl::u8 secoffset = offset & 0x0F; // 0..15
     if (theta & 0x40)
         ++secoffset;
 
-    uint8_t section = offset >> 4; // 0..3
-    uint8_t s2 = section * 2;
-    const uint8_t *p = b_m16_interleave;
+    fl::u8 section = offset >> 4; // 0..3
+    fl::u8 s2 = section * 2;
+    const fl::u8 *p = b_m16_interleave;
     p += s2;
-    uint8_t b = *p;
+    fl::u8 b = *p;
     ++p;
-    uint8_t m16 = *p;
+    fl::u8 m16 = *p;
 
-    uint8_t mx = (m16 * secoffset) >> 4;
+    fl::u8 mx = (m16 * secoffset) >> 4;
 
     int8_t y = mx + b;
     if (theta & 0x80)
@@ -268,7 +269,7 @@ LIB8STATIC uint8_t sin8_C(uint8_t theta) {
 ///
 /// @param theta input angle from 0-255
 /// @returns cos of theta, value between 0 and 255
-LIB8STATIC uint8_t cos8(uint8_t theta) { return sin8(theta + 64); }
+LIB8STATIC fl::u8 cos8(fl::u8 theta) { return sin8(theta + 64); }
 
 /// @} Trig
 /// @} lib8tion

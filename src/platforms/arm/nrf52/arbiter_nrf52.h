@@ -4,6 +4,7 @@
 #if defined(NRF52_SERIES)
 
 #include "led_sysdefs_arm_nrf52.h"
+#include "fl/int.h"
 
 //FASTLED_NAMESPACE_BEGIN
 
@@ -104,7 +105,7 @@ template <uint32_t _PWM_ID> NRF_PWM_Type * const PWM_Arbiter<_PWM_ID>::s_PWM    
         )
     #endif
     ;
-template <uint32_t _PWM_ID> IRQn_Type    const                            PWM_Arbiter<_PWM_ID>::s_PWM_IRQ   = ((IRQn_Type)((uint8_t)((uint32_t)(s_PWM) >> 12)));
+template <uint32_t _PWM_ID> IRQn_Type    const                            PWM_Arbiter<_PWM_ID>::s_PWM_IRQ   = ((IRQn_Type)((fl::u8)((uint32_t)(s_PWM) >> 12)));
 template <uint32_t _PWM_ID> uint32_t                                      PWM_Arbiter<_PWM_ID>::s_PwmInUse  = 0;
 template <uint32_t _PWM_ID> FASTLED_NRF52_PWM_INTERRUPT_HANDLER volatile  PWM_Arbiter<_PWM_ID>::s_Isr       = NULL;
 

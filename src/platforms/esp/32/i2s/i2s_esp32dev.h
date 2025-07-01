@@ -1,5 +1,6 @@
 #pragma once
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/namespace.h"
 
@@ -70,13 +71,13 @@ FASTLED_NAMESPACE_BEGIN
 
 struct DMABuffer {
     lldesc_t descriptor;
-    uint8_t *buffer;
+    fl::u8 *buffer;
 };
 extern int gCntBuffer;
 extern int gCurBuffer;
 extern bool gDoneFilling;
-extern uint8_t gPixelRow[NUM_COLOR_CHANNELS][32];
-extern uint8_t gPixelBits[NUM_COLOR_CHANNELS][8][4];
+extern fl::u8 gPixelRow[NUM_COLOR_CHANNELS][32];
+extern fl::u8 gPixelBits[NUM_COLOR_CHANNELS][8][4];
 extern DMABuffer *dmaBuffers[NUM_DMA_BUFFERS];;
 
 // typedef for a void function pointer

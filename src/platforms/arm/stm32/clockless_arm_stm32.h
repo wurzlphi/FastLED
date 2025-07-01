@@ -1,3 +1,5 @@
+#include "fl/int.h"
+
 #ifndef __INC_CLOCKLESS_ARM_STM32_H
 #define __INC_CLOCKLESS_ARM_STM32_H
 
@@ -44,7 +46,7 @@ protected:
 
 #define _CYCCNT (*(volatile uint32_t*)(0xE0001004UL))
 
-    template<int BITS> __attribute__ ((always_inline)) inline static void writeBits(FASTLED_REGISTER uint32_t & next_mark, FASTLED_REGISTER data_ptr_t port, FASTLED_REGISTER data_t hi, FASTLED_REGISTER data_t lo, FASTLED_REGISTER uint8_t & b)  {
+    template<int BITS> __attribute__ ((always_inline)) inline static void writeBits(FASTLED_REGISTER uint32_t & next_mark, FASTLED_REGISTER data_ptr_t port, FASTLED_REGISTER data_t hi, FASTLED_REGISTER data_t lo, FASTLED_REGISTER fl::u8 & b)  {
         for(FASTLED_REGISTER uint32_t i = BITS-1; i > 0; --i) {
             while(_CYCCNT < (T1+T2+T3-ADJ));
             FastPin<DATA_PIN>::fastset(port, hi);
@@ -87,7 +89,7 @@ protected:
 
         // Setup the pixel controller and load/scale the first byte
         pixels.preStepFirstByteDithering();
-        FASTLED_REGISTER uint8_t b = pixels.loadAndScale0();
+        FASTLED_REGISTER fl::u8 b = pixels.loadAndScale0();
 
         cli();
 

@@ -6,6 +6,7 @@
 
 #include "platforms/wasm/compiler/Arduino.h"
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #ifndef F_CPU
 #define F_CPU 1000000000
@@ -43,7 +44,7 @@ typedef volatile uint32_t RwReg;
 extern "C" {
 
 // #ifndef SKETCH_COMPILE
-// void pinMode(uint8_t pin, uint8_t mode);
+// void pinMode(fl::u8 pin, fl::u8 mode);
 // #endif
 
 // uint32_t millis(void);

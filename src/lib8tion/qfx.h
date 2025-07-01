@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 
 FASTLED_NAMESPACE_BEGIN
@@ -20,7 +21,7 @@ public:
     /// Constructor, storing a float as a fractional int
     qfx(float fx) { i = fx; f = (fx-i) * (1<<F); }
     /// Constructor, storing a fractional int directly
-    qfx(uint8_t _i, uint8_t _f) {i=_i; f=_f; }
+    qfx(fl::u8 _i, fl::u8 _f) {i=_i; f=_f; }
 
     /// Multiply the fractional int by a value
     uint32_t operator*(uint32_t v) { return (v*i) + ((v*f)>>F); }
@@ -45,9 +46,9 @@ template<class T, int F, int I> static int operator*(int v, qfx<T,F,I> & q) { re
 #endif
 
 /// A 4.4 integer (4 bits integer, 4 bits fraction)
-typedef qfx<uint8_t, 4,4> q44;
+typedef qfx<fl::u8, 4,4> q44;
 /// A 6.2 integer (6 bits integer, 2 bits fraction)
-typedef qfx<uint8_t, 6,2> q62;
+typedef qfx<fl::u8, 6,2> q62;
 /// A 8.8 integer (8 bits integer, 8 bits fraction)
 typedef qfx<uint16_t, 8,8> q88;
 /// A 12.4 integer (12 bits integer, 4 bits fraction)

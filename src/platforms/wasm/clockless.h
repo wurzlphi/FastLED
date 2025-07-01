@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include <vector>
 
 #include "platforms/wasm/compiler/Arduino.h"
@@ -39,7 +40,7 @@ class ClocklessController : public CPixelLEDController<RGB_ORDER> {
         mRgb.resize(iterator.size() * 3);
         auto out_iterator = mRgb.data();
         while (iterator.has(1)) {
-            uint8_t r, g, b;
+            fl::u8 r, g, b;
             iterator.loadAndScaleRGB(&r, &g, &b);
             out_iterator[0] = r;
             out_iterator[1] = g;
@@ -47,13 +48,13 @@ class ClocklessController : public CPixelLEDController<RGB_ORDER> {
             out_iterator += 3;
             iterator.advanceData();
         }
-        const uint8_t *rgb = mRgb.data();
+        const fl::u8 *rgb = mRgb.data();
         ch_data.update(mId, millis(), rgb, mRgb.size());
     }
 
   private:
     int mId = 0;
-    std::vector<uint8_t> mRgb;
+    std::vector<fl::u8> mRgb;
 };
 
 } // namespace fl

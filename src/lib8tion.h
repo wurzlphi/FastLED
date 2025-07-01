@@ -6,6 +6,7 @@
 #include "FastLED.h"
 #include "lib8tion/types.h"
 #include "fl/deprecated.h"
+#include "fl/int.h"
 
 #ifndef __INC_LED_SYSDEFS_H
 #error WTH?  led_sysdefs needs to be included first
@@ -123,8 +124,8 @@
 ///    Accurate to more than 99% in all cases.
 ///
 ///  - Fast 8-bit approximations of sin and cos.
-///    Input angle is a uint8_t from 0-255.
-///    Output is an UNsigned uint8_t from 0 to 255.
+///    Input angle is a fl::u8 from 0-255.
+///    Output is an UNsigned fl::u8 from 0 to 255.
 ///      @code
 ///      sin8( x)  == (sin( (x/128.0) * pi) * 128) + 128
 ///      cos8( x)  == (cos( (x/128.0) * pi) * 128) + 128
@@ -141,9 +142,9 @@
 ///      @endcode
 ///
 ///  - Cubic, Quadratic, and Triangle wave functions.
-///    Input is a uint8_t representing phase withing the wave,
+///    Input is a fl::u8 representing phase withing the wave,
 ///      similar to how sin8 takes an angle 'theta'.
-///    Output is a uint8_t representing the amplitude of
+///    Output is a fl::u8 representing the amplitude of
 ///    the wave at that point.
 ///      @code
 ///      cubicwave8( x)
@@ -280,16 +281,16 @@ LIB8STATIC sfract15 floatToSfract15( float f)
 
 /// Linear interpolation between two unsigned 8-bit values,
 /// with 8-bit fraction
-LIB8STATIC uint8_t lerp8by8( uint8_t a, uint8_t b, fract8 frac)
+LIB8STATIC fl::u8 lerp8by8( fl::u8 a, fl::u8 b, fract8 frac)
 {
-    uint8_t result;
+    fl::u8 result;
     if( b > a) {
-        uint8_t delta = b - a;
-        uint8_t scaled = scale8( delta, frac);
+        fl::u8 delta = b - a;
+        fl::u8 scaled = scale8( delta, frac);
         result = a + scaled;
     } else {
-        uint8_t delta = a - b;
-        uint8_t scaled = scale8( delta, frac);
+        fl::u8 delta = a - b;
+        fl::u8 scaled = scale8( delta, frac);
         result = a - scaled;
     }
     return result;
@@ -384,10 +385,10 @@ LIB8STATIC int16_t lerp15by16( int16_t a, int16_t b, fract16 frac)
 ///   @endcode
 ///
 /// but faster and specifically designed for 8-bit values.
-LIB8STATIC uint8_t map8( uint8_t in, uint8_t rangeStart, uint8_t rangeEnd)
+LIB8STATIC fl::u8 map8( fl::u8 in, fl::u8 rangeStart, fl::u8 rangeEnd)
 {
-    uint8_t rangeWidth = rangeEnd - rangeStart;
-    uint8_t out = scale8( in, rangeWidth);
+    fl::u8 rangeWidth = rangeEnd - rangeStart;
+    fl::u8 out = scale8( in, rangeWidth);
     out += rangeStart;
     return out;
 }
@@ -405,14 +406,14 @@ LIB8STATIC uint8_t map8( uint8_t in, uint8_t rangeStart, uint8_t rangeEnd)
 /// 8-bit quadratic ease-in / ease-out function. 
 /// Takes around 13 cycles on AVR.
 #if (EASE8_C == 1) || defined(FASTLED_DOXYGEN)
-LIB8STATIC uint8_t ease8InOutQuad( uint8_t i)
+LIB8STATIC fl::u8 ease8InOutQuad( fl::u8 i)
 {
-    uint8_t j = i;
+    fl::u8 j = i;
     if( j & 0x80 ) {
         j = 255 - j;
     }
-    uint8_t jj  = scale8(  j, j);
-    uint8_t jj2 = jj << 1;
+    fl::u8 jj  = scale8(  j, j);
+    fl::u8 jj2 = jj << 1;
     if( i & 0x80 ) {
         jj2 = 255 - jj2;
     }
@@ -423,8 +424,8 @@ LIB8STATIC uint8_t ease8InOutQuad( uint8_t i)
 // This AVR asm version of ease8InOutQuad preserves one more
 // low-bit of precision than the C version, and is also slightly
 // smaller and faster.
-LIB8STATIC uint8_t ease8InOutQuad(uint8_t val) {
-    uint8_t j=val;
+LIB8STATIC fl::u8 ease8InOutQuad(fl::u8 val) {
+    fl::u8 j=val;
     asm volatile (
       "sbrc %[val], 7 \n"
       "com %[j]       \n"
@@ -493,8 +494,8 @@ LIB8STATIC uint16_t ease16InOutCubic(uint16_t i)  {
 /// Takes around 18 cycles on AVR.
 LIB8STATIC fract8 ease8InOutCubic( fract8 i)
 {
-    uint8_t ii  = scale8_LEAVING_R1_DIRTY(  i, i);
-    uint8_t iii = scale8_LEAVING_R1_DIRTY( ii, i);
+    fl::u8 ii  = scale8_LEAVING_R1_DIRTY(  i, i);
+    fl::u8 iii = scale8_LEAVING_R1_DIRTY( ii, i);
 
     uint16_t r1 = (3 * (uint16_t)(ii)) - ( 2 * (uint16_t)(iii));
 
@@ -502,7 +503,7 @@ LIB8STATIC fract8 ease8InOutCubic( fract8 i)
        cleans up R1, so there's no need to explicitily call
        cleanup_R1(); */
 
-    uint8_t result = r1;
+    fl::u8 result = r1;
 
     // if we got "256", return 255:
     if( r1 & 0x100 ) {
@@ -541,7 +542,7 @@ LIB8STATIC fract8 ease8InOutApprox( fract8 i)
 }
 
 #elif EASE8_AVRASM == 1
-LIB8STATIC uint8_t ease8InOutApprox( fract8 i)
+LIB8STATIC fl::u8 ease8InOutApprox( fract8 i)
 {
     // takes around 7 cycles on AVR
     asm volatile (
@@ -595,12 +596,12 @@ LIB8STATIC uint8_t ease8InOutApprox( fract8 i)
 ///
 /// On AVR this function takes just three cycles.
 ///
-LIB8STATIC uint8_t triwave8(uint8_t in)
+LIB8STATIC fl::u8 triwave8(fl::u8 in)
 {
     if( in & 0x80) {
         in = 255 - in;
     }
-    uint8_t out = in << 1;
+    fl::u8 out = in << 1;
     return out;
 }
 
@@ -614,7 +615,7 @@ LIB8STATIC uint8_t triwave8(uint8_t in)
 ///
 /// This is even faster than "sin8()", and has
 /// a slightly different curve shape.
-LIB8STATIC uint8_t quadwave8(uint8_t in)
+LIB8STATIC fl::u8 quadwave8(fl::u8 in)
 {
     return ease8InOutQuad( triwave8( in));
 }
@@ -622,7 +623,7 @@ LIB8STATIC uint8_t quadwave8(uint8_t in)
 /// Cubic waveform generator. Spends visibly more time
 /// at the limits than "sine" does. 
 /// @copydetails quadwave8()
-LIB8STATIC uint8_t cubicwave8(uint8_t in)
+LIB8STATIC fl::u8 cubicwave8(fl::u8 in)
 {
     return ease8InOutCubic( triwave8( in));
 }
@@ -651,7 +652,7 @@ LIB8STATIC uint8_t cubicwave8(uint8_t in)
 /// @param in input value
 /// @param pulsewidth width of the output pulse
 /// @returns square wave output
-LIB8STATIC uint8_t squarewave8( uint8_t in, uint8_t pulsewidth=128)
+LIB8STATIC fl::u8 squarewave8( fl::u8 in, fl::u8 pulsewidth=128)
 {
     if( in < pulsewidth || (pulsewidth == 255)) {
         return 255;
@@ -724,7 +725,7 @@ uint32_t get_millisecond_timer();
 /// with brightness. For that effect, add this line just above your existing call to
 /// "FastLED.show()":
 ///   @code
-///   uint8_t bright = beatsin8( 60 /*BPM*/, 192 /*dimmest*/, 255 /*brightest*/ ));
+///   fl::u8 bright = beatsin8( 60 /*BPM*/, 192 /*dimmest*/, 255 /*brightest*/ ));
 ///   FastLED.setBrightness( bright );
 ///   FastLED.show();
 ///   @endcode
@@ -772,7 +773,7 @@ LIB8STATIC uint16_t beat16( accum88 beats_per_minute, uint32_t timebase = 0)
 /// Generates an 8-bit "sawtooth" wave at a given BPM
 /// @param beats_per_minute the frequency of the wave, in decimal
 /// @param timebase the time offset of the wave from the millis() timer
-LIB8STATIC uint8_t beat8( accum88 beats_per_minute, uint32_t timebase = 0)
+LIB8STATIC fl::u8 beat8( accum88 beats_per_minute, uint32_t timebase = 0)
 {
     return beat16( beats_per_minute, timebase) >> 8;
 }
@@ -824,14 +825,14 @@ LIB8STATIC uint16_t beatsin16( accum88 beats_per_minute, uint16_t lowest = 0, ui
 /// @param highest the highest output value of the sine wave
 /// @param timebase the time offset of the wave from the millis() timer
 /// @param phase_offset phase offset of the wave from the current position
-LIB8STATIC uint8_t beatsin8( accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255,
-                            uint32_t timebase = 0, uint8_t phase_offset = 0)
+LIB8STATIC fl::u8 beatsin8( accum88 beats_per_minute, fl::u8 lowest = 0, fl::u8 highest = 255,
+                            uint32_t timebase = 0, fl::u8 phase_offset = 0)
 {
-    uint8_t beat = beat8( beats_per_minute, timebase);
-    uint8_t beatsin = sin8( beat + phase_offset);
-    uint8_t rangewidth = highest - lowest;
-    uint8_t scaledbeat = scale8( beatsin, rangewidth);
-    uint8_t result = lowest + scaledbeat;
+    fl::u8 beat = beat8( beats_per_minute, timebase);
+    fl::u8 beatsin = sin8( beat + phase_offset);
+    fl::u8 rangewidth = highest - lowest;
+    fl::u8 scaledbeat = scale8( beatsin, rangewidth);
+    fl::u8 result = lowest + scaledbeat;
     return result;
 }
 
@@ -867,10 +868,10 @@ LIB8STATIC uint16_t minutes16()
 
 /// Return the current hours since boot in an 8-bit value.  Used as part of the
 /// "every N time-periods" mechanism
-LIB8STATIC uint8_t hours8()
+LIB8STATIC fl::u8 hours8()
 {
     uint32_t ms = GET_MILLIS();
-    uint8_t h8;
+    fl::u8 h8;
     h8 = (ms / (3600000L)) & 0xFF;
     return h8;
 }
@@ -962,7 +963,7 @@ public: \
 /// is executed.
 /// @note TIMETYPE is specific to the initialized class, and is in the
 /// units used by the time function. E.g. for ::EVERY_N_MILLIS it's uint32_t
-/// and milliseconds, for ::EVERY_N_HOURS it's uint8_t and hours, etc.
+/// and milliseconds, for ::EVERY_N_HOURS it's fl::u8 and hours, etc.
 /// @warning This specific class isn't actually part of the library! It's created
 /// using a preprocessor macro (::INSTANTIATE_EVERY_N_TIME_PERIODS) as
 /// a new class for every different time unit. It has been recreated
@@ -1029,7 +1030,7 @@ INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNBSeconds,uint16_t,bseconds16);
 INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNMinutes,uint16_t,minutes16);
 
 /// Create the CEveryNHours class for hours intervals
-INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNHours,uint8_t,hours8);
+INSTANTIATE_EVERY_N_TIME_PERIODS(CEveryNHours,fl::u8,hours8);
 
 /// Alias for CEveryNMillis
 #define CEveryNMilliseconds CEveryNMillis
@@ -1137,7 +1138,7 @@ typedef CEveryNTimePeriods<uint16_t,seconds16> CEveryNSeconds;
 typedef CEveryNTimePeriods<uint16_t,bseconds16> CEveryNBSeconds;
 typedef CEveryNTimePeriods<uint32_t,millis> CEveryNMillis;
 typedef CEveryNTimePeriods<uint16_t,minutes16> CEveryNMinutes;
-typedef CEveryNTimePeriods<uint8_t,hours8> CEveryNHours;
+typedef CEveryNTimePeriods<fl::u8,hours8> CEveryNHours;
 #endif
 
 
@@ -1148,7 +1149,7 @@ typedef CEveryNTimePeriods<uint8_t,hours8> CEveryNHours;
 /// combined with an ::EVERY_N_MILLIS block to limit how fast the colors
 /// change:
 ///   @code{.cpp}
-///   static uint8_t hue = 0;
+///   static fl::u8 hue = 0;
 ///   fill_rainbow(leds, NUM_LEDS, hue);
 ///   EVERY_N_MILLIS(20) { hue++; }  // advances hue every 20 milliseconds
 ///   @endcode

@@ -58,7 +58,7 @@ class UISlider : public UIElement {
     float getMax() const { return mImpl.getMax(); }
     void setValue(float value);
     operator float() const { return mImpl.value(); }
-    operator uint8_t() const { return static_cast<uint8_t>(mImpl.value()); }
+    operator fl::u8() const { return static_cast<fl::u8>(mImpl.value()); }
     operator fl::u16() const { return static_cast<fl::u16>(mImpl.value()); }
     operator int() const { return static_cast<int>(mImpl.value()); }
     template <typename T> T as() const {

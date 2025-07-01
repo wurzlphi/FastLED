@@ -25,7 +25,7 @@ FASTLED_NAMESPACE_BEGIN
 /// @see https://www.pjrc.com/teensy/td_libs_DmxSimple.html
 /// @see https://github.com/PaulStoffregen/DmxSimple
 /// @see https://en.wikipedia.org/wiki/DMX512
-template <uint8_t DATA_PIN, EOrder RGB_ORDER = RGB> class DMXSimpleController : public CPixelLEDController<RGB_ORDER> {
+template <fl::u8 DATA_PIN, EOrder RGB_ORDER = RGB> class DMXSimpleController : public CPixelLEDController<RGB_ORDER> {
 public:
 	/// Initialize the LED controller
 	virtual void init() { DmxSimple.usePin(DATA_PIN); }
@@ -50,6 +50,7 @@ FASTLED_NAMESPACE_END
 
 #if defined(DmxSerial_h) || defined(FASTLED_DOXYGEN)
 #include <DMXSerial.h>
+#include "fl/int.h"
 
 /// Flag set when the DMXSerial library is included
 #define HAS_DMX_SERIAL

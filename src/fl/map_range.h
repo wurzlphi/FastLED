@@ -2,6 +2,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/clamp.h"
 #include "fl/force_inline.h"
@@ -63,16 +64,16 @@ template <typename T, typename U> struct map_range_math {
     }
 };
 
-template <> struct map_range_math<uint8_t, uint8_t> {
-    static uint8_t map(uint8_t value, uint8_t in_min, uint8_t in_max,
-                       uint8_t out_min, uint8_t out_max) {
+template <> struct map_range_math<fl::u8, fl::u8> {
+    static fl::u8 map(fl::u8 value, fl::u8 in_min, fl::u8 in_max,
+                       fl::u8 out_min, fl::u8 out_max) {
         if (value == in_min) {
             return out_min;
         }
         if (value == in_max) {
             return out_max;
         }
-        // Promote uint8_t to int16_t for mapping.
+        // Promote fl::u8 to int16_t for mapping.
         int16_t v16 = value;
         int16_t in_min16 = in_min;
         int16_t in_max16 = in_max;
@@ -85,7 +86,7 @@ template <> struct map_range_math<uint8_t, uint8_t> {
         } else if (out16 > 255) {
             out16 = 255;
         }
-        return static_cast<uint8_t>(out16);
+        return static_cast<fl::u8>(out16);
     }
 };
 

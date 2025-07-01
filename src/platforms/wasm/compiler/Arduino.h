@@ -4,6 +4,7 @@
 #pragma once
 
 #include "fl/str.h"
+#include "fl/int.h"
 #include <algorithm>
 #include <random>
 #include "fl/stdint.h"
@@ -85,7 +86,7 @@ DEFINE_PRINT_HELPER(const char *, "%s");
 DEFINE_PRINT_HELPER(uint64_t, "%lu");
 DEFINE_PRINT_HELPER(uint32_t, "%u");
 DEFINE_PRINT_HELPER(uint16_t, "%u");
-DEFINE_PRINT_HELPER(uint8_t, "%u");
+DEFINE_PRINT_HELPER(fl::u8, "%u");
 DEFINE_PRINT_HELPER(int64_t, "%ld");
 DEFINE_PRINT_HELPER(int32_t, "%d");
 DEFINE_PRINT_HELPER(int16_t, "%d");
@@ -116,13 +117,13 @@ struct SerialEmulation {
     void println() { printf("\n"); }
     int available() { return 0; }
     int read() { return 0; }
-    void write(uint8_t) {}
+    void write(fl::u8) {}
     void write(const char *s) { printf("%s", s); }
-    void write(const uint8_t *s, size_t n) { fwrite(s, 1, n, stdout); }
+    void write(const fl::u8 *s, size_t n) { fwrite(s, 1, n, stdout); }
     void write(const char *s, size_t n) { fwrite(s, 1, n, stdout); }
     void flush() {}
     void end() {}
-    uint8_t peek() { return 0; }
+    fl::u8 peek() { return 0; }
 };
 
 #define LED_BUILTIN 13

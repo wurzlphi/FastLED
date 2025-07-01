@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 
 FASTLED_NAMESPACE_BEGIN
@@ -14,7 +15,7 @@ struct FASTLED_ESP_IO {
 #define _GPB (*(FASTLED_ESP_IO*)(0x60000000+(0x300)))
 
 
-template<uint8_t PIN, uint32_t MASK> class _ESPPIN {
+template<fl::u8 PIN, uint32_t MASK> class _ESPPIN {
 public:
     typedef volatile uint32_t * port_ptr_t;
     typedef uint32_t port_t;

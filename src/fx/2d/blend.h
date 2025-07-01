@@ -7,6 +7,7 @@ are blended by the the max luminance of the components.
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/namespace.h"
 #include "fl/ptr.h"
@@ -20,8 +21,8 @@ are blended by the the max luminance of the components.
 namespace fl {
 
 struct Blend2dParams {
-    uint8_t blur_amount = 0;
-    uint8_t blur_passes = 1;
+    fl::u8 blur_amount = 0;
+    fl::u8 blur_passes = 1;
 };
 
 FASTLED_SMART_PTR(Blend2d);
@@ -37,10 +38,10 @@ class Blend2d : public Fx2d {
     void add(Fx2d &layer, const Params &p = Params());
     void draw(DrawContext context) override;
     void clear();
-    void setGlobalBlurAmount(uint8_t blur_amount) {
+    void setGlobalBlurAmount(fl::u8 blur_amount) {
         mGlobalBlurAmount = blur_amount;
     }
-    void setGlobalBlurPasses(uint8_t blur_passes) {
+    void setGlobalBlurPasses(fl::u8 blur_passes) {
         mGlobalBlurPasses = blur_passes;
     }
     bool setParams(Fx2dPtr fx, const Params &p);
@@ -49,17 +50,17 @@ class Blend2d : public Fx2d {
   protected:
     struct Entry {
         Fx2dPtr fx;
-        uint8_t blur_amount = 0;
-        uint8_t blur_passes = 1;
+        fl::u8 blur_amount = 0;
+        fl::u8 blur_passes = 1;
         Entry() = default;
-        Entry(Fx2dPtr fx, uint8_t blur_amount, uint8_t blur_passes)
+        Entry(Fx2dPtr fx, fl::u8 blur_amount, fl::u8 blur_passes)
             : fx(fx), blur_amount(blur_amount), blur_passes(blur_passes) {}
     };
     HeapVector<Entry> mLayers;
     FramePtr mFrame;
     FramePtr mFrameTransform;
-    uint8_t mGlobalBlurAmount = 0;
-    uint8_t mGlobalBlurPasses = 1;
+    fl::u8 mGlobalBlurAmount = 0;
+    fl::u8 mGlobalBlurPasses = 1;
 };
 
 } // namespace fl

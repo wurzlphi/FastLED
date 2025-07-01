@@ -2,6 +2,7 @@
 #define __INC_CLOCKLESS_BLOCK_ESP8266_H
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 #include "fl/register.h"
 #include "eorder.h"
@@ -26,7 +27,7 @@ extern uint32_t _frame_cnt;
 extern uint32_t _retry_cnt;
 #endif
 
-template <uint8_t LANES, int FIRST_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = GRB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
+template <fl::u8 LANES, int FIRST_PIN, int T1, int T2, int T3, EOrder RGB_ORDER = GRB, int XTRA0 = 0, bool FLIP = false, int WAIT_TIME = 50>
 class InlineBlockClocklessController : public CPixelLEDController<RGB_ORDER, LANES, PORT_MASK> {
 	typedef typename FastPin<FIRST_PIN>::port_ptr_t data_ptr_t;
 	typedef typename FastPin<FIRST_PIN>::port_t data_t;
@@ -64,7 +65,7 @@ public:
 	virtual void init() {
 		void (* funcs[])() ={initPin<12>, initPin<13>, initPin<14>, initPin<15>, initPin<4>, initPin<5>};
 
-		for (uint8_t i = 0; i < USED_LANES; ++i) {
+		for (fl::u8 i = 0; i < USED_LANES; ++i) {
 			funcs[i]();
 		}
 	}
@@ -72,7 +73,7 @@ public:
 	virtual uint16_t getMaxRefreshRate() const { return 400; }
 
 	typedef union {
-		uint8_t bytes[8];
+		fl::u8 bytes[8];
 		uint16_t shorts[4];
 		uint32_t raw[2];
 	} Lines;
@@ -83,8 +84,8 @@ public:
 	  	Lines b2 = b;
 		transpose8x1_noinline(b.bytes,b2.bytes);
 
-		FASTLED_REGISTER uint8_t d = pixels.template getd<PX>(pixels);
-		FASTLED_REGISTER uint8_t scale = pixels.template getscale<PX>(pixels);
+		FASTLED_REGISTER fl::u8 d = pixels.template getd<PX>(pixels);
+		FASTLED_REGISTER fl::u8 scale = pixels.template getscale<PX>(pixels);
 
 		for(FASTLED_REGISTER uint32_t i = 0; i < USED_LANES; ++i) {
 			while((__clock_cycles() - last_mark) < (T1+T2+T3));

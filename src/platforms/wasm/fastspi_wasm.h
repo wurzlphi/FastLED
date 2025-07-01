@@ -5,6 +5,7 @@
 #endif
 
 #include "fl/vector.h"
+#include "fl/int.h"
 #include "fl/stdint.h"
 #include "platforms/wasm/engine_listener.h"
 #include "fl/namespace.h"
@@ -27,7 +28,7 @@ class WasmSpiOutput : public fl::EngineEvents::Listener {
     void init();
     void waitFully();
     void release();
-    void writeByte(uint8_t byte);
+    void writeByte(fl::u8 byte);
     void writeWord(uint16_t word);
 
   private:
@@ -35,7 +36,7 @@ class WasmSpiOutput : public fl::EngineEvents::Listener {
     void onEndShowLeds() override;
 
     int mId = -1; // Deferred initialization
-    fl::vector<uint8_t> mRgb;
+    fl::vector<fl::u8> mRgb;
 };
 
 // Compatibility alias

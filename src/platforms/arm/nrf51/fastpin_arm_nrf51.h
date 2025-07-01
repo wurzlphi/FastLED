@@ -2,6 +2,7 @@
 #define __FASTPIN_ARM_NRF51_H
 
 #include "fl/force_inline.h"
+#include "fl/int.h"
 
 #if defined(NRF51)
 /// Template definition for teensy 3.0 style ARM pins, providing direct access to the various GPIO registers.  Note that this
@@ -9,7 +10,7 @@
 /// that something about the way gcc does register allocation results in the bit-band code being slower.  It will need more fine tuning.
 /// The registers are data output, set output, clear output, toggle output, input, and direction
 #if 0
-template<uint8_t PIN, uint32_t _MASK, typename _DIRSET, typename _DIRCLR, typename _OUTSET, typename _OUTCLR, typename _OUT> class _ARMPIN {
+template<fl::u8 PIN, uint32_t _MASK, typename _DIRSET, typename _DIRCLR, typename _OUTSET, typename _OUTCLR, typename _OUT> class _ARMPIN {
 public:
     typedef volatile uint32_t * port_ptr_t;
     typedef uint32_t port_t;
@@ -71,7 +72,7 @@ typedef struct {                                    /*!< GPIO Structure         
 #define FL_NRF_GPIO_BASE                   0x50000504UL
 #define FL_NRF_GPIO                        ((FL_NRF_GPIO_Type           *) FL_NRF_GPIO_BASE)
 
-template<uint8_t PIN, uint32_t _MASK> class _ARMPIN {
+template<fl::u8 PIN, uint32_t _MASK> class _ARMPIN {
 public:
     typedef volatile uint32_t * port_ptr_t;
     typedef uint32_t port_t;

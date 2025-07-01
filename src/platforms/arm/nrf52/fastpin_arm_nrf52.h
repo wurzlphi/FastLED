@@ -39,7 +39,7 @@
 // Right away, this precludes the use of g_ADigitalPinMap,
 // which is not constexpr, and thus not available for
 // preprocessor/compile-time optimizations.  Therefore,
-// we have to specialize FastPin<uint8_t PIN>, given a
+// we have to specialize FastPin<fl::u8 PIN>, given a
 // compile-time value for PIN, into at least a PORT and
 // a BITMASK for the port.
 //
@@ -87,7 +87,7 @@ struct __generated_struct_NRF_P1 {
 
 
 // The actual class template can then use a typename, for what is essentially a constexpr NRF_GPIO_Type*
-template <uint32_t _MASK, typename _PORT, uint8_t _PORT_NUMBER, uint8_t _PIN_NUMBER> class _ARMPIN  {
+template <uint32_t _MASK, typename _PORT, fl::u8 _PORT_NUMBER, fl::u8 _PIN_NUMBER> class _ARMPIN  {
 public:
     typedef volatile uint32_t * port_ptr_t;
     typedef uint32_t port_t;
@@ -140,7 +140,7 @@ public:
 };
 
 
-template <uint32_t _MASK, typename _PORT, uint8_t _PORT_NUMBER, uint8_t _PIN_NUMBER>
+template <uint32_t _MASK, typename _PORT, fl::u8 _PORT_NUMBER, fl::u8 _PIN_NUMBER>
 class _INVALID_ARMPIN: public _ARMPIN<_MASK, _PORT, _PORT_NUMBER, _PIN_NUMBER> {
 public:
     _INVALID_ARMPIN() {
@@ -206,6 +206,7 @@ public:
 
 // The actual pin definitions are in a separate header file...
 #include "fastpin_arm_nrf52_variants.h"
+#include "fl/int.h"
 
 #define HAS_HARDWARE_PIN_SUPPORT
 

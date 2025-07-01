@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fl/int.h"
+
 ///////////////////////////////////////////////////////////////////////
 ///
 /// @defgroup FastMemory Fast Memory Functions for AVR
@@ -11,7 +13,7 @@
 extern "C" {
 void * memmove8( void * dst, const void * src, uint16_t num );  ///< Faster alternative to memmove() on AVR
 void * memcpy8 ( void * dst, const void * src, uint16_t num )  __attribute__ ((noinline));  ///< Faster alternative to memcpy() on AVR
-void * memset8 ( void * ptr, uint8_t value, uint16_t num ) __attribute__ ((noinline)) ;  ///< Faster alternative to memset() on AVR
+void * memset8 ( void * ptr, fl::u8 value, uint16_t num ) __attribute__ ((noinline)) ;  ///< Faster alternative to memset() on AVR
 }
 #else
 // on non-AVR platforms, these names just call standard libc.

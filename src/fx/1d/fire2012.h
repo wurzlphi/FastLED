@@ -2,6 +2,7 @@
 
 #include "FastLED.h"
 #include "fl/namespace.h"
+#include "fl/int.h"
 #include "fl/vector.h"
 #include "fx/fx1d.h"
 
@@ -48,7 +49,7 @@ FASTLED_SMART_PTR(Fire2012);
 
 class Fire2012 : public Fx1d {
   public:
-    Fire2012(uint16_t num_leds, uint8_t cooling = 55, uint8_t sparking = 120,
+    Fire2012(uint16_t num_leds, fl::u8 cooling = 55, fl::u8 sparking = 120,
              bool reverse_direction = false,
              const CRGBPalette16 &palette = (const CRGBPalette16 &)HeatColors_p)
         : Fx1d(num_leds), cooling(cooling), sparking(sparking),
@@ -85,7 +86,7 @@ class Fire2012 : public Fx1d {
         for (uint16_t j = 0; j < mNumLeds; j++) {
             // Scale the heat value from 0-255 down to 0-240
             // for best results with color palettes.
-            uint8_t colorindex = scale8(heat[j], 240);
+            fl::u8 colorindex = scale8(heat[j], 240);
             CRGB color = ColorFromPalette(palette, colorindex);
             int pixelnumber;
             if (reverse_direction) {
@@ -100,9 +101,9 @@ class Fire2012 : public Fx1d {
     fl::string fxName() const override { return "Fire2012"; }
 
   private:
-    fl::vector<uint8_t, fl::allocator_psram<uint8_t>> heat;
-    uint8_t cooling;
-    uint8_t sparking;
+    fl::vector<fl::u8, fl::allocator_psram<fl::u8>> heat;
+    fl::u8 cooling;
+    fl::u8 sparking;
     bool reverse_direction;
     CRGBPalette16 palette;
 };

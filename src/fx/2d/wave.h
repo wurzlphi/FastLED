@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "fl/warn.h"
 
@@ -38,7 +39,7 @@ class WaveCrgbMapDefault : public WaveCrgbMap {
         for (uint32_t y = 0; y < height; y++) {
             for (uint32_t x = 0; x < width; x++) {
                 uint32_t idx = xymap(x, y);
-                uint8_t value8 = waveSim.getu8(x, y);
+                fl::u8 value8 = waveSim.getu8(x, y);
                 leds[idx] = CRGB(value8, value8, value8);
             }
         }
@@ -132,7 +133,7 @@ class WaveFx : public Fx2d {
         mWaveSim.setf(x, y, MIN(1.0f, sum));
     }
 
-    uint8_t getu8(size_t x, size_t y) const {
+    fl::u8 getu8(size_t x, size_t y) const {
         // Get the 8-bit value at the given coordinates in the wave simulation.
         return mWaveSim.getu8(x, y);
     }

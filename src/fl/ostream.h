@@ -51,7 +51,7 @@ public:
         return *this;
     }
 
-    ostream& operator<<(uint8_t n) {
+    ostream& operator<<(fl::u8 n) {
         string temp;
         temp.append(u16(n));
         print(temp.c_str());

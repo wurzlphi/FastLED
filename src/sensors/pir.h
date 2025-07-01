@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #include "digital_pin.h"
 #include "fl/ptr.h"
@@ -35,7 +36,7 @@ class PirLowLevel {
 //   #define PIR_FALLING_TIME 1000  // how long to fade out the PIR sensor
 //   Pir pir(PIN_PIR, PIR_LATCH_MS, PIR_RISING_TIME, PIR_FALLING_TIME);
 //   void loop() {
-//      uint8_t bri = pir.transition(millis());
+//      fl::u8 bri = pir.transition(millis());
 //      FastLED.setBrightness(bri * brightness.as<float>());
 //   }
 
@@ -59,7 +60,7 @@ public:
     ///  • holds 255 until latchMs–fallingTime
     ///  • ramps 255→0 over fallingTime
     /// Outside latch period returns 0.
-    uint8_t transition(uint32_t now);
+    fl::u8 transition(uint32_t now);
 
     /// Manually start the latch cycle (e.g. on startup)
     void activate(uint32_t now) { mRamp.trigger(now); }

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 
 FASTLED_NAMESPACE_BEGIN
@@ -33,7 +34,7 @@ FASTLED_NAMESPACE_BEGIN
 /// ANSI: unsigned short _Fract. 
 /// Range is 0 to 0.99609375 in steps of 0.00390625.  
 /// Should be interpreted as unsigned 256ths.
-typedef uint8_t   fract8;
+typedef fl::u8   fract8;
 
 /// ANSI: signed short _Fract. 
 /// Range is -0.9921875 to 0.9921875 in steps of 0.0078125.  

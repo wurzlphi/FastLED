@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "fl/engine_events.h"
+#include "fl/int.h"
 #include "fl/map.h"
 #include "fl/namespace.h"
 #include "fl/screenmap.h"
@@ -13,7 +14,7 @@
 
 namespace fl {
 
-typedef fl::span<const uint8_t> SliceUint8;
+typedef fl::span<const fl::u8> SliceUint8;
 
 // Zero copy data transfer of strip information from C++ to JavaScript.
 class ActiveStripData : public fl::EngineEvents::Listener {
@@ -22,7 +23,7 @@ class ActiveStripData : public fl::EngineEvents::Listener {
     typedef fl::SortedHeapMap<int, fl::ScreenMap> ScreenMapMap;
 
     static ActiveStripData &Instance();
-    void update(int id, uint32_t now, const uint8_t *pixel_data, size_t size);
+    void update(int id, uint32_t now, const fl::u8 *pixel_data, size_t size);
     void updateScreenMap(int id, const fl::ScreenMap &screenmap);
 
     fl::string infoJsonString();

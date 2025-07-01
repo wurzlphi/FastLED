@@ -9,6 +9,7 @@
 // #include "fl/raster.h"
 // #include "fl/xypath.h"
 #include "fl/function.h"
+#include "fl/int.h"
 #include "fl/ptr.h"
 #include "fl/tile2x2.h"
 #include "fl/transform.h"
@@ -26,7 +27,7 @@ class XYPathRenderer : public Referent {
     Tile2x2_u8 at_subpixel(float alpha);
 
     void rasterize(float from, float to, int steps, XYRasterU8Sparse &raster,
-                   fl::function<uint8_t(float)> *optional_alpha_gen = nullptr);
+                   fl::function<fl::u8(float)> *optional_alpha_gen = nullptr);
 
     // Overloaded to allow transform to be passed in.
     vec2f at(float alpha, const TransformFloat &tx);

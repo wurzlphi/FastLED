@@ -1,6 +1,7 @@
 #ifndef __FASTPIN_ARM_K20_H
 #define __FASTPIN_ARM_K20_H
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/force_inline.h"
 #include "fl/namespace.h"
 
@@ -18,7 +19,7 @@ FASTLED_NAMESPACE_BEGIN
 /// uses the full port GPIO registers.  In theory, in some way, bit-band register access -should- be faster, however I have found
 /// that something about the way gcc does register allocation results in the bit-band code being slower.  It will need more fine tuning.
 /// The registers are data output, set output, clear output, toggle output, input, and direction
-template<uint8_t PIN, uint32_t _MASK, typename _PDOR, typename _PSOR, typename _PCOR, typename _PTOR, typename _PDIR, typename _PDDR> class _ARMPIN {
+template<fl::u8 PIN, uint32_t _MASK, typename _PDOR, typename _PSOR, typename _PCOR, typename _PTOR, typename _PDIR, typename _PDDR> class _ARMPIN {
 public:
 	typedef volatile uint32_t * port_ptr_t;
 	typedef uint32_t port_t;
@@ -48,7 +49,7 @@ public:
 
 /// Template definition for teensy 3.0 style ARM pins using bit banding, providing direct access to the various GPIO registers.  GCC
 /// does a poor job of optimizing around these accesses so they are not being used just yet.
-template<uint8_t PIN, int _BIT, typename _PDOR, typename _PSOR, typename _PCOR, typename _PTOR, typename _PDIR, typename _PDDR> class _ARMPIN_BITBAND {
+template<fl::u8 PIN, int _BIT, typename _PDOR, typename _PSOR, typename _PCOR, typename _PTOR, typename _PDIR, typename _PDDR> class _ARMPIN_BITBAND {
 public:
 	typedef volatile uint32_t * port_ptr_t;
 	typedef uint32_t port_t;

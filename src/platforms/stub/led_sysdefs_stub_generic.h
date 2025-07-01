@@ -6,6 +6,7 @@
 #endif
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 
 #ifndef F_CPU
 #define F_CPU 1000000000
@@ -33,7 +34,7 @@ typedef volatile uint32_t RoReg;
 typedef volatile uint32_t RwReg;
 
 extern "C" {
-    void pinMode(uint8_t pin, uint8_t mode);
+    void pinMode(fl::u8 pin, fl::u8 mode);
 
     uint32_t millis(void);
     uint32_t micros(void);

@@ -2,6 +2,7 @@
 #define __INC_FASTPIN_APOLLO3_H
 
 #include "fl/stdint.h"
+#include "fl/int.h"
 #include "fl/namespace.h"
 
 FASTLED_NAMESPACE_BEGIN
@@ -13,7 +14,7 @@ FASTLED_NAMESPACE_BEGIN
 
 #else
 
-template<uint8_t PIN, uint8_t PAD> class _APOLLO3PIN {
+template<fl::u8 PIN, fl::u8 PAD> class _APOLLO3PIN {
 public:
     typedef volatile uint32_t * port_ptr_t;
     typedef uint32_t port_t;
