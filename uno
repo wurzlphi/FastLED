@@ -1,1 +1,0 @@
-./compile uno "$@" examples/Blink
