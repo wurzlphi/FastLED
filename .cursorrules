@@ -355,6 +355,9 @@ uv run mcp_server.py
 - ❌ `#include <cmath>` → ✅ `#include "fl/math.h"`
 - ❌ `#include <cstdint>` → ✅ `#include "fl/stdint.h"`
 
+**Memory Functions:**
+- ❌ `#include <string.h>` → ✅ `#include "fl/memcpy.h"` (for memcpy) or `#include "fl/memset.h"` (for memset)
+
 **Functions and classes:**
 - ❌ `std::move()` → ✅ `fl::move()`
 - ❌ `std::forward()` → ✅ `fl::forward()`
