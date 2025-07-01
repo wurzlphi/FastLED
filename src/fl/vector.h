@@ -360,8 +360,12 @@ template <typename T, typename Allocator = fl::allocator<T>> class HeapVector {
         }
     };
 
-    // Constructor
-    HeapVector(fl::sz size = 0, const T &value = T()) : mCapacity(size), mSize(size) {
+    // Default constructor
+    HeapVector() : mCapacity(0), mSize(0) {
+    }
+    
+    // Constructor with size and value
+    HeapVector(fl::sz size, const T &value = T()) : mCapacity(size), mSize(size) {
         if (size > 0) {
             // mArray.reset(size);
             mArray = mAlloc.allocate(size);

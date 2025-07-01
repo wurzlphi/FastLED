@@ -325,6 +325,8 @@ def compile_with_pio_ci(
             real_board_name,
             "--lib",
             "src",  # FastLED source directory
+            "--lib",
+            str(example_path),  # Example directory for local includes (e.g., shared/ subdirectories)
             "--keep-build-dir",
             "--build-dir",
             str(board_build_dir / example_path.name),
