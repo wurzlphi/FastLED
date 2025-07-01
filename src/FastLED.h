@@ -365,7 +365,7 @@ enum EBlockChipsets {
 /// @param scale the initial brightness scale value
 /// @param data max power data, in milliwatts
 /// @returns the brightness scale, limited to max power
-typedef uint8_t (*power_func)(uint8_t scale, fl::u32 data);
+typedef uint8_t (*power_func)(uint8_t scale, uint32_t data);
 
 /// High level controller interface for FastLED.
 /// This class manages controllers, global settings, and trackings such as brightness
@@ -378,7 +378,7 @@ class CFastLED {
 	uint8_t  m_Scale;         ///< the current global brightness scale setting
 	        fl::u16 m_nFPS;          ///< tracking for current frames per second (FPS) value
 	fl::u32 m_nMinMicros;    ///< minimum µs between frames, used for capping frame rates
-	fl::u32 m_nPowerData;    ///< max power use parameter
+	uint32_t m_nPowerData;    ///< max power use parameter
 	power_func m_pPowerFunc;  ///< function for overriding brightness when using FastLED.show();
 
 public:
@@ -807,7 +807,7 @@ public:
 
 	/// Set the maximum power to be used, given in milliwatts
 	/// @param milliwatts the max power draw desired, in milliwatts
-	inline void setMaxPowerInMilliWatts(fl::u32 milliwatts) { m_pPowerFunc = &calculate_max_brightness_for_power_mW; m_nPowerData = milliwatts; }
+	inline void setMaxPowerInMilliWatts(fl::u32 milliwatts) { m_pPowerFunc = static_cast<power_func>(static_cast<uint8_t(*)(uint8_t, uint32_t)>(calculate_max_brightness_for_power_mW)); m_nPowerData = milliwatts; }
 
 	/// Update all our controllers with the current led colors, using the passed in brightness
 	/// @param scale the brightness value to use in place of the stored value
