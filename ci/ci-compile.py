@@ -1,39 +1,22 @@
 """
-Runs the compilation process for all examples on all boards in parallel.
-Build artifacts are recycled within a board group so that subsequent ino
-files are built faster.
+Runs the compilation process for examples on boards using pio ci command.
+This replaces the previous concurrent build system with a simpler pio ci approach.
 """
 
 import argparse
 import os
+import subprocess
 import sys
 import time
 import warnings
 from pathlib import Path
 
 from ci.boards import Board, get_board  # type: ignore
-from ci.concurrent_run import ConcurrentRunArgs, concurrent_run
 from ci.locked_print import locked_print
 
 HERE = Path(__file__).parent.resolve()
 
-LIBS = ["src"]
-EXTRA_LIBS = [
-    "https://github.com/me-no-dev/ESPAsyncWebServer.git",
-    "ArduinoOTA",
-    "SD",
-    "FS",
-    "ESPmDNS",
-    "WiFi",
-    "WebSockets",
-]
-BUILD_FLAGS = ["-Wl,-Map,firmware.map", "-fopt-info-all=optimization_report.txt"]
-
-# Default boards to compile for. You can use boards not defined here but
-# if the board isn't part of the officially supported platformio boards then
-# you will need to add the board to the ~/.platformio/platforms directory.
-# prior to running this script. This happens automatically as of 2024-08-20
-# with the github workflow scripts.
+# Default boards to compile for
 DEFAULT_BOARDS_NAMES = [
     "apollo3_red",
     "apollo3_thing_explorable",
@@ -127,12 +110,8 @@ EXTRA_EXAMPLES: dict[Board, list[str]] = {
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Compile FastLED examples for various boards."
+        description="Compile FastLED examples for various boards using pio ci."
     )
-    # parser.add_argument(
-    #     "--boards", type=str, help="Comma-separated list of boards to compile for"
-    # )
-    # needs to be a positional argument instead
     parser.add_argument(
         "boards",
         type=str,
@@ -152,9 +131,6 @@ def parse_args():
         "--exclude-examples", type=str, help="Examples that should be excluded"
     )
     parser.add_argument(
-        "--skip-init", action="store_true", help="Skip the initialization step"
-    )
-    parser.add_argument(
         "--defines", type=str, help="Comma-separated list of compiler definitions"
     )
     parser.add_argument("--customsdk", type=str, help="custom_sdkconfig project option")
@@ -164,24 +140,13 @@ def parse_args():
         help="Comma-separated list of extra packages to install",
     )
     parser.add_argument(
-        "--add-extra-esp32-libs",
-        action="store_true",
-        help="Add extra libraries to the libraries list to check against compiler errors.",
-    )
-    parser.add_argument(
         "--build-dir", type=str, help="Override the default build directory"
-    )
-    parser.add_argument(
-        "--no-project-options",
-        action="store_true",
-        help="Don't use custom project options",
     )
     parser.add_argument(
         "--interactive",
         action="store_true",
         help="Enable interactive mode to choose a board",
     )
-    # Passed by the github action to disable interactive mode.
     parser.add_argument(
         "--no-interactive", action="store_true", help="Disable interactive mode"
     )
@@ -235,7 +200,6 @@ def parse_args():
         warnings.warn(f"Unknown arguments: {unknown_flags}")
 
     # Check for FASTLED_CI_NO_INTERACTIVE environment variable
-    # This allows test.py and other scripts to force non-interactive mode
     if os.environ.get("FASTLED_CI_NO_INTERACTIVE") == "true":
         args.interactive = False
         args.no_interactive = True
@@ -252,7 +216,7 @@ def parse_args():
         warnings.warn(
             "Both --allsrc and --no-allsrc were passed, this is contradictory. Please specify only one."
         )
-        sys.exit(1)  # Exit with error
+        sys.exit(1)
 
     return args
 
@@ -276,7 +240,6 @@ def choose_board_interactively(boards: list[str]) -> list[str]:
     out: list[str] = []
     while True:
         try:
-            # choice = int(input("Enter the number of the board(s) you want to compile to: "))
             input_str = input(
                 "Enter the number of the board(s) you want to compile to, or it's name(s): "
             )
@@ -308,17 +271,201 @@ def resolve_example_path(example: str) -> Path:
     return example_path
 
 
-def create_concurrent_run_args(args: argparse.Namespace) -> ConcurrentRunArgs:
-    skip_init = args.skip_init
-    if args.interactive:
-        boards = choose_board_interactively(DEFAULT_BOARDS_NAMES + OTHER_BOARDS_NAMES)
+def compile_with_pio_ci(
+    board: Board,
+    example_paths: list[Path],
+    build_dir: str | None,
+    defines: list[str],
+    verbose: bool,
+) -> tuple[bool, str]:
+    """Compile examples for a board using pio ci command."""
+    
+    # Skip web boards
+    if board.board_name == "web":
+        locked_print(f"Skipping web target for board {board.board_name}")
+        return True, ""
+    
+    board_name = board.board_name
+    real_board_name = board.get_real_board_name()
+    
+    # Set up build directory
+    if build_dir:
+        board_build_dir = Path(build_dir) / board_name
     else:
-        boards = args.boards.split(",") if args.boards else DEFAULT_BOARDS_NAMES
-    projects: list[Board] = []
+        board_build_dir = Path(".build") / board_name
+    
+    board_build_dir.mkdir(parents=True, exist_ok=True)
+    
+    locked_print(f"*** Compiling examples for board {board_name} using pio ci ***")
+    
+    errors = []
+    
+    for example_path in example_paths:
+        locked_print(f"*** Building example {example_path.name} for board {board_name} ***")
+        
+        # Find the .ino file in the example directory
+        ino_files = list(example_path.glob("*.ino"))
+        if not ino_files:
+            error_msg = f"No .ino file found in {example_path}"
+            locked_print(f"ERROR: {error_msg}")
+            errors.append(error_msg)
+            continue
+        
+        # Use the first .ino file found
+        ino_file = ino_files[0]
+        
+        # Build pio ci command
+        cmd_list = [
+            "pio",
+            "ci",
+            str(ino_file),
+            "--board",
+            real_board_name,
+            "--lib",
+            "src",  # FastLED source directory
+            "--keep-build-dir",
+            "--build-dir",
+            str(board_build_dir / example_path.name),
+        ]
+        
+        # Add platform-specific options
+        if board.platform:
+            cmd_list.extend(["--project-option", f"platform={board.platform}"])
+        
+        if board.platform_packages:
+            cmd_list.extend(["--project-option", f"platform_packages={board.platform_packages}"])
+        
+        if board.framework:
+            cmd_list.extend(["--project-option", f"framework={board.framework}"])
+        
+        if board.board_build_core:
+            cmd_list.extend(["--project-option", f"board_build.core={board.board_build_core}"])
+        
+        if board.board_build_filesystem_size:
+            cmd_list.extend(["--project-option", f"board_build.filesystem_size={board.board_build_filesystem_size}"])
+        
+        # Add defines
+        all_defines = defines.copy()
+        if board.defines:
+            all_defines.extend(board.defines)
+        
+        if all_defines:
+            build_flags = " ".join(f"-D{define}" for define in all_defines)
+            cmd_list.extend(["--project-option", f"build_flags={build_flags}"])
+        
+        # Add custom SDK config if specified
+        if board.customsdk:
+            cmd_list.extend(["--project-option", f"custom_sdkconfig={board.customsdk}"])
+        
+        # Add verbose flag if requested
+        if verbose:
+            cmd_list.append("--verbose")
+        
+        # Execute the command
+        cmd_str = subprocess.list2cmdline(cmd_list)
+        locked_print(f"Running command: {cmd_str}")
+        
+        start_time = time.time()
+        
+        try:
+            result = subprocess.run(
+                cmd_list,
+                capture_output=True,
+                text=True,
+                cwd=str(HERE.parent),
+                timeout=300,  # 5 minute timeout per example
+            )
+            
+            elapsed_time = time.time() - start_time
+            
+            if result.returncode == 0:
+                locked_print(f"*** Successfully built {example_path.name} for {board_name} in {elapsed_time:.2f}s ***")
+                if verbose and result.stdout:
+                    locked_print(f"Build output:\n{result.stdout}")
+            else:
+                error_msg = f"Failed to build {example_path.name} for {board_name}"
+                locked_print(f"ERROR: {error_msg}")
+                locked_print(f"Command: {cmd_str}")
+                if result.stdout:
+                    locked_print(f"STDOUT:\n{result.stdout}")
+                if result.stderr:
+                    locked_print(f"STDERR:\n{result.stderr}")
+                errors.append(f"{error_msg}: {result.stderr}")
+                
+        except subprocess.TimeoutExpired:
+            error_msg = f"Timeout building {example_path.name} for {board_name}"
+            locked_print(f"ERROR: {error_msg}")
+            errors.append(error_msg)
+        except Exception as e:
+            error_msg = f"Exception building {example_path.name} for {board_name}: {e}"
+            locked_print(f"ERROR: {error_msg}")
+            errors.append(error_msg)
+    
+    if errors:
+        return False, "\n".join(errors)
+    
+    return True, f"Successfully compiled all examples for {board_name}"
+
+
+def run_symbol_analysis(boards: list[Board]) -> None:
+    """Run symbol analysis on compiled outputs if requested."""
+    locked_print("\nRunning symbol analysis on compiled outputs...")
+    
     for board in boards:
-        projects.append(get_board(board, no_project_options=args.no_project_options))
-    extra_examples: dict[Board, list[Path]] = {}
-    # Handle both positional and named examples
+        if board.board_name == "web":
+            continue
+            
+        try:
+            locked_print(f"Running symbol analysis for board: {board.board_name}")
+            
+            cmd = [
+                "uv",
+                "run",
+                "ci/ci/symbol_analysis.py",
+                "--board",
+                board.board_name,
+            ]
+            
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=str(HERE.parent)
+            )
+            
+            if result.returncode != 0:
+                locked_print(f"ERROR: Symbol analysis failed for board {board.board_name}: {result.stderr}")
+            else:
+                locked_print(f"Symbol analysis completed for board: {board.board_name}")
+                if result.stdout:
+                    print(result.stdout)
+                    
+        except Exception as e:
+            locked_print(f"ERROR: Exception during symbol analysis for board {board.board_name}: {e}")
+
+
+def main() -> int:
+    """Main function."""
+    args = parse_args()
+    
+    if args.supported_boards:
+        print(",".join(DEFAULT_BOARDS_NAMES))
+        return 0
+    
+    # Determine which boards to compile for
+    if args.interactive:
+        boards_names = choose_board_interactively(DEFAULT_BOARDS_NAMES + OTHER_BOARDS_NAMES)
+    else:
+        boards_names = args.boards.split(",") if args.boards else DEFAULT_BOARDS_NAMES
+    
+    # Get board objects
+    boards: list[Board] = []
+    for board_name in boards_names:
+        try:
+            board = get_board(board_name, no_project_options=False)
+            boards.append(board)
+        except Exception as e:
+            locked_print(f"ERROR: Failed to get board '{board_name}': {e}")
+            return 1
+    
+    # Determine which examples to compile
     if args.positional_examples:
         # Convert positional examples, handling both "examples/Blink" and "Blink" formats
         examples = []
@@ -331,77 +478,92 @@ def create_concurrent_run_args(args: argparse.Namespace) -> ConcurrentRunArgs:
         examples = args.examples.split(",")
     else:
         examples = DEFAULT_EXAMPLES
-        # Only add extra examples when using defaults
-        for b, _examples in EXTRA_EXAMPLES.items():
-            resolved_examples = [resolve_example_path(example) for example in _examples]
-            extra_examples[b] = resolved_examples
-    examples_paths = [resolve_example_path(example) for example in examples]
-    # now process example exclusions.
+    
+    # Process example exclusions
     if args.exclude_examples:
         exclude_examples = args.exclude_examples.split(",")
-        examples_paths = [
-            example
-            for example in examples_paths
-            if example.name not in exclude_examples
-        ]
-        for exclude in exclude_examples:
-            examples.remove(exclude)
-    customsdk = args.customsdk
+        examples = [ex for ex in examples if ex not in exclude_examples]
+    
+    # Resolve example paths
+    example_paths: list[Path] = []
+    for example in examples:
+        try:
+            example_path = resolve_example_path(example)
+            example_paths.append(example_path)
+        except FileNotFoundError as e:
+            locked_print(f"ERROR: {e}")
+            return 1
+    
+    # Add extra examples for specific boards
+    extra_examples: dict[Board, list[Path]] = {}
+    for board in boards:
+        if board in EXTRA_EXAMPLES:
+            board_examples = []
+            for example in EXTRA_EXAMPLES[board]:
+                try:
+                    board_examples.append(resolve_example_path(example))
+                except FileNotFoundError as e:
+                    locked_print(f"WARNING: {e}")
+            if board_examples:
+                extra_examples[board] = board_examples
+    
+    # Set up defines
     defines: list[str] = []
     if args.defines:
         defines.extend(args.defines.split(","))
+    
     # Add FASTLED_ALL_SRC define when --allsrc or --no-allsrc flag is specified
     if args.allsrc:
         defines.append("FASTLED_ALL_SRC=1")
     elif args.no_allsrc:
         defines.append("FASTLED_ALL_SRC=0")
-    extra_packages: list[str] = []
-    if args.extra_packages:
-        extra_packages.extend(args.extra_packages.split(","))
-    build_dir = args.build_dir
-    extra_scripts = "pre:lib/ci/ci-flags.py"
-    verbose = args.verbose
-
-    out: ConcurrentRunArgs = ConcurrentRunArgs(
-        projects=projects,
-        examples=examples_paths,
-        skip_init=skip_init,
-        defines=defines,
-        customsdk=customsdk,
-        extra_packages=extra_packages,
-        libs=LIBS,
-        build_dir=build_dir,
-        extra_scripts=extra_scripts,
-        cwd=str(HERE.parent),
-        board_dir=(HERE / "boards").absolute().as_posix(),
-        build_flags=BUILD_FLAGS,
-        verbose=verbose,
-        extra_examples=extra_examples,
-        symbols=args.symbols,
-    )
-    return out
-
-
-def main() -> int:
-    """Main function."""
-    args = parse_args()
-    if args.supported_boards:
-        print(",".join(DEFAULT_BOARDS_NAMES))
-        return 0
-    if args.add_extra_esp32_libs:
-        LIBS.extend(EXTRA_LIBS)
-
-    # Set the working directory to the script's parent directory.
-    run_args = create_concurrent_run_args(args)
+    
+    # Start compilation
     start_time = time.time()
-    rtn = concurrent_run(args=run_args)
-    time_taken = time.strftime("%Mm:%Ss", time.gmtime(time.time() - start_time))
-    locked_print(f"Compilation finished in {time_taken}.")
-    return rtn
+    locked_print(f"Starting compilation for {len(boards)} boards with {len(example_paths)} examples")
+    
+    compilation_errors = []
+    
+    # Compile for each board
+    for board in boards:
+        board_examples = example_paths.copy()
+        if board in extra_examples:
+            board_examples.extend(extra_examples[board])
+        
+        success, message = compile_with_pio_ci(
+            board=board,
+            example_paths=board_examples,
+            build_dir=args.build_dir,
+            defines=defines,
+            verbose=args.verbose,
+        )
+        
+        if not success:
+            compilation_errors.append(f"Board {board.board_name}: {message}")
+            locked_print(f"ERROR: Compilation failed for board {board.board_name}")
+            # Continue with other boards instead of stopping
+    
+    # Run symbol analysis if requested
+    if args.symbols:
+        run_symbol_analysis(boards)
+    
+    # Report results
+    elapsed_time = time.time() - start_time
+    time_str = time.strftime("%Mm:%Ss", time.gmtime(elapsed_time))
+    
+    if compilation_errors:
+        locked_print(f"\nCompilation finished in {time_str} with {len(compilation_errors)} error(s):")
+        for error in compilation_errors:
+            locked_print(f"  - {error}")
+        return 1
+    else:
+        locked_print(f"\nAll compilations completed successfully in {time_str}")
+        return 0
 
 
 if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
+        locked_print("\nInterrupted by user")
         sys.exit(1)
