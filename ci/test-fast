@@ -14,13 +14,13 @@ export FASTLED_SKIP_UNO_TESTS=${FASTLED_SKIP_UNO_TESTS:-1}
 export FASTLED_CI_NO_INTERACTIVE=true
 
 # Use the optimized test runner
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 # Print configuration
 echo "⚙️  Configuration:"
 echo "   - UNO tests: $([ "$FASTLED_SKIP_UNO_TESTS" = "1" ] && echo "DISABLED (faster)" || echo "ENABLED")"
 echo "   - Target: C++ tests only"
-echo "   - Mode: Development (incremental builds)"
+echo "   - Mode: Fast builds (optimized for development)"
 echo ""
 
 # Run the optimized test
