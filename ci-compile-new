@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# FastLED Build System - New PlatformIO.ini Based Compiler
+#
+# This script is a drop-in replacement for ci-compile.py that uses the enhanced
+# root platformio.ini file with pio ci for better symlink handling and build control.
+#
+# Usage examples:
+#   ./ci-compile-new uno Blink                    # Compile Blink for UNO
+#   ./ci-compile-new esp32dev --examples Blink,Audio  # Compile multiple examples
+#   ./ci-compile-new --build-info --optimization-report uno Blink  # With build analysis
+#   ./ci-compile-new --build-dir /tmp/build uno Blink  # Custom build directory
+#
+
+set -e  # Exit on any error
+
+# Change to the project root directory
+cd "$(dirname "$0")"
+
+# Default arguments
+PYTHON_SCRIPT="ci/ci-compile-platformio.py"
+
+# Check if the new script exists
+if [[ ! -f "$PYTHON_SCRIPT" ]]; then
+    echo "ERROR: New compilation script not found at $PYTHON_SCRIPT"
+    echo "Make sure you're running this from the FastLED project root."
+    exit 1
+fi
+
+# Check if uv is available
+if ! command -v uv &> /dev/null; then
+    echo "ERROR: 'uv' command not found. Please install uv first."
+    echo "See: https://github.com/astral-sh/uv"
+    exit 1
+fi
+
+# Run the new Python-based compilation system
+echo "FastLED Build System - Using Enhanced PlatformIO.ini"
+echo "Running: uv run $PYTHON_SCRIPT $*"
+echo
+
+exec uv run "$PYTHON_SCRIPT" "$@"
