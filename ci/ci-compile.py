@@ -174,6 +174,11 @@ def parse_args():
         action="store_true",
         help="Disable all-source build (adds FASTLED_ALL_SRC=0 define)",
     )
+    parser.add_argument(
+        "--optimize-build",
+        action="store_true",
+        help="Enable two-stage build optimization to reduce repeated library compilation",
+    )
     try:
         args = parser.parse_intermixed_args()
         unknown = []
@@ -415,6 +420,390 @@ def setup_library_for_windows(board_build_dir: Path, example_path: Path) -> Path
     return lib_dir
 
 
+def compile_with_pio_ci_optimized(
+    board: Board,
+    example_paths: list[Path],
+    build_dir: str | None,
+    defines: list[str],
+    verbose: bool,
+) -> tuple[bool, str]:
+    """Two-stage optimized compilation for examples using pio ci command.
+    
+    Stage 1: Initialize build folder with --disable-auto-clean to preserve libraries
+    Stage 2: Batch building using LDF mode chain to reuse compiled libraries
+    """
+    
+    # Skip web boards
+    if board.board_name == "web":
+        locked_print(f"Skipping web target for board {board.board_name}")
+        return True, ""
+
+    board_name = board.board_name
+    real_board_name = board.get_real_board_name()
+
+    # Set up build directory
+    if build_dir:
+        board_build_dir = Path(build_dir) / board_name
+    else:
+        board_build_dir = Path(".build") / board_name
+
+    board_build_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate build_info.json for this board
+    generate_build_info(board, board_build_dir, defines)
+
+    locked_print(f"*** Two-Stage Optimized Compilation for board {board_name} ***")
+    locked_print(f"*** Stage 1: Initializing build environment with library caching ***")
+
+    # Get absolute path to FastLED library using platform's natural path format
+    fastled_path = str(HERE.parent.absolute())
+    lib_option = f"lib_deps=symlink://{fastled_path}"
+
+    # Set up board-specific build cache directory with absolute path
+    cache_dir = HERE.parent / ".pio_cache" / board.board_name
+    absolute_cache_dir = str(cache_dir.absolute())
+    cache_option = f"build_cache_dir={absolute_cache_dir}"
+
+    errors = []
+    stage1_time = 0
+    stage2_time = 0
+
+    # STAGE 1: Initialize build environment with first example
+    if example_paths:
+        first_example = example_paths[0]
+        
+        locked_print(f"*** Stage 1: Building {first_example.name} to initialize libraries ***")
+        
+        # Find the .ino file in the example directory
+        ino_files = list(first_example.glob("*.ino"))
+        if not ino_files:
+            error_msg = f"No .ino file found in {first_example}"
+            locked_print(f"ERROR: {error_msg}")
+            return False, error_msg
+
+        # Use the first .ino file found
+        ino_file = ino_files[0]
+
+        # Build Stage 1 pio ci command with --disable-auto-clean
+        stage1_cmd_list = [
+            "pio",
+            "ci",
+            str(ino_file),
+            "--board",
+            real_board_name,
+            "--keep-build-dir",
+            "--disable-auto-clean",  # Key optimization: preserve compiled libraries
+            "--build-dir",
+            str(board_build_dir / first_example.name),
+            "--project-option",
+            lib_option,
+            "--project-option",
+            cache_option,
+        ]
+
+        # Add platform-specific options for Stage 1
+        if board.platform:
+            stage1_cmd_list.extend(["--project-option", f"platform={board.platform}"])
+        if board.platform_packages:
+            stage1_cmd_list.extend(
+                ["--project-option", f"platform_packages={board.platform_packages}"]
+            )
+        if board.framework:
+            stage1_cmd_list.extend(["--project-option", f"framework={board.framework}"])
+        if board.board_build_core:
+            stage1_cmd_list.extend(
+                ["--project-option", f"board_build.core={board.board_build_core}"]
+            )
+        if board.board_build_filesystem_size:
+            stage1_cmd_list.extend(
+                [
+                    "--project-option",
+                    f"board_build.filesystem_size={board.board_build_filesystem_size}",
+                ]
+            )
+
+        # Add defines and build flags for Stage 1
+        all_defines = defines.copy()
+        if board.defines:
+            all_defines.extend(board.defines)
+
+        build_flags_list = []
+        build_flags_list.append("-fopt-info-all=optimization_report.txt")
+        
+        if all_defines:
+            build_flags_list.extend(f"-D{define}" for define in all_defines)
+
+        if build_flags_list:
+            build_flags_str = " ".join(build_flags_list)
+            stage1_cmd_list.extend(["--project-option", f"build_flags={build_flags_str}"])
+
+        if board.customsdk:
+            stage1_cmd_list.extend(["--project-option", f"custom_sdkconfig={board.customsdk}"])
+
+        if verbose:
+            stage1_cmd_list.append("--verbose")
+
+        # Execute Stage 1
+        stage1_start = time.time()
+        stage1_success, stage1_error = _execute_pio_command(
+            stage1_cmd_list, first_example.name, board_name, verbose, "Stage 1"
+        )
+        stage1_time = time.time() - stage1_start
+
+        if not stage1_success:
+            return False, f"Stage 1 failed: {stage1_error}"
+
+        locked_print(f"*** Stage 1 completed in {stage1_time:.2f}s - Libraries cached ***")
+
+    # STAGE 2: Batch compilation of remaining examples using cached libraries
+    if len(example_paths) > 1:
+        locked_print(f"*** Stage 2: Batch building remaining {len(example_paths)-1} examples ***")
+        
+        stage2_start = time.time()
+        
+        for example_path in example_paths[1:]:
+            locked_print(f"*** Stage 2: Building {example_path.name} using cached libraries ***")
+            
+            # Find the .ino file
+            ino_files = list(example_path.glob("*.ino"))
+            if not ino_files:
+                error_msg = f"No .ino file found in {example_path}"
+                locked_print(f"ERROR: {error_msg}")
+                errors.append(error_msg)
+                continue
+
+            ino_file = ino_files[0]
+
+            # Build Stage 2 pio ci command with LDF mode chain for faster dependency resolution
+            stage2_cmd_list = [
+                "pio",
+                "ci",
+                str(ino_file),
+                "--board",
+                real_board_name,
+                "--keep-build-dir",
+                "--build-dir",
+                str(board_build_dir / example_path.name),
+                "--project-option",
+                lib_option,
+                "--project-option",
+                cache_option,
+                "--project-option",
+                "lib_ldf_mode=chain",  # Optimization: use chain mode for faster resolution
+            ]
+
+            # Add platform-specific options for Stage 2
+            if board.platform:
+                stage2_cmd_list.extend(["--project-option", f"platform={board.platform}"])
+            if board.platform_packages:
+                stage2_cmd_list.extend(
+                    ["--project-option", f"platform_packages={board.platform_packages}"]
+                )
+            if board.framework:
+                stage2_cmd_list.extend(["--project-option", f"framework={board.framework}"])
+            if board.board_build_core:
+                stage2_cmd_list.extend(
+                    ["--project-option", f"board_build.core={board.board_build_core}"]
+                )
+            if board.board_build_filesystem_size:
+                stage2_cmd_list.extend(
+                    [
+                        "--project-option",
+                        f"board_build.filesystem_size={board.board_build_filesystem_size}",
+                    ]
+                )
+
+            # Add defines and build flags for Stage 2
+            if build_flags_list:
+                build_flags_str = " ".join(build_flags_list)
+                stage2_cmd_list.extend(["--project-option", f"build_flags={build_flags_str}"])
+
+            if board.customsdk:
+                stage2_cmd_list.extend(["--project-option", f"custom_sdkconfig={board.customsdk}"])
+
+            if verbose:
+                stage2_cmd_list.append("--verbose")
+
+            # Execute Stage 2 build
+            stage2_success, stage2_error = _execute_pio_command(
+                stage2_cmd_list, example_path.name, board_name, verbose, "Stage 2"
+            )
+
+            if not stage2_success:
+                errors.append(f"Stage 2 failed for {example_path.name}: {stage2_error}")
+
+        stage2_time = time.time() - stage2_start
+        locked_print(f"*** Stage 2 completed in {stage2_time:.2f}s ***")
+
+    total_time = stage1_time + stage2_time
+    locked_print(f"*** Two-Stage Build Summary ***")
+    locked_print(f"Stage 1 (Library Init): {stage1_time:.2f}s")
+    locked_print(f"Stage 2 (Batch Build): {stage2_time:.2f}s")
+    locked_print(f"Total Time: {total_time:.2f}s")
+    locked_print(f"Examples Built: {len(example_paths)}")
+
+    if errors:
+        return False, "\n".join(errors)
+
+    return True, f"Successfully compiled all {len(example_paths)} examples for {board_name} in {total_time:.2f}s"
+
+
+def _execute_pio_command(
+    cmd_list: list[str],
+    example_name: str,
+    board_name: str,
+    verbose: bool,
+    stage_name: str = ""
+) -> tuple[bool, str]:
+    """Execute a PlatformIO command and return success status and error message."""
+    
+    cmd_str = subprocess.list2cmdline(cmd_list)
+    stage_prefix = f"{stage_name}: " if stage_name else ""
+    locked_print(f"{stage_prefix}Building {example_name} for {board_name}...")
+    
+    if verbose:
+        locked_print(f"Command: {cmd_str}")
+
+    start_time = time.time()
+
+    try:
+        # Launch subprocess.Popen and capture output line by line with timestamps
+        result = subprocess.Popen(
+            cmd_list,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            cwd=str(HERE.parent),
+        )
+
+        # Capture output lines in real-time with timestamp buffer
+        stdout_lines = []
+        timestamped_lines = []
+
+        if result.stdout:
+            for line in iter(result.stdout.readline, ""):
+                if line:
+                    line_stripped = line.rstrip()
+                    stdout_lines.append(line_stripped)
+
+                    # Add elapsed time since build started with 2 decimal places
+                    elapsed_time = time.time() - start_time
+                    timestamp = f"{elapsed_time:.2f}"
+                    timestamped_line = f"{timestamp} {line_stripped}"
+                    timestamped_lines.append(timestamped_line)
+
+                    if verbose:
+                        # In verbose mode, show each line immediately with timestamp
+                        locked_print(timestamped_line)
+                    else:
+                        # In normal mode, show only essential build steps
+                        line_lower = line_stripped.lower()
+                        show_line = False
+
+                        # Show actual source file compilation (but not compiler commands)
+                        if "compiling .pio" in line_lower:
+                            show_line = True
+                        # Show linking step
+                        elif (
+                            line_stripped.startswith("Linking")
+                            or "linking" in line_lower
+                        ):
+                            show_line = True
+                        # Show memory usage
+                        elif line_stripped.startswith(
+                            "RAM:"
+                        ) or line_stripped.startswith("Flash:"):
+                            show_line = True
+                        # Show build results
+                        elif any(
+                            result in line_stripped
+                            for result in ["SUCCESS", "FAILED"]
+                        ):
+                            show_line = True
+                        # Show errors and warnings (but avoid long command lines)
+                        elif (
+                            "error:" in line_lower or "warning:" in line_lower
+                        ) and not line_stripped.startswith("avr-"):
+                            show_line = True
+                        # Show "Building in release mode" but not compiler commands
+                        elif (
+                            line_stripped == "Building in release mode"
+                            or line_stripped == "Building in debug mode"
+                        ):
+                            show_line = True
+
+                        if show_line:
+                            locked_print(f"{stage_prefix}{timestamped_line}")
+
+        # Wait for process to complete
+        result.wait()
+
+        stdout = "\n".join(stdout_lines)
+        returncode = result.returncode
+        elapsed_time = time.time() - start_time
+
+        if returncode == 0:
+            locked_print(
+                f"{stage_prefix}Successfully built {example_name} for {board_name} in {elapsed_time:.2f}s"
+            )
+            return True, ""
+        else:
+            error_msg = f"Failed to build {example_name} for {board_name}"
+            locked_print(f"ERROR: {stage_prefix}{error_msg}")
+            if verbose:
+                locked_print(f"Command: {cmd_str}")
+                if stdout:
+                    locked_print(f"STDOUT:\n{stdout}")
+            return False, error_msg
+
+    except subprocess.TimeoutExpired:
+        error_msg = f"Timeout building {example_name} for {board_name}"
+        locked_print(f"ERROR: {stage_prefix}{error_msg}")
+        return False, error_msg
+    except Exception as e:
+        error_msg = f"Exception building {example_name} for {board_name}: {e}"
+        locked_print(f"ERROR: {stage_prefix}{error_msg}")
+        return False, error_msg
+
+
+def run_symbol_analysis(boards: list[Board]) -> None:
+    """Run symbol analysis on compiled outputs if requested."""
+    locked_print("\nRunning symbol analysis on compiled outputs...")
+
+    for board in boards:
+        if board.board_name == "web":
+            continue
+
+        try:
+            locked_print(f"Running symbol analysis for board: {board.board_name}")
+
+            cmd = [
+                "uv",
+                "run",
+                "ci/ci/symbol_analysis.py",
+                "--board",
+                board.board_name,
+            ]
+
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=str(HERE.parent)
+            )
+
+            if result.returncode != 0:
+                locked_print(
+                    f"ERROR: Symbol analysis failed for board {board.board_name}: {result.stderr}"
+                )
+            else:
+                locked_print(f"Symbol analysis completed for board: {board.board_name}")
+                if result.stdout:
+                    print(result.stdout)
+
+        except Exception as e:
+            locked_print(
+                f"ERROR: Exception during symbol analysis for board {board.board_name}: {e}"
+            )
+
+
 def compile_with_pio_ci(
     board: Board,
     example_paths: list[Path],
@@ -422,7 +811,7 @@ def compile_with_pio_ci(
     defines: list[str],
     verbose: bool,
 ) -> tuple[bool, str]:
-    """Compile examples for a board using pio ci command."""
+    """Compile examples for a board using pio ci command (original implementation)."""
 
     # Skip web boards
     if board.board_name == "web":
@@ -488,81 +877,6 @@ def compile_with_pio_ci(
             cache_option,
         ]
 
-        # Check for additional source directories in the example and collect them
-        example_include_dirs = []
-        example_src_dirs = []
-
-        # Always show some level of scanning info
-        has_subdirs = any(
-            subdir.is_dir()
-            and subdir.name not in [".git", "__pycache__", ".pio", ".vscode"]
-            for subdir in example_path.iterdir()
-        )
-
-        if has_subdirs or verbose:
-            locked_print(f"Scanning {example_path.name} for additional sources...")
-
-        # First, check for header files in the example root directory itself
-        # (e.g., defs.h files that need to be accessible to .ino files)
-        root_header_files = [
-            f
-            for f in example_path.iterdir()
-            if f.is_file() and f.suffix in [".h", ".hpp"]
-        ]
-
-        if root_header_files:
-            example_include_dirs.append(str(example_path))
-            locked_print(
-                f"  Found {len(root_header_files)} header file(s) in root directory"
-            )
-            if verbose:
-                for header in root_header_files:
-                    locked_print(f"    -> {header.name}")
-
-        # Then check subdirectories
-        for subdir in example_path.iterdir():
-            if subdir.is_dir() and subdir.name not in [
-                ".git",
-                "__pycache__",
-                ".pio",
-                ".vscode",
-            ]:
-                # Check if this directory contains source files
-                header_files = [
-                    f
-                    for f in subdir.rglob("*")
-                    if f.is_file() and f.suffix in [".h", ".hpp"]
-                ]
-                source_files = [
-                    f
-                    for f in subdir.rglob("*")
-                    if f.is_file() and f.suffix in [".cpp", ".c"]
-                ]
-
-                if header_files:
-                    example_include_dirs.append(str(subdir))
-                    locked_print(
-                        f"  Found {len(header_files)} header file(s) in: {subdir.name}"
-                    )
-                    if verbose:
-                        for header in header_files:
-                            locked_print(f"    -> {header.relative_to(example_path)}")
-
-                if source_files:
-                    example_src_dirs.append(str(subdir))
-                    locked_print(
-                        f"  Found {len(source_files)} source file(s) in: {subdir.name}"
-                    )
-                    if verbose:
-                        for source in source_files:
-                            locked_print(f"    -> {source.relative_to(example_path)}")
-
-        # Show summary if we found additional sources
-        if example_include_dirs or example_src_dirs:
-            locked_print(
-                f"  Added {len(example_include_dirs)} include dir(s), {len(example_src_dirs)} source dir(s)"
-            )
-
         # Add platform-specific options
         if board.platform:
             cmd_list.extend(["--project-option", f"platform={board.platform}"])
@@ -603,12 +917,6 @@ def compile_with_pio_ci(
         if all_defines:
             build_flags_list.extend(f"-D{define}" for define in all_defines)
 
-        # Add example include directories as build flags
-        if example_include_dirs:
-            build_flags_list.extend(
-                f"-I{include_dir}" for include_dir in example_include_dirs
-            )
-
         # Add build flags directly using project options
         if build_flags_list:
             build_flags_str = " ".join(build_flags_list)
@@ -626,59 +934,6 @@ def compile_with_pio_ci(
                 if verbose:
                     locked_print(f"All build flags: {build_flags_str}")
 
-        # Add example source directories as libraries
-        for src_dir in example_src_dirs:
-            cmd_list.extend(["--lib", src_dir])
-
-        # Add example include directories as libraries (for header files like defs.h)
-        for include_dir in example_include_dirs:
-            # Only add as --lib if it's not already added as a source dir
-            if include_dir not in example_src_dirs:
-                cmd_list.extend(["--lib", include_dir])
-
-        # Copy header files to build src directory preserving subdirectory structure
-        # This ensures that .ino files can find header files using relative paths like "shared/defs.h"
-        build_src_dir = board_build_dir / example_path.name / "src"
-        for include_dir in example_include_dirs:
-            include_path = Path(include_dir)
-            if str(include_dir) == str(example_path):  # Root directory headers
-                # Copy .h/.hpp files to build src directory
-                for header_file in include_path.glob("*.h"):
-                    build_src_dir.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(header_file, build_src_dir)
-                    if verbose:
-                        locked_print(
-                            f"  Copied header file: {header_file.name} -> {build_src_dir}"
-                        )
-                for header_file in include_path.glob("*.hpp"):
-                    build_src_dir.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(header_file, build_src_dir)
-                    if verbose:
-                        locked_print(
-                            f"  Copied header file: {header_file.name} -> {build_src_dir}"
-                        )
-            else:  # Subdirectory headers - preserve directory structure
-                # Get the relative path from example root to this include directory
-                try:
-                    rel_path = include_path.relative_to(example_path)
-                    target_subdir = build_src_dir / rel_path
-
-                    # Copy all header files from this subdirectory
-                    header_files = list(include_path.glob("*.h")) + list(
-                        include_path.glob("*.hpp")
-                    )
-                    if header_files:
-                        target_subdir.mkdir(parents=True, exist_ok=True)
-                        for header_file in header_files:
-                            shutil.copy2(header_file, target_subdir)
-                            if verbose:
-                                locked_print(
-                                    f"  Copied header file: {rel_path}/{header_file.name} -> {target_subdir}"
-                                )
-                except ValueError:
-                    # Include directory is not relative to example path, skip
-                    pass
-
         # Add custom SDK config if specified
         if board.customsdk:
             cmd_list.extend(["--project-option", f"custom_sdkconfig={board.customsdk}"])
@@ -688,161 +943,18 @@ def compile_with_pio_ci(
         if verbose:
             cmd_list.append("--verbose")
 
-        # Execute the command
-        cmd_str = subprocess.list2cmdline(cmd_list)
-        locked_print(f"Building {example_path.name} for {board_name}...")
-        if verbose:
-            locked_print(f"Command: {cmd_str}")
+        # Execute the command using the helper function
+        success, error = _execute_pio_command(
+            cmd_list, example_path.name, board_name, verbose
+        )
 
-        start_time = time.time()
-
-        try:
-            # Launch subprocess.Popen and capture output line by line with timestamps
-            result = subprocess.Popen(
-                cmd_list,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                cwd=str(HERE.parent),
-            )
-
-            # Capture output lines in real-time with timestamp buffer
-            stdout_lines = []
-            timestamped_lines = []
-
-            if result.stdout:
-                for line in iter(result.stdout.readline, ""):
-                    if line:
-                        line_stripped = line.rstrip()
-                        stdout_lines.append(line_stripped)
-
-                        # Add elapsed time since build started with 2 decimal places
-                        elapsed_time = time.time() - start_time
-                        timestamp = f"{elapsed_time:.2f}"
-                        timestamped_line = f"{timestamp} {line_stripped}"
-                        timestamped_lines.append(timestamped_line)
-
-                        if verbose:
-                            # In verbose mode, show each line immediately with timestamp
-                            locked_print(timestamped_line)
-                        else:
-                            # In normal mode, show only essential build steps (one per line)
-                            # Be more specific to avoid showing long compiler command lines
-                            line_lower = line_stripped.lower()
-                            show_line = False
-
-                            # Show actual source file compilation (but not compiler commands)
-                            if "compiling .pio" in line_lower:
-                                show_line = True
-                            # Show linking step
-                            elif (
-                                line_stripped.startswith("Linking")
-                                or "linking" in line_lower
-                            ):
-                                show_line = True
-                            # Show memory usage
-                            elif line_stripped.startswith(
-                                "RAM:"
-                            ) or line_stripped.startswith("Flash:"):
-                                show_line = True
-                            # Show build results
-                            elif any(
-                                result in line_stripped
-                                for result in ["SUCCESS", "FAILED"]
-                            ):
-                                show_line = True
-                            # Show errors and warnings (but avoid long command lines)
-                            elif (
-                                "error:" in line_lower or "warning:" in line_lower
-                            ) and not line_stripped.startswith("avr-"):
-                                show_line = True
-                            # Show "Building in release mode" but not compiler commands
-                            elif (
-                                line_stripped == "Building in release mode"
-                                or line_stripped == "Building in debug mode"
-                            ):
-                                show_line = True
-
-                            if show_line:
-                                locked_print(timestamped_line)
-
-            # Wait for process to complete
-            result.wait()
-
-            stdout = "\n".join(stdout_lines)
-            stderr = ""
-            returncode = result.returncode
-
-            elapsed_time = time.time() - start_time
-
-            if returncode == 0:
-                locked_print(
-                    f"*** Successfully built {example_path.name} for {board_name} in {elapsed_time:.2f}s ***"
-                )
-                if verbose and stdout:
-                    locked_print(f"Final build summary:\n{stdout}")
-            else:
-                error_msg = f"Failed to build {example_path.name} for {board_name}"
-                locked_print(f"ERROR: {error_msg}")
-                if verbose:
-                    locked_print(f"Command: {cmd_str}")
-                if stdout:
-                    locked_print(f"STDOUT:\n{stdout}")
-                if stderr:
-                    locked_print(f"STDERR:\n{stderr}")
-                errors.append(f"{error_msg}: {stderr}")
-
-        except subprocess.TimeoutExpired:
-            error_msg = f"Timeout building {example_path.name} for {board_name}"
-            locked_print(f"ERROR: {error_msg}")
-            errors.append(error_msg)
-        except Exception as e:
-            error_msg = f"Exception building {example_path.name} for {board_name}: {e}"
-            locked_print(f"ERROR: {error_msg}")
-            errors.append(error_msg)
+        if not success:
+            errors.append(f"{example_path.name}: {error}")
 
     if errors:
         return False, "\n".join(errors)
 
     return True, f"Successfully compiled all examples for {board_name}"
-
-
-def run_symbol_analysis(boards: list[Board]) -> None:
-    """Run symbol analysis on compiled outputs if requested."""
-    locked_print("\nRunning symbol analysis on compiled outputs...")
-
-    for board in boards:
-        if board.board_name == "web":
-            continue
-
-        try:
-            locked_print(f"Running symbol analysis for board: {board.board_name}")
-
-            cmd = [
-                "uv",
-                "run",
-                "ci/ci/symbol_analysis.py",
-                "--board",
-                board.board_name,
-            ]
-
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, cwd=str(HERE.parent)
-            )
-
-            if result.returncode != 0:
-                locked_print(
-                    f"ERROR: Symbol analysis failed for board {board.board_name}: {result.stderr}"
-                )
-            else:
-                locked_print(f"Symbol analysis completed for board: {board.board_name}")
-                if result.stdout:
-                    print(result.stdout)
-
-        except Exception as e:
-            locked_print(
-                f"ERROR: Exception during symbol analysis for board {board.board_name}: {e}"
-            )
 
 
 def main() -> int:
@@ -932,13 +1044,21 @@ def main() -> int:
 
     compilation_errors = []
 
+    # Choose compilation approach based on --optimize-build flag
+    if args.optimize_build:
+        locked_print("*** Using Two-Stage Build Optimization ***")
+        compile_function = compile_with_pio_ci_optimized
+    else:
+        locked_print("*** Using Standard Build Process ***")
+        compile_function = compile_with_pio_ci
+
     # Compile for each board
     for board in boards:
         board_examples = example_paths.copy()
         if board in extra_examples:
             board_examples.extend(extra_examples[board])
 
-        success, message = compile_with_pio_ci(
+        success, message = compile_function(
             board=board,
             example_paths=board_examples,
             build_dir=args.build_dir,
