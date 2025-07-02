@@ -4,16 +4,9 @@
 /// Disables pragma messages and warnings
 #define FASTLED_INTERNAL
 
-// Fix for ATtiny1604 - provide weak timer_millis symbol
-#if defined(__AVR_ATtiny1604__)
-#ifdef __cplusplus
-extern "C" {
-#endif
-__attribute__((weak)) volatile unsigned long timer_millis = 0;
-#ifdef __cplusplus
-}
-#endif
-#endif
+// Removed duplicate weak definition of timer_millis for ATtiny1604.
+// The variable is already defined in avr_millis_timer_null_counter.hpp when needed,
+// so redefining it here caused multiple-definition linkage errors.
 
 // Interrupt handlers cannot be defined in the header.
 // They must be defined as C functions, or they won't
