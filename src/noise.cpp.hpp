@@ -108,6 +108,10 @@ static int16_t inline __attribute__((always_inline))  avg15_inline_avr_mul( int1
 
 } // namespace noise_detail
 
+#ifdef AA
+#undef AA
+#endif
+
 static int16_t inline __attribute__((always_inline))  grad16(uint8_t hash, int16_t x, int16_t y, int16_t z) {
 #if 0
     switch(hash & 0xF) {
@@ -388,7 +392,7 @@ int16_t inoise16_raw(uint32_t x, uint32_t y, uint32_t z, uint32_t t) {
     int16_t yy = (v >> 1) & 0x7FFF;
     int16_t zz = (w >> 1) & 0x7FFF;
 
-    // 5. Hash the 3D cube corners (the “base” for both t slices).
+    // 5. Hash the 3D cube corners (the "base" for both t slices).
     uint8_t A = NOISE_P(X) + Y;
     uint8_t AA = NOISE_P(A) + Z;
     uint8_t AB = NOISE_P(A + 1) + Z;
