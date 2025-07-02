@@ -8,6 +8,19 @@
 // The variable is already defined in avr_millis_timer_null_counter.hpp when needed,
 // so redefining it here caused multiple-definition linkage errors.
 
+// Fix for ATtiny1604 - provide weak timer_millis symbol when building normally.
+// When compiling using FASTLED_ALL_SRC, avr_millis_timer_null_counter.hpp already
+// provides this symbol, so we skip the definition here to avoid a duplicate.
+#if defined(__AVR_ATtiny1604__) && !defined(FASTLED_ALL_SRC)
+#ifdef __cplusplus
+extern "C" {
+#endif
+__attribute__((weak)) volatile unsigned long timer_millis = 0;
+#ifdef __cplusplus
+}
+#endif
+#endif
+
 // Interrupt handlers cannot be defined in the header.
 // They must be defined as C functions, or they won't
 // be found (due to name mangling), and thus won't
