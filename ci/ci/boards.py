@@ -200,6 +200,10 @@ ESP32_S3_DEVKITC_1 = Board(
     real_board_name="seeed_xiao_esp32s3",  # Seeed Xiao ESP32-S3 has psram.
     platform=ESP32_IDF_5_4_PIOARDUINO,
     board_partitions="huge_app.csv",  # Reserved for future use.
+    defines=[
+        "CONFIG_IDF_TARGET_ESP32S3=1",
+        "FASTLED_RMT5=1",
+    ],
 )
 
 ESP32_S2_DEVKITM_1 = Board(
