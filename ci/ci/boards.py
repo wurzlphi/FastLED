@@ -43,7 +43,6 @@ class Board:
     board_build_core: str | None = None
     board_build_filesystem_size: str | None = None
     build_flags: list[str] | None = None  # Reserved for future use.
-    build_unflags: list[str] | None = None  # New: unflag options
     defines: list[str] | None = None
     customsdk: str | None = None
     board_partitions: str | None = None  # Reserved for future use.
@@ -85,11 +84,6 @@ class Board:
         if self.defines:
             for define in self.defines:
                 options.append(f"build_flags=-D{define}")
-
-        # Handle build_unflags
-        if self.build_unflags:
-            for uf in self.build_unflags:
-                options.append(f"build_unflags={uf}")
 
         if self.customsdk:
             options.append(f"custom_sdkconfig={self.customsdk}")
@@ -164,12 +158,6 @@ class Board:
             # Join all build flags with a space so that PlatformIO parses them
             lines.append(f"build_flags = {' '.join(build_flags_elements)}")
 
-        if self.build_unflags:
-            # PlatformIO accepts multiple *build_unflags* separated by spaces.
-            # Emit a single line for readability.
-            lines.append(f"build_unflags = {' '.join(self.build_unflags)}")
-
-        # Custom ESP-IDF sdkconfig override (ESP32-family boards)
         if self.customsdk:
             lines.append(f"custom_sdkconfig = {self.customsdk}")
 
@@ -270,7 +258,6 @@ ESP32_S3_DEVKITC_1 = Board(
     real_board_name="esp32-s3-devkitc-1",
     platform=ESP32_IDF_5_4_PIOARDUINO,
     board_partitions="huge_app.csv",
-    build_unflags=["-DFASTLED_RMT5=0", "-DFASTLED_RMT5"],
 )
 
 ESP32_S2_DEVKITM_1 = Board(
@@ -474,7 +461,6 @@ XIAO_ESP32S3 = Board(
     platform=ESP32_IDF_5_4_PIOARDUINO,
     board_partitions="huge_app.csv",
     defines=None,
-    build_unflags=["-DFASTLED_RMT5=0", "-DFASTLED_RMT5"],
 )
 
 
