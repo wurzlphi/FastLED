@@ -1,6 +1,7 @@
 #pragma once
 
-#include "fl/stdint.h"
+#include <stdint.h>
+#include <stddef.h>
 
 namespace fl {
     // 8-bit types - char is reliably 8 bits on all supported platforms
