@@ -6,13 +6,7 @@
 
 #if FASTLED_ALL_SRC
 
-
-// Platform implementations (auto-generated)
-
-// Third-party implementations (auto-generated, excluding FFT)
-
 // SENSORS MODULE (hierarchical)
-#ifdef FASTLED_ALL_SRC
 #include "sensors/sensors_compile.hpp"
 
 // FX MODULE (hierarchical)
@@ -29,13 +23,5 @@
 
 // ROOT SRC MODULE (hierarchical)
 #include "src_compile.hpp"
-#endif // FASTLED_ALL_SRC
-
-// SENSORS MODULE (hierarchical)
-#ifdef FASTLED_ALL_SRC
-#include "sensors/sensors_compile.hpp"
-#endif // FASTLED_ALL_SRC
-
-
 
 #endif // FASTLED_ALL_SRC
