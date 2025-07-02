@@ -726,22 +726,31 @@ def compile_with_pio_ci(
                             # In verbose mode, show each line immediately with timestamp
                             locked_print(timestamped_line)
                         else:
-                            # In normal mode, show only source file compilation (one per line)
-                            if any(
-                                keyword in line_stripped
-                                for keyword in [
-                                    "Compiling .pio",  # Source file compilation
-                                    "Linking",         # Final linking step
-                                    "Building",        # Build steps
-                                    "RAM:",           # Memory usage
-                                    "Flash:",         # Memory usage
-                                    "SUCCESS",        # Build success
-                                    "ERROR",          # Errors
-                                    "FAILED",         # Build failures
-                                    "error:",         # Compilation errors
-                                    "warning:",       # Important warnings
-                                ]
-                            ):
+                            # In normal mode, show only essential build steps (one per line)
+                            # Be more specific to avoid showing long compiler command lines
+                            line_lower = line_stripped.lower()
+                            show_line = False
+                            
+                            # Show actual source file compilation (but not compiler commands)
+                            if "compiling .pio" in line_lower:
+                                show_line = True
+                            # Show linking step
+                            elif line_stripped.startswith("Linking") or "linking" in line_lower:
+                                show_line = True
+                            # Show memory usage
+                            elif line_stripped.startswith("RAM:") or line_stripped.startswith("Flash:"):
+                                show_line = True
+                            # Show build results
+                            elif any(result in line_stripped for result in ["SUCCESS", "FAILED"]):
+                                show_line = True
+                            # Show errors and warnings (but avoid long command lines)
+                            elif ("error:" in line_lower or "warning:" in line_lower) and not line_stripped.startswith("avr-"):
+                                show_line = True
+                            # Show "Building in release mode" but not compiler commands
+                            elif line_stripped == "Building in release mode" or line_stripped == "Building in debug mode":
+                                show_line = True
+                            
+                            if show_line:
                                 locked_print(timestamped_line)
 
             # Wait for process to complete
