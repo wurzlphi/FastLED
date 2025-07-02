@@ -684,8 +684,9 @@ def compile_with_pio_ci(
             cmd_list.extend(["--project-option", f"custom_sdkconfig={board.customsdk}"])
             locked_print(f"Using custom SDK config: {board.customsdk}")
 
-        # Always add verbose flag to pio ci for better default output
-        cmd_list.append("--verbose")
+        # Only add verbose flag to pio ci when explicitly requested
+        if verbose:
+            cmd_list.append("--verbose")
 
         # Execute the command
         cmd_str = subprocess.list2cmdline(cmd_list)
@@ -725,55 +726,26 @@ def compile_with_pio_ci(
                             # In verbose mode, show each line immediately with timestamp
                             locked_print(timestamped_line)
                         else:
-                            # In normal mode, show important compilation steps
+                            # In normal mode, show only source file compilation (one per line)
                             if any(
                                 keyword in line_stripped
                                 for keyword in [
-                                    "Compiling",
-                                    "Linking",
-                                    "Building",
-                                    "Archiving",
-                                    "Collecting",
-                                    "Looking for",
-                                    "Library Manager",
-                                    "Installing",
-                                    "PackageManager",
-                                    "LibraryManager",
-                                    "Framework",
-                                    "Toolchain",
-                                    "PLATFORM:",
-                                    "PACKAGES:",
-                                    "LDF:",
-                                    "Building in",
-                                    "RAM:",
-                                    "Flash:",
-                                    "SUCCESS",
-                                    "ERROR",
-                                    "FAILED",
-                                    "warning:",
-                                    "error:",
-                                    "Dependency Graph",
-                                    "avr-g++",
-                                    "xtensa-",
-                                    "arm-",
-                                    "gcc",
-                                    "g++",
-                                    "checkprogsize",
-                                    "MethodWrapper",
+                                    "Compiling .pio",  # Source file compilation
+                                    "Linking",         # Final linking step
+                                    "Building",        # Build steps
+                                    "RAM:",           # Memory usage
+                                    "Flash:",         # Memory usage
+                                    "SUCCESS",        # Build success
+                                    "ERROR",          # Errors
+                                    "FAILED",         # Build failures
+                                    "error:",         # Compilation errors
+                                    "warning:",       # Important warnings
                                 ]
                             ):
                                 locked_print(timestamped_line)
 
             # Wait for process to complete
             result.wait()
-
-            # Join all timestamped lines and output them in a buffer
-            if not verbose and timestamped_lines:
-                # Output full timestamped buffer for non-verbose mode
-                full_timestamped_output = "\n".join(timestamped_lines)
-                locked_print(
-                    f"Full build output with timestamps:\n{full_timestamped_output}"
-                )
 
             stdout = "\n".join(stdout_lines)
             stderr = ""
