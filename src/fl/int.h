@@ -14,8 +14,8 @@ namespace fl {
         // This matches how stdint.h defines these types on AVR
         typedef int i16;
         typedef unsigned int u16;
-        typedef long i32;
-        typedef unsigned long u32;
+        typedef int32_t i32;
+        typedef uint32_t u32;
         typedef long long i64;
         typedef unsigned long long u64;
     #elif defined(ESP32) || defined(ESP_PLATFORM)
@@ -23,16 +23,17 @@ namespace fl {
         // This ensures fl::u32 matches uint32_t exactly for function pointer compatibility
         typedef short i16;
         typedef unsigned short u16;
-        typedef long i32;
-        typedef unsigned long u32;
+        typedef int32_t i32;
+        typedef uint32_t u32;
         typedef long long i64;
         typedef unsigned long long u64;
     #else
         // On most other platforms: short is 16-bit, int is 32-bit
         typedef short i16;
         typedef unsigned short u16;
-        typedef int i32;
-        typedef unsigned int u32;
+        // Use fixed-width types directly to ensure compatibility across platforms
+        typedef int32_t i32;
+        typedef uint32_t u32;
         typedef long long i64;
         typedef unsigned long long u64;
     #endif
