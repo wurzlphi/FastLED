@@ -150,6 +150,7 @@ class StrStream {
         return *this;
     }
 
+    #if !(defined(__MK20DX128__) || defined(__MK20DX256__))
     StrStream &operator<<(const fl::i32 &n) {
         mStr.append(n);
         return *this;
@@ -159,6 +160,7 @@ class StrStream {
         mStr.append(n);
         return *this;
     }
+    #endif
 
     // Unified handler for fl:: namespace size-like unsigned integer types and int
     // This handles fl::sz, fl::u16 from the fl:: namespace, and int type
@@ -198,6 +200,11 @@ class StrStream {
 
     void clear() { mStr.clear(); }
 
+    #if defined(__MK20DX128__) || defined(__MK20DX256__)
+    // Teensy 3.x (K20) uses unsigned long/long for uint32_t/int32_t, which
+    // conflicts with the existing i32/u32 overloads on other platforms.
+    // Provide explicit overloads only for these boards to avoid ambiguous
+    // conversions elsewhere.
     StrStream &operator<<(const long &n) {
         mStr.append(n);
         return *this;
@@ -207,6 +214,7 @@ class StrStream {
         mStr.append(n);
         return *this;
     }
+    #endif
 
   private:
     string mStr;
