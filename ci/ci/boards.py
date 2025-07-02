@@ -60,14 +60,6 @@ class Board:
             out[self.board_name] = [f"board={self.real_board_name}"]
         options = out.setdefault(self.board_name, [])
 
-        # Add board-specific build cache configuration with absolute path
-        # Convert relative cache path to absolute path, similar to symlink handling
-        here = Path(__file__).parent
-        project_root = here.parent.parent  # Navigate from ci/ci/ to project root
-        cache_dir = project_root / ".pio_cache" / self.board_name
-        absolute_cache_dir = str(cache_dir.absolute())
-        options.append(f"build_cache_dir={absolute_cache_dir}")
-
         if self.platform:
             options.append(f"platform={self.platform}")
             # Add IDF ccache enable flag for ESP32 boards
