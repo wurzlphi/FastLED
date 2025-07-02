@@ -429,7 +429,7 @@ def compile_with_pio_ci_optimized(
 ) -> tuple[bool, str]:
     """Two-stage optimized compilation for examples using pio ci command.
     
-    Stage 1: Initialize build folder with --disable-auto-clean to preserve libraries
+    Stage 1: Initialize build folder with --keep-build-dir to preserve libraries
     Stage 2: Batch building using LDF mode chain to reuse compiled libraries
     """
     
@@ -484,7 +484,7 @@ def compile_with_pio_ci_optimized(
         # Use the first .ino file found
         ino_file = ino_files[0]
 
-        # Build Stage 1 pio ci command with --disable-auto-clean
+        # Build Stage 1 pio ci command with build caching optimization
         stage1_cmd_list = [
             "pio",
             "ci",
@@ -492,7 +492,6 @@ def compile_with_pio_ci_optimized(
             "--board",
             real_board_name,
             "--keep-build-dir",
-            "--disable-auto-clean",  # Key optimization: preserve compiled libraries
             "--build-dir",
             str(board_build_dir / first_example.name),
             "--project-option",
