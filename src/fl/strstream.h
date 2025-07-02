@@ -198,6 +198,16 @@ class StrStream {
 
     void clear() { mStr.clear(); }
 
+    StrStream &operator<<(const long &n) {
+        mStr.append(n);
+        return *this;
+    }
+
+    StrStream &operator<<(const unsigned long &n) {
+        mStr.append(n);
+        return *this;
+    }
+
   private:
     string mStr;
     bool mTreatCharAsInt = true;

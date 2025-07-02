@@ -27,6 +27,17 @@ namespace fl {
         typedef unsigned long u32;
         typedef long long i64;
         typedef unsigned long long u64;
+    #elif defined(__MK20DX128__) || defined(__MK20DX256__)
+        // Teensy 3.0/3.1 (K20) – int is 32-bit but many Arduino/Teensy
+        // headers typedef uint32_t as 'unsigned long'.  Use long/unsigned long
+        // here so that fl::u32 exactly matches uint32_t and the compile-time
+        // static assertions in platforms/compile_test.cpp.hpp succeed.
+        typedef short i16;
+        typedef unsigned short u16;
+        typedef long i32;
+        typedef unsigned long u32;
+        typedef long long i64;
+        typedef unsigned long long u64;
     #else
         // On most other platforms: short is 16-bit, int is 32-bit
         typedef short i16;
