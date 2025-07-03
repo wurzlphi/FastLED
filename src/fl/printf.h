@@ -4,6 +4,7 @@
 #include "fl/namespace.h"
 #include "fl/type_traits.h"
 #include "fl/str.h"
+#include "fl/io.h"  // For fl::print and fl::println
 
 namespace fl {
 
@@ -31,21 +32,15 @@ fl::string format_float(float value, int precision);
 void format_impl(StrStream& stream, const char* format);
 
 // Template functions are implemented in the .cpp.hpp file
-template<typename T>
-fl::string to_hex(T value, bool uppercase = false);
-
-template<typename T>
-void format_arg(StrStream& stream, const FormatSpec& spec, const T& arg);
-
+// These declarations are needed for the template instantiation
 template<typename T, typename... Args>
 void format_impl(StrStream& stream, const char* format, const T& first, const Args&... rest);
 
 }
 
-/// @brief Printf-like formatting function that returns a fl::string
+/// @brief Printf-like formatting function that prints directly to the platform output
 /// @param format Format string with placeholders like "%d", "%s", "%f" etc.
 /// @param args Arguments to format
-/// @return Formatted string as fl::string
 /// 
 /// Supported format specifiers:
 /// - %d, %i: integers (all integral types)
@@ -59,14 +54,24 @@ void format_impl(StrStream& stream, const char* format, const T& first, const Ar
 ///
 /// Example usage:
 /// @code
-/// fl::string result = fl::printf("Value: %d, Name: %s", 42, "test");
-/// fl::string msg = fl::printf("Float: %.2f", 3.14159);
+/// fl::printf("Value: %d, Name: %s", 42, "test");
+/// fl::printf("Float: %.2f", 3.14159);
 /// @endcode
 template<typename... Args>
-fl::string printf(const char* format, const Args&... args) {
+void printf(const char* format, const Args&... args) {
     StrStream stream;
     printf_detail::format_impl(stream, format, args...);
-    return stream.str();
+    fl::print(stream.str().c_str());
+}
+
+/// @brief Printf-like formatting function that prints directly to the platform output with newline
+/// @param format Format string with placeholders
+/// @param args Arguments to format
+template<typename... Args>
+void printfln(const char* format, const Args&... args) {
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    fl::println(stream.str().c_str());
 }
 
 /// @brief Printf-like formatting function that outputs directly to a StrStream
@@ -76,6 +81,17 @@ fl::string printf(const char* format, const Args&... args) {
 template<typename... Args>
 void sprintf(StrStream& stream, const char* format, const Args&... args) {
     printf_detail::format_impl(stream, format, args...);
+}
+
+/// @brief Printf-like formatting function that returns a formatted string
+/// @param format Format string with placeholders
+/// @param args Arguments to format
+/// @return Formatted string as fl::string
+template<typename... Args>
+fl::string sprintf_str(const char* format, const Args&... args) {
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    return stream.str();
 }
 
 } // namespace fl

@@ -113,8 +113,6 @@ inline void format_impl(StrStream& stream, const char* format) {
     }
 }
 
-// Template implementations are defined here for header inclusion
-
 // Convert integer to hex string - only for integral types
 template<typename T>
 typename fl::enable_if<fl::is_integral<T>::value, fl::string>::type 
@@ -160,7 +158,7 @@ to_hex(T, bool) {
     return fl::string("<not_integral>");
 }
 
-// Format a single argument based on format specifier
+// Format a single argument based on format specifier with better type handling
 template<typename T>
 void format_arg(StrStream& stream, const FormatSpec& spec, const T& arg) {
     switch (spec.type) {
@@ -214,6 +212,34 @@ void format_arg(StrStream& stream, const FormatSpec& spec, const T& arg) {
             stream << "<unknown_format>";
             break;
     }
+}
+
+// Specialized format_arg for const char* (string literals)
+inline void format_arg(StrStream& stream, const FormatSpec& spec, const char* arg) {
+    switch (spec.type) {
+        case 's':
+            stream << arg;
+            break;
+        case 'x':
+            stream << "<string_not_hex>";
+            break;
+        case 'd':
+        case 'i':
+        case 'u':
+        case 'f':
+        case 'c':
+            stream << "<type_error>";
+            break;
+        default:
+            stream << "<unknown_format>";
+            break;
+    }
+}
+
+// Specialized format_arg for char arrays (string literals like "hello")
+template<size_t N>
+void format_arg(StrStream& stream, const FormatSpec& spec, const char (&arg)[N]) {
+    format_arg(stream, spec, static_cast<const char*>(arg));
 }
 
 // Recursive case: process one argument and continue
