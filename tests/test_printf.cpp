@@ -6,6 +6,11 @@
 
 // Test helper for capturing platform output
 namespace test_helper {
+    // Forward declarations to satisfy -Werror=missing-declarations
+    void capture_print(const char* str);
+    void clear_capture();
+    fl::string get_capture();
+    
     static fl::string captured_output;
     
     void capture_print(const char* str) {
