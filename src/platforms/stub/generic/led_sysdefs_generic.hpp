@@ -7,7 +7,7 @@
 
 #include <chrono>
 #include <thread>
-#if defined(FASTLED_USE_PTHREAD_DELAY) || defined(FASTLED_USE_PTHREAD_LOOP)
+#if defined(FASTLED_USE_PTHREAD_DELAY) || defined(FASTLED_USE_PTHREAD_YIELD)
 #include <time.h>
 #include <errno.h>
 #include <sched.h>
@@ -55,7 +55,7 @@ void delay(int ms) {
 }
 
 void yield() {
-#ifdef FASTLED_USE_PTHREAD_LOOP
+#ifdef FASTLED_USE_PTHREAD_YIELD
     // POSIX thread yield to allow other threads to run
     sched_yield();
 #else
