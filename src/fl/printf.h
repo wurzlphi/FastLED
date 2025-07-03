@@ -31,8 +31,7 @@ fl::string format_float(float value, int precision);
 // Base case: no more arguments
 void format_impl(StrStream& stream, const char* format);
 
-// Template functions are implemented in the .cpp.hpp file
-// These declarations are needed for the template instantiation
+// Template functions for recursive format processing
 template<typename T, typename... Args>
 void format_impl(StrStream& stream, const char* format, const T& first, const Args&... rest);
 
@@ -58,43 +57,26 @@ void format_impl(StrStream& stream, const char* format, const T& first, const Ar
 /// fl::printf("Float: %.2f", 3.14159);
 /// @endcode
 template<typename... Args>
-void printf(const char* format, const Args&... args) {
-    StrStream stream;
-    printf_detail::format_impl(stream, format, args...);
-    fl::print(stream.str().c_str());
-}
+void printf(const char* format, const Args&... args);
 
 /// @brief Printf-like formatting function that prints directly to the platform output with newline
 /// @param format Format string with placeholders
 /// @param args Arguments to format
 template<typename... Args>
-void printfln(const char* format, const Args&... args) {
-    StrStream stream;
-    printf_detail::format_impl(stream, format, args...);
-    fl::println(stream.str().c_str());
-}
+void printfln(const char* format, const Args&... args);
 
 /// @brief Printf-like formatting function that outputs directly to a StrStream
 /// @param stream Output StrStream to write formatted result to
 /// @param format Format string with placeholders
 /// @param args Arguments to format
 template<typename... Args>
-void sprintf(StrStream& stream, const char* format, const Args&... args) {
-    printf_detail::format_impl(stream, format, args...);
-}
+void sprintf(StrStream& stream, const char* format, const Args&... args);
 
 /// @brief Printf-like formatting function that returns a formatted string
 /// @param format Format string with placeholders
 /// @param args Arguments to format
 /// @return Formatted string as fl::string
 template<typename... Args>
-fl::string sprintf_str(const char* format, const Args&... args) {
-    StrStream stream;
-    printf_detail::format_impl(stream, format, args...);
-    return stream.str();
-}
+fl::string sprintf_str(const char* format, const Args&... args);
 
 } // namespace fl
-
-// Include template implementations
-#include "fl/printf.cpp.hpp"

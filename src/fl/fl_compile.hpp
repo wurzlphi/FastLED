@@ -30,6 +30,7 @@
 #include "fl/line_simplification.cpp.hpp"
 #include "fl/noise_woryley.cpp.hpp"
 #include "fl/ostream.cpp.hpp"
+#include "fl/printf.cpp.hpp"
 #include "fl/ptr.cpp.hpp"
 #include "fl/ptr_impl.h"
 #include "fl/random.cpp.hpp"

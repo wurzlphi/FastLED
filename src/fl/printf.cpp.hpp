@@ -3,6 +3,7 @@
 // Template implementations for fl::printf
 // Non-template functions are also defined here
 
+#include "fl/printf.h"
 #include "fl/type_traits.h"
 #include "fl/strstream.h"
 #include "fl/str.h"
@@ -268,4 +269,37 @@ void format_impl(StrStream& stream, const char* format, const T& first, const Ar
 }
 
 } // namespace printf_detail
+
+// Template implementations for the main printf functions
+
+/// Printf-like formatting function that prints directly to the platform output
+template<typename... Args>
+void printf(const char* format, const Args&... args) {
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    fl::print(stream.str().c_str());
+}
+
+/// Printf-like formatting function that prints directly to the platform output with newline
+template<typename... Args>
+void printfln(const char* format, const Args&... args) {
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    fl::println(stream.str().c_str());
+}
+
+/// Printf-like formatting function that outputs directly to a StrStream
+template<typename... Args>
+void sprintf(StrStream& stream, const char* format, const Args&... args) {
+    printf_detail::format_impl(stream, format, args...);
+}
+
+/// Printf-like formatting function that returns a formatted string
+template<typename... Args>
+fl::string sprintf_str(const char* format, const Args&... args) {
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    return stream.str();
+}
+
 } // namespace fl
