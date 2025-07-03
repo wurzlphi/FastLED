@@ -125,8 +125,9 @@ to_hex(T value, bool uppercase) {
     
     while (value > 0) {
         char ch = digits[value % 16];
-        fl::string digit_str;
-        digit_str.append(ch);
+        // Convert char to string since fl::string::append treats char as number
+        char temp_ch_str[2] = {ch, '\0'};
+        fl::string digit_str(temp_ch_str);
         // Use += since + operator is not defined for fl::string
         fl::string temp = digit_str;
         temp += result;
@@ -165,7 +166,23 @@ void format_arg(StrStream& stream, const FormatSpec& spec, const T& arg) {
             
         case 'u':
             if (fl::is_integral<T>::value) {
-                stream << arg;
+                // Convert unsigned manually since StrStream treats all as signed
+                unsigned int val = static_cast<unsigned int>(arg);
+                if (val == 0) {
+                    stream << "0";
+                } else {
+                    fl::string result;
+                    while (val > 0) {
+                        char digit = '0' + (val % 10);
+                        char temp_str[2] = {digit, '\0'};
+                        fl::string digit_str(temp_str);
+                        fl::string temp = digit_str;
+                        temp += result;
+                        result = temp;
+                        val /= 10;
+                    }
+                    stream << result;
+                }
             } else {
                 stream << "<type_error>";
             }
@@ -186,7 +203,9 @@ void format_arg(StrStream& stream, const FormatSpec& spec, const T& arg) {
         case 'c':
             if (fl::is_integral<T>::value) {
                 char ch = static_cast<char>(arg);
-                stream << ch;
+                // Convert char to string since StrStream treats char as number
+                char temp_str[2] = {ch, '\0'};
+                stream << temp_str;
             } else {
                 stream << "<type_error>";
             }
@@ -246,10 +265,9 @@ inline void format_impl(StrStream& stream, const char* format) {
                 stream << "<missing_arg>";
             }
         } else {
-            // Add single character - create a string to avoid ASCII value output
-            fl::string single_char;
-            single_char.append(*format);
-            stream << single_char;
+            // Create a single-character string since StrStream treats char as number
+            char temp_str[2] = {*format, '\0'};
+            stream << temp_str;
             ++format;
         }
     }
@@ -270,8 +288,9 @@ void format_impl(StrStream& stream, const char* format, const T& first, const Ar
                 return;
             }
         } else {
-            char ch = *format;
-            stream << ch;
+            // Create a single-character string since StrStream treats char as number
+            char temp_str[2] = {*format, '\0'};
+            stream << temp_str;
             ++format;
         }
     }

@@ -85,6 +85,11 @@ TEST_CASE("fl::printf basic functionality") {
         fl::printf("Hex: %x", 255);
         fl::string result = test_helper::get_capture();
         fl::string expected = fl::string("Hex: ff");
+        
+        // Debug output to see what's happening
+        std::cout << "[DEBUG] Hex Result: '" << result.c_str() << "' (length: " << result.size() << ")" << std::endl;
+        std::cout << "[DEBUG] Hex Expected: '" << expected.c_str() << "' (length: " << expected.size() << ")" << std::endl;
+        
         REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
     }
     
@@ -109,6 +114,11 @@ TEST_CASE("fl::printf basic functionality") {
         fl::printf("Unsigned: %u", 4294967295U);
         fl::string result = test_helper::get_capture();
         fl::string expected = fl::string("Unsigned: 4294967295");
+        
+        // Debug output to see what's happening
+        std::cout << "[DEBUG] Unsigned Result: '" << result.c_str() << "' (length: " << result.size() << ")" << std::endl;
+        std::cout << "[DEBUG] Unsigned Expected: '" << expected.c_str() << "' (length: " << expected.size() << ")" << std::endl;
+        
         REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
     }
     
