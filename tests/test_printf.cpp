@@ -2,6 +2,7 @@
 #include "fl/printf.h"
 #include "fl/strstream.h"
 #include "fl/io.h"
+#include <iostream>
 
 // Test helper for capturing platform output
 namespace test_helper {
@@ -9,11 +10,6 @@ namespace test_helper {
     
     void capture_print(const char* str) {
         captured_output += str;
-    }
-    
-    void capture_println(const char* str) {
-        captured_output += str;
-        captured_output += "\n";
     }
     
     void clear_capture() {
@@ -25,33 +21,19 @@ namespace test_helper {
     }
 }
 
-TEST_CASE("fl::sprintf_str basic test") {
-    // Test sprintf_str which doesn't involve platform output
-    SUBCASE("simple string test") {
-        fl::string result = fl::sprintf_str("Hello, %s!", "world");
-        REQUIRE(result.size() > 0);
-        // Just check that it contains the basic parts
-        REQUIRE(result.find("Hello") != fl::string::npos);
-        REQUIRE(result.find("world") != fl::string::npos);
-    }
-    
-    SUBCASE("integer test") {
-        fl::string result = fl::sprintf_str("Value: %d", 42);
-        REQUIRE(result.find("Value") != fl::string::npos);
-        REQUIRE(result.find("42") != fl::string::npos);
-    }
-}
-
 TEST_CASE("fl::printf basic functionality") {
     // Setup capture for testing platform output
     fl::inject_print_handler(test_helper::capture_print);
-    fl::inject_println_handler(test_helper::capture_println);
     
     SUBCASE("simple string formatting") {
         test_helper::clear_capture();
         fl::printf("Hello, %s!", "world");
         fl::string result = test_helper::get_capture();
         fl::string expected = fl::string("Hello, world!");
+        
+        // Debug output to see what's happening
+        std::cout << "[DEBUG] Result: '" << result.c_str() << "' (length: " << result.size() << ")" << std::endl;
+        std::cout << "[DEBUG] Expected: '" << expected.c_str() << "' (length: " << expected.size() << ")" << std::endl;
         
         // Use basic string comparison
         REQUIRE_EQ(result.size(), expected.size());
@@ -134,61 +116,9 @@ TEST_CASE("fl::printf basic functionality") {
     fl::clear_io_handlers();
 }
 
-TEST_CASE("fl::printfln functionality") {
-    // Setup capture for testing platform output
-    fl::inject_print_handler(test_helper::capture_print);
-    fl::inject_println_handler(test_helper::capture_println);
-    
-    SUBCASE("printfln adds newline") {
-        test_helper::clear_capture();
-        fl::printfln("Hello, %s!", "world");
-        fl::string result = test_helper::get_capture();
-        fl::string expected = fl::string("Hello, world!\n");
-        REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
-    }
-    
-    // Cleanup
-    fl::clear_io_handlers();
-}
-
-TEST_CASE("fl::sprintf functionality") {
-    SUBCASE("sprintf to StrStream") {
-        fl::StrStream stream;
-        fl::sprintf(stream, "Hello, %s! Value: %d", "world", 123);
-        fl::string result = stream.str();
-        fl::string expected = fl::string("Hello, world! Value: 123");
-        REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
-    }
-    
-    SUBCASE("sprintf multiple calls") {
-        fl::StrStream stream;
-        stream << "Prefix: ";
-        fl::sprintf(stream, "Number: %d", 42);
-        stream << " Suffix";
-        fl::string result = stream.str();
-        fl::string expected = fl::string("Prefix: Number: 42 Suffix");
-        REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
-    }
-}
-
-TEST_CASE("fl::sprintf_str functionality") {
-    SUBCASE("sprintf_str returns string") {
-        fl::string result = fl::sprintf_str("Hello, %s! Value: %d", "world", 123);
-        fl::string expected = fl::string("Hello, world! Value: 123");
-        REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
-    }
-    
-    SUBCASE("sprintf_str with precision") {
-        fl::string result = fl::sprintf_str("Pi: %.2f", 3.14159f);
-        fl::string expected = fl::string("Pi: 3.14");
-        REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
-    }
-}
-
 TEST_CASE("fl::printf edge cases") {
     // Setup capture for testing platform output
     fl::inject_print_handler(test_helper::capture_print);
-    fl::inject_println_handler(test_helper::capture_println);
     
     SUBCASE("empty format string") {
         test_helper::clear_capture();
@@ -203,6 +133,11 @@ TEST_CASE("fl::printf edge cases") {
         fl::printf("No placeholders here");
         fl::string result = test_helper::get_capture();
         fl::string expected = fl::string("No placeholders here");
+        
+        // Debug output to see what's happening
+        std::cout << "[DEBUG] Result: '" << result.c_str() << "' (length: " << result.size() << ")" << std::endl;
+        std::cout << "[DEBUG] Expected: '" << expected.c_str() << "' (length: " << expected.size() << ")" << std::endl;
+        
         REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
     }
     
@@ -228,6 +163,37 @@ TEST_CASE("fl::printf edge cases") {
         fl::string result = test_helper::get_capture();
         fl::string expected = fl::string("Zero: 0, Hex: 0");
         REQUIRE_EQ(strcmp(result.c_str(), expected.c_str()), 0);
+    }
+    
+    // Cleanup
+    fl::clear_io_handlers();
+}
+
+TEST_CASE("fl::printf debug minimal") {
+    // Setup capture for testing platform output
+    fl::inject_print_handler(test_helper::capture_print);
+    
+    SUBCASE("debug format processing") {
+        test_helper::clear_capture();
+        
+        // Test with just a literal string first
+        fl::printf("test");
+        fl::string result1 = test_helper::get_capture();
+        std::cout << "[DEBUG] Literal: '" << result1.c_str() << "'" << std::endl;
+        
+        test_helper::clear_capture();
+        
+        // Test with just %s and a simple string
+        fl::printf("%s", "hello");
+        fl::string result2 = test_helper::get_capture();
+        std::cout << "[DEBUG] Simple %s: '" << result2.c_str() << "'" << std::endl;
+        
+        test_helper::clear_capture();
+        
+        // Test the combination
+        fl::printf("test %s", "hello");
+        fl::string result3 = test_helper::get_capture();
+        std::cout << "[DEBUG] Combined: '" << result3.c_str() << "'" << std::endl;
     }
     
     // Cleanup

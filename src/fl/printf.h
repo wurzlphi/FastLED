@@ -23,17 +23,262 @@ struct FormatSpec {
 
 // Parse a format specifier from the format string
 // Returns the format spec and advances the pointer past the specifier
-FormatSpec parse_format_spec(const char*& format);
+inline FormatSpec parse_format_spec(const char*& format) {
+    FormatSpec spec;
+    
+    if (*format != '%') {
+        return spec;
+    }
+    
+    ++format; // Skip the '%'
+    
+    // Handle literal '%'
+    if (*format == '%') {
+        spec.type = '%';
+        ++format;
+        return spec;
+    }
+    
+    // Parse precision for floating point
+    if (*format == '.') {
+        ++format; // Skip the '.'
+        spec.precision = 0;
+        while (*format >= '0' && *format <= '9') {
+            spec.precision = spec.precision * 10 + (*format - '0');
+            ++format;
+        }
+    }
+    
+    // Get the format type
+    spec.type = *format;
+    if (spec.type == 'X') {
+        spec.uppercase = true;
+        spec.type = 'x'; // Normalize to lowercase for processing
+    }
+    
+    ++format;
+    return spec;
+}
 
 // Format floating point with specified precision
-fl::string format_float(float value, int precision);
+inline fl::string format_float(float value, int precision) {
+    if (precision < 0) {
+        // Default precision - use StrStream's default behavior
+        StrStream stream;
+        stream << value;
+        return stream.str();
+    }
+    
+    // Simple precision formatting
+    // This is a basic implementation - could be enhanced
+    if (precision == 0) {
+        int int_part = static_cast<int>(value + 0.5f); // Round
+        StrStream stream;
+        stream << int_part;
+        return stream.str();
+    }
+    
+    // For non-zero precision, use basic rounding
+    int multiplier = 1;
+    for (int i = 0; i < precision; ++i) {
+        multiplier *= 10;
+    }
+    
+    int scaled = static_cast<int>(value * multiplier + 0.5f);
+    int int_part = scaled / multiplier;
+    int frac_part = scaled % multiplier;
+    
+    StrStream stream;
+    stream << int_part;
+    stream << ".";
+    
+    // Pad fractional part with leading zeros if needed
+    int temp_multiplier = multiplier / 10;
+    while (temp_multiplier > frac_part && temp_multiplier > 1) {
+        stream << "0";
+        temp_multiplier /= 10;
+    }
+    if (frac_part > 0) {
+        stream << frac_part;
+    }
+    
+    return stream.str();
+}
+
+// Convert integer to hex string - only for integral types
+template<typename T>
+typename fl::enable_if<fl::is_integral<T>::value, fl::string>::type 
+to_hex(T value, bool uppercase) {
+    if (value == 0) {
+        return fl::string("0");
+    }
+    
+    fl::string result;
+    const char* digits = uppercase ? "0123456789ABCDEF" : "0123456789abcdef";
+    
+    // Handle negative values for signed types
+    bool negative = false;
+    if (fl::is_signed<T>::value && value < 0) {
+        negative = true;
+        value = -value;
+    }
+    
+    while (value > 0) {
+        char ch = digits[value % 16];
+        fl::string digit_str;
+        digit_str.append(ch);
+        // Use += since + operator is not defined for fl::string
+        fl::string temp = digit_str;
+        temp += result;
+        result = temp;
+        value /= 16;
+    }
+    
+    if (negative) {
+        fl::string minus_str("-");
+        minus_str += result;
+        result = minus_str;
+    }
+    
+    return result;
+}
+
+// Non-integral types return error string
+template<typename T>
+typename fl::enable_if<!fl::is_integral<T>::value, fl::string>::type 
+to_hex(T, bool) {
+    return fl::string("<not_integral>");
+}
+
+// Format a single argument based on format specifier with better type handling
+template<typename T>
+void format_arg(StrStream& stream, const FormatSpec& spec, const T& arg) {
+    switch (spec.type) {
+        case 'd':
+        case 'i':
+            if (fl::is_integral<T>::value) {
+                stream << arg;
+            } else {
+                stream << "<type_error>";
+            }
+            break;
+            
+        case 'u':
+            if (fl::is_integral<T>::value) {
+                stream << arg;
+            } else {
+                stream << "<type_error>";
+            }
+            break;
+            
+        case 'f':
+            if (fl::is_floating_point<T>::value) {
+                if (spec.precision >= 0) {
+                    stream << format_float(static_cast<float>(arg), spec.precision);
+                } else {
+                    stream << arg;
+                }
+            } else {
+                stream << "<type_error>";
+            }
+            break;
+            
+        case 'c':
+            if (fl::is_integral<T>::value) {
+                char ch = static_cast<char>(arg);
+                stream << ch;
+            } else {
+                stream << "<type_error>";
+            }
+            break;
+            
+        case 'x':
+            stream << to_hex(arg, spec.uppercase);
+            break;
+            
+        case 's':
+            stream << arg; // StrStream handles string conversion
+            break;
+            
+        default:
+            stream << "<unknown_format>";
+            break;
+    }
+}
+
+// Specialized format_arg for const char* (string literals)
+inline void format_arg(StrStream& stream, const FormatSpec& spec, const char* arg) {
+    switch (spec.type) {
+        case 's':
+            stream << arg;
+            break;
+        case 'x':
+            stream << "<string_not_hex>";
+            break;
+        case 'd':
+        case 'i':
+        case 'u':
+        case 'f':
+        case 'c':
+            stream << "<type_error>";
+            break;
+        default:
+            stream << "<unknown_format>";
+            break;
+    }
+}
+
+// Specialized format_arg for char arrays (string literals like "hello")
+template<size_t N>
+void format_arg(StrStream& stream, const FormatSpec& spec, const char (&arg)[N]) {
+    format_arg(stream, spec, static_cast<const char*>(arg));
+}
 
 // Base case: no more arguments
-void format_impl(StrStream& stream, const char* format);
+inline void format_impl(StrStream& stream, const char* format) {
+    while (*format) {
+        if (*format == '%') {
+            FormatSpec spec = parse_format_spec(format);
+            if (spec.type == '%') {
+                stream << "%";
+            } else {
+                // No argument for format specifier
+                stream << "<missing_arg>";
+            }
+        } else {
+            // Add single character - create a string to avoid ASCII value output
+            fl::string single_char;
+            single_char.append(*format);
+            stream << single_char;
+            ++format;
+        }
+    }
+}
 
-// Template functions for recursive format processing
+// Recursive case: process one argument and continue
 template<typename T, typename... Args>
-void format_impl(StrStream& stream, const char* format, const T& first, const Args&... rest);
+void format_impl(StrStream& stream, const char* format, const T& first, const Args&... rest) {
+    while (*format) {
+        if (*format == '%') {
+            FormatSpec spec = parse_format_spec(format);
+            if (spec.type == '%') {
+                stream << "%";
+            } else {
+                // Format the first argument and continue with the rest
+                format_arg(stream, spec, first);
+                format_impl(stream, format, rest...);
+                return;
+            }
+        } else {
+            char ch = *format;
+            stream << ch;
+            ++format;
+        }
+    }
+    
+    // If we get here, there are unused arguments
+    // This is not an error in printf, so we just ignore them
+}
 
 }
 
@@ -57,26 +302,10 @@ void format_impl(StrStream& stream, const char* format, const T& first, const Ar
 /// fl::printf("Float: %.2f", 3.14159);
 /// @endcode
 template<typename... Args>
-void printf(const char* format, const Args&... args);
-
-/// @brief Printf-like formatting function that prints directly to the platform output with newline
-/// @param format Format string with placeholders
-/// @param args Arguments to format
-template<typename... Args>
-void printfln(const char* format, const Args&... args);
-
-/// @brief Printf-like formatting function that outputs directly to a StrStream
-/// @param stream Output StrStream to write formatted result to
-/// @param format Format string with placeholders
-/// @param args Arguments to format
-template<typename... Args>
-void sprintf(StrStream& stream, const char* format, const Args&... args);
-
-/// @brief Printf-like formatting function that returns a formatted string
-/// @param format Format string with placeholders
-/// @param args Arguments to format
-/// @return Formatted string as fl::string
-template<typename... Args>
-fl::string sprintf_str(const char* format, const Args&... args);
+void printf(const char* format, const Args&... args) {
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    fl::print(stream.str().c_str());
+}
 
 } // namespace fl
