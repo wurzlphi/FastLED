@@ -6,12 +6,11 @@
 
 
 #include <chrono>
-#ifdef FASTLED_USE_PTHREAD_DELAY_YIELD
-#include <time.h>
-#include <sched.h>
-#include <errno.h>
-#else
 #include <thread>
+#if defined(FASTLED_USE_PTHREAD_DELAY) || defined(FASTLED_USE_PTHREAD_LOOP)
+#include <time.h>
+#include <errno.h>
+#include <sched.h>
 #endif
 
 
@@ -39,7 +38,7 @@ uint32_t micros() {
 }
 
 void delay(int ms) {
-#ifdef FASTLED_USE_PTHREAD_DELAY_YIELD
+#ifdef FASTLED_USE_PTHREAD_DELAY
     if (ms <= 0) {
         return; // nothing to wait for
     }
@@ -56,7 +55,7 @@ void delay(int ms) {
 }
 
 void yield() {
-#ifdef FASTLED_USE_PTHREAD_DELAY_YIELD
+#ifdef FASTLED_USE_PTHREAD_LOOP
     // POSIX thread yield to allow other threads to run
     sched_yield();
 #else
