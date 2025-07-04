@@ -55,6 +55,24 @@ void printf(const char* format, const Args&... args);
 template<typename... Args>
 int snprintf(char* buffer, size_t size, const char* format, const Args&... args);
 
+/// @brief Printf-like formatting function that writes to a fixed-size buffer
+/// @tparam N Size of the buffer (automatically deduced)
+/// @param buffer Reference to a fixed-size char array
+/// @param format Format string with placeholders like "%d", "%s", "%f" etc.
+/// @param args Arguments to format
+/// @return Number of characters that would have been written if buffer was large enough
+/// 
+/// This function provides compile-time buffer size safety by taking a reference
+/// to a fixed-size array, preventing buffer overflow errors.
+///
+/// Example usage:
+/// @code
+/// char buffer[100];
+/// int len = fl::printf(buffer, "Value: %d, Name: %s", 42, "test");
+/// @endcode
+template<int N, typename... Args>
+int printf(char (&buffer)[N], const char* format, const Args&... args);
+
 
 ///////////////////// IMPLEMENTATION /////////////////////
 
@@ -427,6 +445,27 @@ int snprintf(char* buffer, size_t size, const char* format, const Args&... args)
     
     // Return total length that would have been written (excluding null terminator)
     return static_cast<int>(formatted_len);
+}
+
+/// @brief Printf-like formatting function that writes to a fixed-size buffer
+/// @tparam N Size of the buffer (automatically deduced)
+/// @param buffer Reference to a fixed-size char array
+/// @param format Format string with placeholders like "%d", "%s", "%f" etc.
+/// @param args Arguments to format
+/// @return Number of characters that would have been written if buffer was large enough
+/// 
+/// This function provides compile-time buffer size safety by taking a reference
+/// to a fixed-size array, preventing buffer overflow errors.
+///
+/// Example usage:
+/// @code
+/// char buffer[100];
+/// int len = fl::printf(buffer, "Value: %d, Name: %s", 42, "test");
+/// @endcode
+template<int N, typename... Args>
+int printf(char (&buffer)[N], const char* format, const Args&... args) {
+    // Delegate to snprintf with the compile-time known buffer size
+    return snprintf(buffer, N, format, args...);
 }
 
 } // namespace fl
