@@ -477,8 +477,11 @@ TEST_CASE("fl::sprintf buffer management") {
     SUBCASE("very long string") {
         char buffer[100]; // Large enough buffer
         int result = fl::sprintf(buffer, "This is a very long string that will fit in the buffer");
-        REQUIRE_EQ(result, 55); // Should return actual length written
-        REQUIRE_EQ(strcmp(buffer, "This is a very long string that will fit in the buffer"), 0);
+        const char* expected = "This is a very long string that will fit in the buffer";
+        int expected_len = strlen(expected);
+        
+        REQUIRE_EQ(result, expected_len); // Should return actual length written
+        REQUIRE_EQ(strcmp(buffer, expected), 0);
     }
 }
 

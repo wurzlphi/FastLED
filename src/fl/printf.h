@@ -5,6 +5,7 @@
 #include "fl/type_traits.h"
 #include "fl/str.h"
 #include "fl/io.h"  // For fl::print and fl::println
+#include "fl/stdint.h"  // For SIZE_MAX
 
 namespace fl {
 
@@ -464,29 +465,10 @@ int snprintf(char* buffer, size_t size, const char* format, const Args&... args)
 /// @endcode
 template<typename... Args>
 int sprintf(char* buffer, const char* format, const Args&... args) {
-    // Handle null buffer
-    if (!buffer) {
-        return 0;
-    }
-    
-    // Format to internal string stream
-    StrStream stream;
-    printf_detail::format_impl(stream, format, args...);
-    fl::string result = stream.str();
-    
-    // Get the formatted string length
-    size_t formatted_len = result.size();
-    
-    // Copy to buffer (assuming buffer is large enough)
-    for (size_t i = 0; i < formatted_len; ++i) {
-        buffer[i] = result[i];
-    }
-    
-    // Null terminate
-    buffer[formatted_len] = '\0';
-    
-    // Return length written (excluding null terminator)
-    return static_cast<int>(formatted_len);
+    // sprintf is just snprintf with a very large buffer size
+    // This assumes the caller has provided a buffer large enough
+    // Use a very large size to effectively disable truncation
+    return snprintf(buffer, static_cast<size_t>(-1), format, args...);
 }
 
 } // namespace fl
