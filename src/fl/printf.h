@@ -55,23 +55,23 @@ void printf(const char* format, const Args&... args);
 template<typename... Args>
 int snprintf(char* buffer, size_t size, const char* format, const Args&... args);
 
-/// @brief Printf-like formatting function that writes to a fixed-size buffer
-/// @tparam N Size of the buffer (automatically deduced)
-/// @param buffer Reference to a fixed-size char array
+/// @brief Sprintf-like formatting function that writes to a buffer
+/// @param buffer Output buffer to write formatted string to (must be large enough)
 /// @param format Format string with placeholders like "%d", "%s", "%f" etc.
 /// @param args Arguments to format
-/// @return Number of characters that would have been written if buffer was large enough
+/// @return Number of characters written (excluding null terminator)
 /// 
-/// This function provides compile-time buffer size safety by taking a reference
-/// to a fixed-size array, preventing buffer overflow errors.
+/// This function writes a formatted string to the provided buffer.
+/// Unlike snprintf, it does not take a size parameter, so the caller
+/// must ensure the buffer is large enough to hold the result.
 ///
 /// Example usage:
 /// @code
 /// char buffer[100];
-/// int len = fl::printf(buffer, "Value: %d, Name: %s", 42, "test");
+/// int len = fl::sprintf(buffer, "Value: %d, Name: %s", 42, "test");
 /// @endcode
-template<int N, typename... Args>
-int printf(char (&buffer)[N], const char* format, const Args&... args);
+template<typename... Args>
+int sprintf(char* buffer, const char* format, const Args&... args);
 
 
 ///////////////////// IMPLEMENTATION /////////////////////
@@ -447,25 +447,46 @@ int snprintf(char* buffer, size_t size, const char* format, const Args&... args)
     return static_cast<int>(formatted_len);
 }
 
-/// @brief Printf-like formatting function that writes to a fixed-size buffer
-/// @tparam N Size of the buffer (automatically deduced)
-/// @param buffer Reference to a fixed-size char array
+/// @brief Sprintf-like formatting function that writes to a buffer
+/// @param buffer Output buffer to write formatted string to (must be large enough)
 /// @param format Format string with placeholders like "%d", "%s", "%f" etc.
 /// @param args Arguments to format
-/// @return Number of characters that would have been written if buffer was large enough
+/// @return Number of characters written (excluding null terminator)
 /// 
-/// This function provides compile-time buffer size safety by taking a reference
-/// to a fixed-size array, preventing buffer overflow errors.
+/// This function writes a formatted string to the provided buffer.
+/// Unlike snprintf, it does not take a size parameter, so the caller
+/// must ensure the buffer is large enough to hold the result.
 ///
 /// Example usage:
 /// @code
 /// char buffer[100];
-/// int len = fl::printf(buffer, "Value: %d, Name: %s", 42, "test");
+/// int len = fl::sprintf(buffer, "Value: %d, Name: %s", 42, "test");
 /// @endcode
-template<int N, typename... Args>
-int printf(char (&buffer)[N], const char* format, const Args&... args) {
-    // Delegate to snprintf with the compile-time known buffer size
-    return snprintf(buffer, N, format, args...);
+template<typename... Args>
+int sprintf(char* buffer, const char* format, const Args&... args) {
+    // Handle null buffer
+    if (!buffer) {
+        return 0;
+    }
+    
+    // Format to internal string stream
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    fl::string result = stream.str();
+    
+    // Get the formatted string length
+    size_t formatted_len = result.size();
+    
+    // Copy to buffer (assuming buffer is large enough)
+    for (size_t i = 0; i < formatted_len; ++i) {
+        buffer[i] = result[i];
+    }
+    
+    // Null terminate
+    buffer[formatted_len] = '\0';
+    
+    // Return length written (excluding null terminator)
+    return static_cast<int>(formatted_len);
 }
 
 } // namespace fl
