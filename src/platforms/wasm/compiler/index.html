@@ -42,6 +42,11 @@
                         <div class="gear-dropdown-item" data-value="gfx-bloom">gfx - bloom</div>
                     </div>
                 </div>
+                
+                <!-- NEWcause of the__: persistent stdout bar just below the canvas -->
+                <div id="stdout-container">
+                    <pre id="output">stdout:</pre>
+                </div>
             </div>
             <div id="ui-controls"></div>
             <div id="ui-controls-2" style="display: none;"></div>
@@ -50,7 +55,7 @@
         <div id="container"></div>
         <div class="popup-overlay" id="popup-overlay"></div>
         <div class="popup" id="output-popup">
-            <pre id="output">stdout:</pre>
+            <!-- stdout will be moved here when expanded -->
         </div>
     </div>
 
@@ -91,74 +96,61 @@
 <script type="module">
     import { loadFastLED } from './index.js';
     
-    document.getElementById('myCanvas').addEventListener('click', function() {
-        const output = document.getElementById('output');
-        const popup = document.getElementById('output-popup');
-        const overlay = document.getElementById('popup-overlay');
-        
-        // Move the output element to the popup
-        popup.appendChild(output);
-        
-        // Show the popup and overlay with animation
+    // ----------------- NEW STDOUT EXPANSION LOGIC -----------------
+    const outputElem = document.getElementById('output');
+    const popup      = document.getElementById('output-popup');
+    const overlay    = document.getElementById('popup-overlay');
+    const stdoutWrap = document.getElementById('stdout-container');
+
+    function showStdoutPopup() {
+        popup.appendChild(outputElem);
         overlay.style.opacity = '0';
         overlay.style.display = 'block';
-        popup.style.display = 'block';
-        
-        // Trigger reflow
+        popup.style.display   = 'block';
+        // trigger reflow so opacity transition works
         void overlay.offsetWidth;
-        
-        // Fade in
         overlay.style.opacity = '1';
-        
-        // Close popup when clicking overlay
-        overlay.onclick = function() {
-            // Fade out
-            overlay.style.opacity = '0';
-            
-            setTimeout(() => {
-                popup.style.display = 'none';
-                overlay.style.display = 'none';
-                
-                // Remove and re-add the animation class to trigger it again
-                const label = document.getElementById('canvas-label');
-                label.classList.remove('show-animation');
-                // Force reflow to ensure animation restarts
-                void label.offsetWidth;
-                label.classList.add('show-animation');
-            }, 200); // Match the transition duration
-        };
-    });
+    }
 
-    document.getElementById('output').addEventListener('click', function() {
-        if (document.querySelector('.toast-notification')) {
-            return; // We are already showing a toast notification
+    function hideStdoutPopup() {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+            stdoutWrap.appendChild(outputElem);
+        }, 200); // keep in sync with CSS transition
+    }
+
+    // Clicking the overlay collapses the popup
+    overlay.onclick = hideStdoutPopup;
+
+    // Clicking the stdout bar expands, clicking again (when expanded) copies
+    outputElem.addEventListener('click', function() {
+        // If collapsed, expand first
+        if (outputElem.parentElement.id === 'stdout-container') {
+            showStdoutPopup();
+            return;
         }
 
-        const text = this.textContent;
-        
+        // Already expanded – copy to clipboard like before
+        if (document.querySelector('.toast-notification')) {
+            return;
+        }
+        const text = outputElem.textContent;
         navigator.clipboard.writeText(text).then(() => {
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
             toast.textContent = 'Copied to clipboard';
             document.body.appendChild(toast);
-            
-            // Force reflow
             void toast.offsetHeight;
-            
             toast.classList.add('toast-notification-show');
-            
             setTimeout(() => {
                 toast.classList.add('toast-notification-hide');
-                toast.addEventListener('transitionend', () => {
-                    if (toast.parentElement) {
-                        document.body.removeChild(toast);
-                    }
-                }, {once: true});
+                toast.addEventListener('transitionend', () => toast.remove(), { once: true });
             }, 2000);
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
-        });
+        }).catch(err => console.error('Failed to copy text: ', err));
     });
+    // ----------------- END STDOUT EXPANSION LOGIC -----------------
 
     // Gear menu functionality
     const gearIcon = document.getElementById('gear-icon');
