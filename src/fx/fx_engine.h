@@ -12,6 +12,7 @@
 #include "fx/time.h"
 #include "fx/video.h"
 #include "fl/stdint.h"
+#include "fl/string.h"
 
 // Forward declaration
 class TimeFunction;
@@ -34,6 +35,8 @@ namespace fl {
 class FxEngine {
   public:
     typedef fl::FixedMap<int, FxPtr, FASTLED_FX_ENGINE_MAX_FX> IntFxMap;
+    typedef FxPtr (*FxFunction)(uint16_t numLeds);
+    
     /**
      * @brief Constructs an FxEngine with the specified number of LEDs.
      * @param numLeds The number of LEDs in the strip.
@@ -62,6 +65,13 @@ class FxEngine {
      *        then the object probably wasn't going to be deleted anyway.
      */
     int addFx(Fx &effect) { return addFx(fl::Ptr<Fx>::NoTracking(effect)); }
+
+    /**
+     * @brief Sets an effect by name. Creates a new effect instance and sets it as current.
+     * @param name The name of the effect to set (e.g., "cylon", "fire2012", "pride2015")
+     * @return True if the effect was found and set, false otherwise.
+     */
+    bool setFx(const char* name);
 
     /**
      * @brief Requests removal of an effect from the engine, which might not
@@ -113,6 +123,20 @@ class FxEngine {
     void setSpeed(float scale) { mTimeFunction.setSpeed(scale); }
 
   private:
+    /**
+     * @brief Finds an effect factory function by name.
+     * @param name The name of the effect to find.
+     * @return The factory function, or nullptr if not found.
+     */
+    FxFunction findFxByName(const char* name);
+    
+    /**
+     * @brief Gets the static map of effect names to factory functions.
+     * @return A map of effect names to factory functions.
+     */
+    static fl::FixedMap<fl::string, FxFunction, 16> getEffectMap();
+    
+    uint16_t mNumLeds;        ///< Number of LEDs in the strip
     int mCounter = 0;
     TimeWarp mTimeFunction;   // FxEngine controls the clock, to allow
                               // "time-bending" effects.

@@ -1,13 +1,80 @@
 #include "fx_engine.h"
 #include "video.h"
+#include "fx/1d/cylon.h"
+#include "fx/1d/fire2012.h"
+#include "fx/1d/pride2015.h"
+#include "fx/1d/demoreel100.h"
+#include "fx/1d/pacifica.h"
+#include "fx/1d/twinklefox.h"
+#include "fl/string.h"
 
 namespace fl {
 
 FxEngine::FxEngine(uint16_t numLeds, bool interpolate)
-    : mTimeFunction(0), mCompositor(numLeds), mCurrId(0),
+    : mNumLeds(numLeds), mTimeFunction(0), mCompositor(numLeds), mCurrId(0),
       mInterpolate(interpolate) {}
 
 FxEngine::~FxEngine() {}
+
+fl::FixedMap<fl::string, FxEngine::FxFunction, 16> FxEngine::getEffectMap() {
+    fl::FixedMap<fl::string, FxEngine::FxFunction, 16> effectMap;
+    effectMap.insert("cylon", [](uint16_t numLeds) -> FxPtr { return CylonPtr::New(numLeds); });
+    effectMap.insert("fire2012", [](uint16_t numLeds) -> FxPtr { return Fire2012Ptr::New(numLeds); });
+    effectMap.insert("pride2015", [](uint16_t numLeds) -> FxPtr { return Pride2015Ptr::New(numLeds); });
+    effectMap.insert("demoreel100", [](uint16_t numLeds) -> FxPtr { return DemoReel100Ptr::New(numLeds); });
+    effectMap.insert("pacifica", [](uint16_t numLeds) -> FxPtr { return PacificaPtr::New(numLeds); });
+    effectMap.insert("twinklefox", [](uint16_t numLeds) -> FxPtr { return TwinkleFoxPtr::New(numLeds); });
+    return effectMap;
+}
+
+FxEngine::FxFunction FxEngine::findFxByName(const char* name) {
+    if (!name) {
+        return nullptr;
+    }
+    
+    auto effectMap = getEffectMap();
+    fl::string searchName(name);
+    
+    // Convert to lowercase for case-insensitive matching
+    for (size_t i = 0; i < searchName.size(); ++i) {
+        char& c = searchName[i];
+        if (c >= 'A' && c <= 'Z') {
+            c = c - 'A' + 'a';
+        }
+    }
+    
+    auto it = effectMap.find(searchName);
+    if (it != effectMap.end()) {
+        return it->second;
+    }
+    
+    return nullptr;
+}
+
+bool FxEngine::setFx(const char* name) {
+    FxFunction factory = findFxByName(name);
+    if (!factory) {
+        return false;
+    }
+    
+    // Create the effect
+    FxPtr effect = factory(mNumLeds);
+    if (!effect) {
+        return false;
+    }
+    
+    // Clear existing effects and add the new one
+    mEffects.clear();
+    mCounter = 0;
+    
+    int id = addFx(effect);
+    if (id >= 0) {
+        mCurrId = id;
+        return true;
+    }
+    
+    return false;
+}
 
 int FxEngine::addFx(FxPtr effect) {
     float fps = 0;

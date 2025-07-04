@@ -1,4 +1,3 @@
-
 // g++ --std=c++11 test.cpp
 
 #include "test.h"
@@ -9,9 +8,7 @@
 #include "fx/1d/cylon.h"
 #include "fx/1d/demoreel100.h"
 #include "fx/1d/noisewave.h"
-#include "fx/1d/pacifica.h"
-#include "fx/1d/pride2015.h" // needs XY defined or linker error.
-#include "fx/1d/twinklefox.h"
+// Removed pacifica.h, pride2015.h, twinklefox.h to avoid multiple definition errors with fx_engine
 #include "fx/2d/animartrix.hpp"
 #include "fx/2d/noisepalette.h"
 #include "fx/2d/scale_up.h"
