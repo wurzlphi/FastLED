@@ -480,13 +480,13 @@ TEST_CASE("fl::sprintf buffer management") {
         REQUIRE_EQ(strcmp(buffer, expected), 0);
     }
 
-    // SUBCASE("overflow") {
-    //     char buffer[10];
-    //     int result = fl::sprintf(buffer, "Hello, %s!", "world");
-    //     REQUIRE_EQ(result, 10); // Should return the full lenght of the string.
-    //     //REQUIRE_EQ(strcmp(buffer, "Hello, wor"), 0);
-    //     REQUIRE_EQ(fl::string("Hello, wor"), buffer);
-    // }
+    SUBCASE("overflow") {
+        char buffer[10];
+        int result = fl::sprintf(buffer, "Hello, %s!", "world");
+        REQUIRE_EQ(result, 9); // Should return the number of characters actually written (excluding null terminator)
+        //REQUIRE_EQ(strcmp(buffer, "Hello, wor"), 0);
+        REQUIRE_EQ(fl::string("Hello, wor"), buffer);
+    }
     
 }
 

@@ -464,8 +464,38 @@ int snprintf(char* buffer, size_t size, const char* format, const Args&... args)
 /// @endcode
 template<size_t N, typename... Args>
 int sprintf(char (&buffer)[N], const char* format, const Args&... args) {
-    // Use the compile-time known buffer size for safety
-    return snprintf(buffer, N, format, args...);
+    // Format to internal string stream
+    StrStream stream;
+    printf_detail::format_impl(stream, format, args...);
+    fl::string result = stream.str();
+    
+    // Get the formatted string length
+    size_t formatted_len = result.size();
+    
+    // If the formatted string fits in the buffer, copy it and return actual length
+    if (formatted_len < N) {
+        // Copy characters
+        for (size_t i = 0; i < formatted_len; ++i) {
+            buffer[i] = result[i];
+        }
+        // Null terminate
+        buffer[formatted_len] = '\0';
+        return static_cast<int>(formatted_len);
+    }
+    
+    // Buffer is too small - copy what we can and return buffer size minus 1
+    size_t copy_len = N - 1; // Leave space for null terminator
+    
+    // Copy characters
+    for (size_t i = 0; i < copy_len; ++i) {
+        buffer[i] = result[i];
+    }
+    
+    // Null terminate
+    buffer[copy_len] = '\0';
+    
+    // Return the number of characters actually written (excluding null terminator)
+    return static_cast<int>(copy_len);
 }
 
 } // namespace fl
