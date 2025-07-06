@@ -4,9 +4,10 @@
 #include "platforms/shared/int_base.h"
 
 namespace fl {
-    // On AVR: int is 16-bit, long is 32-bit — match stdint sizes manually
-    typedef int i16;
-    typedef unsigned int u16;
+    // ARM platforms (32-bit): short is 16-bit, long is 32-bit
+    // uint32_t resolves to 'unsigned long' on most ARM toolchains
+    typedef short i16;
+    typedef unsigned short u16;
     typedef long i32;
     typedef unsigned long u32;
     typedef long long i64;
