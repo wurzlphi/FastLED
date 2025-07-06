@@ -1,5 +1,3 @@
-
-
 #ifdef ESP32
 
 #include "sdkconfig.h"
@@ -85,13 +83,22 @@ DMABuffer *dmaBuffers[NUM_DMA_BUFFERS];
 // -- Global semaphore for the whole show process
 //    Semaphore is not given until all data has been sent
 #if tskKERNEL_VERSION_MAJOR >= 7
+#ifndef FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
+#define FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
 static SemaphoreHandle_t gTX_sem = NULL;
+#endif
 #else
+#ifndef FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
+#define FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
 static xSemaphoreHandle gTX_sem = NULL;
+#endif
 #endif
 
 // -- One-time I2S initialization
+#ifndef FASTLED_ESP32_GLOBAL_INITIALIZED_DEFINED
+#define FASTLED_ESP32_GLOBAL_INITIALIZED_DEFINED
 static bool gInitialized = false;
+#endif
 
 static DMABuffer *allocateDMABuffer(int bytes) {
     DMABuffer *b =

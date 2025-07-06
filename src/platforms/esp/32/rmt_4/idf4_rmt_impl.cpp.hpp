@@ -200,15 +200,24 @@ static intr_handle_t gRMT_intr_handle = NULL;
 // -- Global semaphore for the whole show process
 //    Semaphore is not given until all data has been sent
 #if tskKERNEL_VERSION_MAJOR >= 7
+#ifndef FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
+#define FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
 static SemaphoreHandle_t gTX_sem = NULL;
+#endif
 #else
+#ifndef FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
+#define FASTLED_ESP32_GLOBAL_TX_SEM_DEFINED
 static xSemaphoreHandle gTX_sem = NULL;
+#endif
 #endif
 
 // -- Make sure we can't call show() too quickly
 CMinWait<50> gWait;
 
+#ifndef FASTLED_ESP32_GLOBAL_INITIALIZED_DEFINED
+#define FASTLED_ESP32_GLOBAL_INITIALIZED_DEFINED
 static bool gInitialized = false;
+#endif
 // -- Stored values for FASTLED_RMT_MAX_CHANNELS and FASTLED_RMT_MEM_BLOCKS
 int ESP32RMTController::gMaxChannel;
 int ESP32RMTController::gMemBlocks;
