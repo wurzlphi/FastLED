@@ -411,3 +411,147 @@ TEST_CASE("test bitset_inlined find_first") {
     REQUIRE_EQ(bs4.find_first(true), 150);
     REQUIRE_EQ(bs4.find_first(false), 0);
 }
+
+// --- Bitset resize and edge case tests folded from test_bitset_resize_optimization.cpp ---
+
+// Test helper to verify bitset contents
+template<typename BitsetT>
+static void verify_bitset_contents(const BitsetT& bs, const fl::vector<bool>& expected) {
+    fl::u32 size = MIN(bs.size(), expected.size());
+    for (fl::u32 i = 0; i < size; ++i) {
+        REQUIRE_EQ(bs.test(i), expected[i]);
+    }
+}
+
+TEST_CASE("bitset resize and edge cases") {
+    // Basic resize up/down and bit preservation
+    bitset<64> bs;
+    bs.set(0, true); bs.set(15, true); bs.set(31, true); bs.set(47, true); bs.set(63, true);
+    bs.resize(128);
+    REQUIRE_EQ(bs.test(0), true);
+    REQUIRE_EQ(bs.test(15), true);
+    REQUIRE_EQ(bs.test(31), true);
+    REQUIRE_EQ(bs.test(47), true);
+    REQUIRE_EQ(bs.test(63), true);
+    bs.set(100, true); bs.set(127, true);
+    bs.resize(32);
+    REQUIRE_EQ(bs.test(0), true);
+    REQUIRE_EQ(bs.test(15), true);
+    REQUIRE_EQ(bs.test(31), true);
+    REQUIRE_EQ(bs.test(47), false);
+    REQUIRE_EQ(bs.test(63), false);
+    REQUIRE_EQ(bs.test(100), false);
+    REQUIRE_EQ(bs.test(127), false);
+
+    // Edge case: partial blocks
+    bitset<64> bs2;
+    bs2.set(63, true);
+    bs2.resize(65);
+    REQUIRE_EQ(bs2.test(63), true);
+    bs2.set(64, true);
+    REQUIRE_EQ(bs2.test(64), true);
+    bs2.resize(64);
+    REQUIRE_EQ(bs2.test(63), true);
+    REQUIRE_EQ(bs2.test(64), false);
+
+    // Multiple partial blocks
+    bitset<32> bs3;
+    bs3.set(30, true); bs3.set(31, true);
+    bs3.resize(50);
+    REQUIRE_EQ(bs3.test(30), true);
+    REQUIRE_EQ(bs3.test(31), true);
+    bs3.set(48, true); bs3.set(49, true);
+    REQUIRE_EQ(bs3.test(48), true);
+    REQUIRE_EQ(bs3.test(49), true);
+    bs3.resize(40);
+    REQUIRE_EQ(bs3.test(30), true);
+    REQUIRE_EQ(bs3.test(31), true);
+    REQUIRE_EQ(bs3.test(48), false);
+    REQUIRE_EQ(bs3.test(49), false);
+
+    // Complex pattern
+    fl::vector<bool> pattern = {
+        true, false, true, false, true, false, true, false,
+        false, true, false, true, false, true, false, true,
+        true, true, false, false, true, true, false, false,
+        false, false, true, true, false, false, true, true
+    };
+    bitset<32> bs4;
+    for (fl::u32 i = 0; i < pattern.size(); ++i) if (pattern[i]) bs4.set(i);
+    verify_bitset_contents(bs4, pattern);
+    bs4.resize(64);
+    verify_bitset_contents(bs4, pattern);
+    for (fl::u32 i = 32; i < 64; ++i) bs4.set(i, (i % 3) == 0);
+    bs4.resize(32);
+    verify_bitset_contents(bs4, pattern);
+
+    // Boundary conditions
+    bitset<64> bs5;
+    bs5.set(63, true);
+    bs5.resize(64);
+    REQUIRE_EQ(bs5.test(63), true);
+    bs5.resize(65);
+    REQUIRE_EQ(bs5.test(63), true);
+    bs5.set(64, true);
+    bs5.resize(64);
+    REQUIRE_EQ(bs5.test(63), true);
+    REQUIRE_EQ(bs5.test(64), false);
+
+    // Zero size
+    bitset<64> bs6;
+    bs6.set(10, true); bs6.set(20, true);
+    bs6.resize(0);
+    bs6.resize(64);
+    REQUIRE_EQ(bs6.test(10), false);
+    REQUIRE_EQ(bs6.test(20), false);
+
+    // Very large resize
+    bitset<16> bs7;
+    bs7.set(0, true); bs7.set(15, true);
+    bs7.resize(1000);
+    REQUIRE_EQ(bs7.test(0), true);
+    REQUIRE_EQ(bs7.test(15), true);
+    bs7.set(500, true); bs7.set(999, true);
+    bs7.resize(8);
+    REQUIRE_EQ(bs7.test(0), true);
+    REQUIRE_EQ(bs7.test(15), false);
+    REQUIRE_EQ(bs7.test(500), false);
+    REQUIRE_EQ(bs7.test(999), false);
+
+    // Alternating resize
+    bitset<32> bs8;
+    for (fl::u32 i = 0; i < 32; i += 2) bs8.set(i, true);
+    for (int round = 0; round < 3; ++round) {
+        bs8.resize(64);
+        for (fl::u32 i = 0; i < 32; i += 2) REQUIRE_EQ(bs8.test(i), true);
+        for (fl::u32 i = 32; i < 64; i += 3) bs8.set(i, true);
+        bs8.resize(32);
+        for (fl::u32 i = 0; i < 32; i += 2) REQUIRE_EQ(bs8.test(i), true);
+        for (fl::u32 i = 32; i < 64; i += 3) REQUIRE_EQ(bs8.test(i), false);
+    }
+
+    // Partial block edge cases
+    bitset<16> bs9; bs9.set(15, true); bs9.resize(17); REQUIRE_EQ(bs9.test(15), true); bs9.set(16, true); REQUIRE_EQ(bs9.test(16), true);
+    bitset<16> bs10; bs10.set(15, true); bs10.resize(24); REQUIRE_EQ(bs10.test(15), true); bs10.set(16, true); bs10.set(23, true); REQUIRE_EQ(bs10.test(16), true); REQUIRE_EQ(bs10.test(23), true);
+    bitset<16> bs11; bs11.set(15, true); bs11.resize(31); REQUIRE_EQ(bs11.test(15), true); bs11.set(16, true); bs11.set(30, true); REQUIRE_EQ(bs11.test(16), true); REQUIRE_EQ(bs11.test(30), true);
+
+    // Memcopy verification
+    bitset<32> bs12; for (fl::u32 i = 0; i < 32; ++i) bs12.set(i, (i % 3) == 0);
+    bs12.resize(64);
+    for (fl::u32 i = 0; i < 32; ++i) REQUIRE_EQ(bs12.test(i), ((i % 3) == 0));
+    for (fl::u32 i = 32; i < 64; ++i) bs12.set(i, (i % 5) == 0);
+    bs12.resize(32);
+    for (fl::u32 i = 0; i < 32; ++i) REQUIRE_EQ(bs12.test(i), ((i % 3) == 0));
+
+    // Stress test
+    bitset<16> bs13;
+    for (int i = 0; i < 20; ++i) {
+        fl::u32 new_size = 16 + (i % 20);
+        bs13.resize(new_size);
+        bs13.set(0, true);
+        if (new_size > 1) bs13.set(new_size - 1, true);
+        bs13.resize(16);
+        REQUIRE_EQ(bs13.test(0), true);
+    }
+}
+// --- End of folded tests ---
