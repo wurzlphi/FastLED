@@ -354,6 +354,25 @@ class BitsetInlined {
                     fl::memcopy(fixed.get_blocks(), dynamic->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::public_block_type));
                 }
 
+                // Clear any bits beyond the fixed size limit
+                // Clear all blocks that are beyond the fixed size
+                const fl::u32 fixed_block_count = fixed.get_block_count();
+                for (fl::u32 i = 0; i < fixed_block_count; ++i) {
+                    const fl::u32 block_start_bit = i * fixed.get_bits_per_block();
+                    const fl::u32 block_end_bit = block_start_bit + fixed.get_bits_per_block() - 1;
+                    
+                    if (block_start_bit >= N) {
+                        // This entire block is beyond the fixed size, clear it
+                        fixed.get_blocks()[i] = 0;
+                    } else if (block_end_bit >= N) {
+                        // This block is partially beyond the fixed size, mask it
+                        const fl::u32 last_bit_pos = (N - 1) % fixed.get_bits_per_block();
+                        const typename fixed_bitset::public_block_type mask = 
+                            (typename fixed_bitset::public_block_type(1) << (last_bit_pos + 1)) - 1;
+                        fixed.get_blocks()[i] &= mask;
+                    }
+                }
+
                 _storage = fixed;
             }
         } else {
