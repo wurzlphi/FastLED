@@ -331,78 +331,83 @@ endif()
 # Enable testing
 enable_testing()
 
-# Create a static library for test infrastructure to avoid Windows symbol conflicts
-# This avoids the duplicate symbol issues that occur when mixing shared and static libraries
-add_library(test_shared_static STATIC
+# Find all test source files (excluding test_runner.cpp)
+file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
+list(REMOVE_ITEM TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test_runner.cpp")
+
+# Create a single DLL that contains all test code and infrastructure
+add_library(test_all SHARED
     doctest_main.cpp
+    ${TEST_SOURCES}
 )
 
-target_include_directories(test_shared_static PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_options(test_shared_static PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
-target_compile_options(test_shared_static PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
-target_compile_definitions(test_shared_static PRIVATE ${COMMON_COMPILE_DEFINITIONS})
+target_include_directories(test_all PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(test_all PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
+target_compile_options(test_all PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
+target_compile_definitions(test_all PRIVATE ${COMMON_COMPILE_DEFINITIONS})
 
-# Find all test source files
-file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
+# Add Windows debugging libraries for crash handler
+if(WIN32)
+    target_link_libraries(test_all dbghelp psapi)
+endif()
+
+# Create a simple test runner executable that links to the single DLL
+add_executable(test_runner
+    test_runner.cpp
+)
+
+target_link_libraries(test_runner fastled test_all)
+
+# Set the correct subsystem for Windows
+if(WIN32)
+    # Add Windows debugging libraries for crash handler
+    target_link_libraries(test_runner dbghelp psapi)
+    
+    if(MSVC)
+        set_target_properties(test_runner PROPERTIES
+            WIN32_EXECUTABLE FALSE
+            LINK_FLAGS "/SUBSYSTEM:CONSOLE")
+    else()
+        # For MinGW/Clang on Windows
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            set_target_properties(test_runner PROPERTIES
+                WIN32_EXECUTABLE FALSE
+                LINK_FLAGS "-Xlinker /subsystem:console")
+        else()
+            set_target_properties(test_runner PROPERTIES
+                WIN32_EXECUTABLE FALSE)
+        endif()
+    endif()
+endif()
+
+# Add C++-specific flags only for C++ files
+target_compile_options(fastled PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_SPECIFIC_FLAGS}>)
+if(USE_LIBUNWIND)
+    target_link_libraries(test_runner ${LIBUNWIND_LIBRARIES})
+    target_include_directories(test_runner PRIVATE ${LIBUNWIND_INCLUDE_DIRS})
+endif()
+target_include_directories(test_runner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(test_runner PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+)
+# Add static linking flags and debug flags for test executables
+if(NOT APPLE AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_link_options(test_runner PRIVATE -static-libgcc -static-libstdc++)
+endif()
+target_compile_options(test_runner PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
+# Add C++-specific flags only for C++ files
+target_compile_options(test_runner PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
+target_compile_definitions(test_runner PRIVATE 
+    ${COMMON_COMPILE_DEFINITIONS}
+    $<$<BOOL:${USE_LIBUNWIND}>:USE_LIBUNWIND>
+)
+
+# Add the test
+add_test(NAME test_runner COMMAND test_runner)
 
 # Find test executables (only actual test executables, not libraries)
 file(GLOB TEST_BINARIES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_*${CMAKE_EXECUTABLE_SUFFIX}")
-
-# Process source files - create executables that link to static library
-foreach(TEST_SOURCE ${TEST_SOURCES})
-    get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
-    
-    # Create executable that links to static library
-    add_executable(${TEST_NAME} ${TEST_SOURCE})
-    target_link_libraries(${TEST_NAME} fastled test_shared_static)
-    
-    # Set the correct subsystem for Windows
-    if(WIN32)
-        # Add Windows debugging libraries for crash handler
-        target_link_libraries(${TEST_NAME} dbghelp psapi)
-        
-        if(MSVC)
-            set_target_properties(${TEST_NAME} PROPERTIES
-                WIN32_EXECUTABLE FALSE
-                LINK_FLAGS "/SUBSYSTEM:CONSOLE")
-        else()
-            # For MinGW/Clang on Windows
-            if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-                set_target_properties(${TEST_NAME} PROPERTIES
-                    WIN32_EXECUTABLE FALSE
-                    LINK_FLAGS "-Xlinker /subsystem:console")
-            else()
-                set_target_properties(${TEST_NAME} PROPERTIES
-                    WIN32_EXECUTABLE FALSE)
-            endif()
-        endif()
-    endif()
-    
-    # Add C++-specific flags only for C++ files
-    target_compile_options(fastled PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_SPECIFIC_FLAGS}>)
-    if(USE_LIBUNWIND)
-        target_link_libraries(${TEST_NAME} ${LIBUNWIND_LIBRARIES})
-        target_include_directories(${TEST_NAME} PRIVATE ${LIBUNWIND_INCLUDE_DIRS})
-    endif()
-    target_include_directories(${TEST_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-    set_target_properties(${TEST_NAME} PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-    )
-    # Add static linking flags and debug flags for test executables
-    if(NOT APPLE AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        target_link_options(${TEST_NAME} PRIVATE -static-libgcc -static-libstdc++)
-    endif()
-    target_compile_options(${TEST_NAME} PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
-    # Add C++-specific flags only for C++ files
-    target_compile_options(${TEST_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
-    target_compile_definitions(${TEST_NAME} PRIVATE 
-        ${COMMON_COMPILE_DEFINITIONS}
-        $<$<BOOL:${USE_LIBUNWIND}>:USE_LIBUNWIND>
-    )
-    
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-endforeach()
 
 # Process remaining binaries (those without corresponding source files)
 option(CLEAN_ORPHANED_BINARIES "Remove orphaned test binaries" ON)
