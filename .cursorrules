@@ -257,6 +257,30 @@ uv run mcp_server.py
 - ❌ **NEVER delete directories** without explicit permission
 - ❌ **NEVER delete system files or project files** without permission
 
+### Git-Bash Terminal Truncation Issue
+**🚨 IMPORTANT: Git-Bash terminal may truncate the first character of commands**
+
+**Problem:** The git-bash terminal on Windows sometimes truncates the first character of commands, causing them to fail or execute incorrectly.
+
+**Solution:** Pre-pend commands with an additional space when using git-bash:
+- ✅ **CORRECT**: ` bash test` (note the leading space)
+- ❌ **INCORRECT**: `bash test` (may get truncated to `ash test`)
+
+**Examples:**
+```bash
+# Good - with leading space for git-bash compatibility
+ bash test
+ uv run test.py
+ bash lint
+
+# Bad - may get truncated in git-bash
+bash test
+uv run test.py
+bash lint
+```
+
+**Why:** This ensures commands work reliably across all terminal environments, especially git-bash on Windows systems.
+
 ### Why These Rules Exist:
 - **Ensures all operations are reviewable and traceable**
 - **Prevents accidental destructive operations in automated environments**
