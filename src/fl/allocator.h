@@ -469,6 +469,8 @@ private:
     InlinedStorage m_inlined_storage;
     BaseAllocator m_base_allocator;
     fl::size m_inlined_used = 0;
+    fl::size m_inlined_free_slots[N];  // Track free slots in inlined storage
+    fl::size m_inlined_free_count = 0; // Number of free slots
     T* m_heap_data = nullptr;
     fl::size m_heap_capacity = 0;
     fl::size m_heap_used = 0;
@@ -552,29 +554,27 @@ public:
             return nullptr;
         }
         
-        // If we can fit in inlined storage
+        // First try to use free slots in inlined storage
+        if (m_inlined_free_count >= n) {
+            // Use the last free slot
+            fl::size slot_index = m_inlined_free_slots[m_inlined_free_count - n];
+            m_inlined_free_count -= n;
+            return &get_inlined_ptr()[slot_index];
+        }
+        
+        // If we can fit in remaining inlined storage
         if (m_inlined_used + n <= N) {
             T* ptr = &get_inlined_ptr()[m_inlined_used];
             m_inlined_used += n;
             return ptr;
         }
         
-        // If we need heap storage and this is the first time switching to heap
-        if (m_heap_used == 0 && m_inlined_used > 0) {
-            // Transfer inlined data to heap first
-            fl::size total_needed = m_inlined_used + n;
-            fl::size new_capacity = total_needed * 2; // Start with some extra capacity
-            
-            m_heap_data = m_base_allocator.allocate(new_capacity);
-            m_heap_capacity = new_capacity;
-            
-            // Move existing inlined data to heap
-            for (fl::size i = 0; i < m_inlined_used; ++i) {
-                m_base_allocator.construct(&m_heap_data[i], fl::move(get_inlined_ptr()[i]));
-                get_inlined_ptr()[i].~T();
-            }
-            m_heap_used = m_inlined_used;
-            m_inlined_used = 0;
+        // We need heap storage - initialize heap if this is the first time
+        if (m_heap_data == nullptr) {
+            fl::size initial_capacity = n * 2; // Start with some extra capacity
+            m_heap_data = m_base_allocator.allocate(initial_capacity);
+            m_heap_capacity = initial_capacity;
+            m_heap_used = 0;
         }
         
         // If we need more heap storage
@@ -592,10 +592,7 @@ public:
                 m_base_allocator.destroy(&m_heap_data[i]);
             }
             
-            if (m_heap_data) {
-                m_base_allocator.deallocate(m_heap_data, m_heap_capacity);
-            }
-            
+            m_base_allocator.deallocate(m_heap_data, m_heap_capacity);
             m_heap_data = new_heap_data;
             m_heap_capacity = new_capacity;
         }
@@ -616,8 +613,13 @@ public:
         T* inlined_end = inlined_start + N;
         
         if (p >= inlined_start && p < inlined_end) {
-            // This is inlined memory, just mark as unused
-            // The destructor will handle cleanup
+            // This is inlined memory, add to free list
+            fl::size slot_index = (p - inlined_start);
+            for (fl::size i = 0; i < n; ++i) {
+                if (m_inlined_free_count < N) {
+                    m_inlined_free_slots[m_inlined_free_count++] = slot_index + i;
+                }
+            }
             return;
         }
         
