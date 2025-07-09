@@ -52,7 +52,12 @@ JsonDropdownImpl::JsonDropdownImpl(const fl::string &name, fl::initializer_list<
     commonInit(name);
 }
 
-JsonDropdownImpl::~JsonDropdownImpl() { removeJsonUiComponent(mInternal); }
+JsonDropdownImpl::~JsonDropdownImpl() { 
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal); 
+}
 
 JsonDropdownImpl &JsonDropdownImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);

@@ -52,6 +52,9 @@ TEST_CASE("JsonUiInternal creation and basic operations") {
     fl::string groupName = "test_group";
     internal->setGroup(groupName);
     CHECK(internal->groupName() == groupName);
+    
+    // Clear functions before destruction to avoid warnings
+    internal->clearFunctions();
 }
 
 
@@ -90,6 +93,9 @@ TEST_CASE("JsonUiInternal JSON operations") {
     CHECK(fl::string(jsonObj["name"].as<const char*>()) == fl::string("test"));
     CHECK_CLOSE(jsonObj["value"].as<float>(), 42.5f, 0.001f);
     CHECK(fl::string(jsonObj["type"].as<const char*>()) == fl::string("slider"));
+    
+    // Clear functions before destruction to avoid warnings
+    internal->clearFunctions();
 }
 
 TEST_CASE("JsonSliderImpl basic functionality") {

@@ -20,7 +20,12 @@ JsonDescriptionImpl::JsonDescriptionImpl(const string &text): mText(text) {
     addJsonUiComponent(mInternal);
 }
 
-JsonDescriptionImpl::~JsonDescriptionImpl() {}
+JsonDescriptionImpl::~JsonDescriptionImpl() {
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal);
+}
 
 JsonDescriptionImpl &JsonDescriptionImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);

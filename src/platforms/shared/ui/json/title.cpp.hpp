@@ -20,7 +20,12 @@ JsonTitleImpl::JsonTitleImpl(const string &text) : mText(text) {
     addJsonUiComponent(mInternal);
 }
 
-JsonTitleImpl::~JsonTitleImpl() {}
+JsonTitleImpl::~JsonTitleImpl() {
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal);
+}
 
 JsonTitleImpl &JsonTitleImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);

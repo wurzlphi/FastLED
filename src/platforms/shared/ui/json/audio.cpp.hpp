@@ -33,7 +33,12 @@ JsonAudioImpl::JsonAudioImpl(const fl::string &name) {
     addJsonUiComponent(mInternal);
 }
 
-JsonAudioImpl::~JsonAudioImpl() { removeJsonUiComponent(mInternal); }
+JsonAudioImpl::~JsonAudioImpl() { 
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal); 
+}
 
 JsonAudioImpl &JsonAudioImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);

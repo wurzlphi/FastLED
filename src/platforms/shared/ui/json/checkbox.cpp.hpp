@@ -23,7 +23,12 @@ JsonCheckboxImpl::JsonCheckboxImpl(const fl::string &name, bool value)
     addJsonUiComponent(mInternal);
 }
 
-JsonCheckboxImpl::~JsonCheckboxImpl() { removeJsonUiComponent(mInternal); }
+JsonCheckboxImpl::~JsonCheckboxImpl() { 
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal); 
+}
 
 JsonCheckboxImpl &JsonCheckboxImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);

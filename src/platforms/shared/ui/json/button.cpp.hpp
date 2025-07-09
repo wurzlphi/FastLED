@@ -26,7 +26,12 @@ JsonButtonImpl::JsonButtonImpl(const string &name) : mPressed(false) {
     mUpdater.init(this);
 }
 
-JsonButtonImpl::~JsonButtonImpl() { removeJsonUiComponent(mInternal); }
+JsonButtonImpl::~JsonButtonImpl() { 
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal); 
+}
 
 JsonButtonImpl &JsonButtonImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);

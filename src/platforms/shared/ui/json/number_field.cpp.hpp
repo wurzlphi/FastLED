@@ -27,7 +27,12 @@ JsonNumberFieldImpl::JsonNumberFieldImpl(const fl::string &name, double value,
     addJsonUiComponent(mInternal);
 }
 
-JsonNumberFieldImpl::~JsonNumberFieldImpl() { removeJsonUiComponent(mInternal); }
+JsonNumberFieldImpl::~JsonNumberFieldImpl() { 
+    if (mInternal) {
+        mInternal->clearFunctions();
+    }
+    removeJsonUiComponent(mInternal); 
+}
 
 JsonNumberFieldImpl &JsonNumberFieldImpl::Group(const fl::string &name) {
     mInternal->setGroup(name);
