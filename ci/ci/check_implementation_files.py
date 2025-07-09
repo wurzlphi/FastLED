@@ -317,6 +317,11 @@ def main():
         action="store_true",
         help="Use ASCII-only output (no Unicode emoji)",
     )
+    parser.add_argument(
+        "--suppress-summary-on-100-percent",
+        action="store_true",
+        help="Suppress summary report when inclusion percentage is 100%",
+    )
 
     args = parser.parse_args()
 
@@ -338,6 +343,24 @@ def main():
     stats_symbol = "[STATS]" if USE_ASCII_ONLY else "📊"
     config_symbol = "[CONFIG]" if USE_ASCII_ONLY else "🔧"
 
+    # Calculate inclusion percentage to determine if we should suppress summary
+    should_suppress_summary = False
+    if args.suppress_summary_on_100_percent:
+        all_cpp_hpp_files = fl_files["cpp_hpp"] + fx_files["cpp_hpp"]
+        all_source_includes = get_all_source_build_includes()
+        
+        included_count = 0
+        for file_path in all_cpp_hpp_files:
+            relative_path = file_path.relative_to(SRC_ROOT)
+            relative_path_str = str(relative_path).replace("\\", "/")
+            if relative_path_str in all_source_includes:
+                included_count += 1
+        
+        total_impl_files = len(all_cpp_hpp_files)
+        if total_impl_files > 0:
+            inclusion_percentage = (included_count / total_impl_files) * 100
+            should_suppress_summary = inclusion_percentage >= 100.0
+
     # Output based on requested format
     if args.json:
         # Add file lists to summary for JSON output
@@ -352,8 +375,11 @@ def main():
         print(json.dumps(summary, indent=2))
         return
 
-    # Print summary report
-    print_summary_report(summary)
+    # Print summary report only if not suppressed
+    if not should_suppress_summary:
+        print_summary_report(summary)
+    else:
+        print("Summary report suppressed: 100% inclusion coverage achieved")
 
     # List files if requested
     if args.list:
