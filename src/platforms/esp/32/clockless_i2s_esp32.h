@@ -168,7 +168,7 @@ class ClocklessController : public CPixelLEDController<RGB_ORDER> {
     void init() {
         // -- Allocate space to save the pixel controller
         //    during parallel output
-        mPixels = (PixelController<RGB_ORDER> *)malloc(
+        mPixels = (PixelController<RGB_ORDER> *)fl::Malloc(
             sizeof(PixelController<RGB_ORDER>));
 
         // -- Construct the bit patterns for ones and zeros

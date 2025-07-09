@@ -198,7 +198,7 @@ private:
         
         ~Slab() {
             if (memory) {
-                free(memory);
+                fl::Free(memory);
             }
         }
     };
@@ -208,7 +208,7 @@ private:
     fl::size total_deallocated_;
 
     Slab* createSlab() {
-        Slab* slab = static_cast<Slab*>(malloc(sizeof(Slab)));
+        Slab* slab = static_cast<Slab*>(fl::Malloc(sizeof(Slab)));
         if (!slab) {
             return nullptr;
         }
@@ -216,10 +216,10 @@ private:
         // Use placement new to properly initialize the Slab
         new(slab) Slab();
         
-        slab->memory = static_cast<u8*>(malloc(SLAB_MEMORY_SIZE));
+        slab->memory = static_cast<u8*>(fl::Malloc(SLAB_MEMORY_SIZE));
         if (!slab->memory) {
             slab->~Slab();
-            free(slab);
+            fl::Free(slab);
             return nullptr;
         }
         
@@ -356,7 +356,7 @@ public:
         }
         
         // Fall back to regular malloc for large allocations
-        ptr = malloc(sizeof(T) * n);
+        ptr = fl::Malloc(sizeof(T) * n);
         if (ptr) {
             fl::memfill(ptr, 0, sizeof(T) * n);
         }
@@ -384,7 +384,7 @@ public:
         
         if (!found_in_slab) {
             // This was allocated with regular malloc
-            free(ptr);
+            fl::Free(ptr);
         }
     }
 
@@ -407,7 +407,7 @@ public:
         while (slabs_) {
             Slab* next = slabs_->next;
             slabs_->~Slab();
-            free(slabs_);
+            fl::Free(slabs_);
             slabs_ = next;
         }
         total_allocated_ = 0;

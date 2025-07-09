@@ -14,8 +14,8 @@ class CWS2812SerialController : public CPixelLEDController<RGB_ORDER, 8, 0xFF> {
 
     void _init(int nLeds) {
         if (pserial == NULL) {
-            drawbuffer = (uint8_t*)malloc(nLeds * 3);
-            framebuffer = (uint8_t*)malloc(nLeds * 12);
+            drawbuffer = (uint8_t*)fl::Malloc(nLeds * 3);
+            framebuffer = (uint8_t*)fl::Malloc(nLeds * 12);
             pserial = new WS2812Serial(nLeds, framebuffer, drawbuffer, DATA_PIN, WS2812_RGB);
             pserial->begin();
         }

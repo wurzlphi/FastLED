@@ -47,12 +47,12 @@ Color3i* FrameBufferBase::GetIterator(int i) {
 int FrameBufferBase::length() const { return n_color_array_; }
 
 FrameBuffer::FrameBuffer(int n_pixels)
-    : FrameBufferBase(static_cast<Color3i*>(malloc(sizeof(Color3i) * n_pixels)),
+    : FrameBufferBase(static_cast<Color3i*>(fl::Malloc(sizeof(Color3i) * n_pixels)),
                         n_pixels) {
 }
 
 FrameBuffer::~FrameBuffer() {
-  free(color_array_);
+  fl::Free(color_array_);
   color_array_ = NULL;
   n_color_array_ = 0;
 }

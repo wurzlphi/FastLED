@@ -15,8 +15,8 @@ class COctoWS2811Controller : public CPixelLEDController<RGB_ORDER, 8, 0xFF> {
 
   void _init(int nLeds) {
     if(pocto == NULL) {
-      drawbuffer = (uint8_t*)malloc(nLeds * 8 * 3);
-      framebuffer = (uint8_t*)malloc(nLeds * 8 * 3);
+      drawbuffer = (uint8_t*)fl::Malloc(nLeds * 8 * 3);
+      framebuffer = (uint8_t*)fl::Malloc(nLeds * 8 * 3);
 
       // byte ordering is handled in show by the pixel controller
       int config = WS2811_RGB;

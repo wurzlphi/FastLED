@@ -175,7 +175,7 @@ StringHolder::StringHolder(const char *str) {
     mData[mLength] = '\0';
 }
 StringHolder::StringHolder(fl::size length) {
-    mData = (char *)malloc(length + 1);
+    mData = (char *)fl::Malloc(length + 1);
     if (mData) {
         mLength = length;
         mData[mLength] = '\0';
@@ -186,7 +186,7 @@ StringHolder::StringHolder(fl::size length) {
 }
 
 StringHolder::StringHolder(const char *str, fl::size length) {
-    mData = (char *)malloc(length + 1);
+    mData = (char *)fl::Malloc(length + 1);
     if (mData) {
         mLength = length;
         memcpy(mData, str, mLength);
@@ -198,7 +198,7 @@ StringHolder::StringHolder(const char *str, fl::size length) {
 }
 
 StringHolder::~StringHolder() {
-    free(mData); // Release the memory
+    fl::Free(mData); // Release the memory
 }
 
 void StringHolder::grow(fl::size newLength) {
@@ -215,10 +215,10 @@ void StringHolder::grow(fl::size newLength) {
         mData[mLength] = '\0'; // Ensure null-termination
     } else {
         // handle re-allocation failure.
-        char *newData = (char *)malloc(newLength + 1);
+        char *newData = (char *)fl::Malloc(newLength + 1);
         if (newData) {
             memcpy(newData, mData, mLength + 1);
-            free(mData);
+            fl::Free(mData);
             mData = newData;
             mLength = newLength;
             mCapacity = mLength;

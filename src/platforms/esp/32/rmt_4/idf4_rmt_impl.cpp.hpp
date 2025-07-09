@@ -325,14 +325,14 @@ uint8_t *ESP32RMTController::getPixelBuffer(int size_in_bytes)
     // -- Free the old buffer if it will be too small
     if (mPixelData != 0 and mBufSize < size_in_bytes)
     {
-        free(mPixelData);
+        fl::Free(mPixelData);
         mPixelData = 0;
     }
 
     if (mPixelData == 0)
     {
         mBufSize = size_in_bytes;
-        mPixelData = (uint8_t *)malloc(mBufSize);
+        mPixelData = (uint8_t *)fl::Malloc(mBufSize);
     }
 
     mSize = size_in_bytes;
