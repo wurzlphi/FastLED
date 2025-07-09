@@ -337,7 +337,6 @@ list(REMOVE_ITEM TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test_runner.cpp")
 
 # Create a single DLL that contains all test code and infrastructure
 add_library(test_all SHARED
-    doctest_main.cpp
     ${TEST_SOURCES}
 )
 
