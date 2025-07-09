@@ -10,7 +10,8 @@
 
 namespace fl {
 
-JsonButtonImpl::JsonButtonImpl(const string &name) : mPressed(false) {
+JsonButtonImpl::JsonButtonImpl(const string &name) : JsonUiElementBase(name), mPressed(false) {
+    // Override the default JsonUiInternal with our specific update and toJson functions
     auto updateFunc = JsonUiInternal::UpdateFunction(
         [this](const FLArduinoJson::JsonVariantConst &value) {
             static_cast<JsonButtonImpl *>(this)->updateInternal(value);
@@ -20,6 +21,8 @@ JsonButtonImpl::JsonButtonImpl(const string &name) : mPressed(false) {
         JsonUiInternal::ToJsonFunction([this](FLArduinoJson::JsonObject &json) {
             static_cast<JsonButtonImpl *>(this)->toJson(json);
         });
+    
+    // Replace the default internal with our specific one
     mInternal = JsonUiInternalPtr::New(name, fl::move(updateFunc),
                                      fl::move(toJsonFunc));
     addJsonUiComponent(mInternal);
@@ -29,19 +32,17 @@ JsonButtonImpl::JsonButtonImpl(const string &name) : mPressed(false) {
 JsonButtonImpl::~JsonButtonImpl() { removeJsonUiComponent(mInternal); }
 
 JsonButtonImpl &JsonButtonImpl::Group(const fl::string &name) {
-    mInternal->setGroup(name);
+    setGroup(name);
     return *this;
 }
 
 bool JsonButtonImpl::clicked() const { return mClickedHappened; }
 
-const string &JsonButtonImpl::name() const { return mInternal->name(); }
-
 void JsonButtonImpl::toJson(FLArduinoJson::JsonObject &json) const {
     json["name"] = name();
-    json["group"] = mInternal->groupName().c_str();
+    json["group"] = groupName().c_str();
     json["type"] = "button";
-    json["id"] = mInternal->id();
+    json["id"] = id();
     json["pressed"] = mPressed;
 }
 
@@ -50,10 +51,6 @@ bool JsonButtonImpl::isPressed() const {
 }
 
 int JsonButtonImpl::clickedCount() const { return mClickedCount; }
-
-const fl::string &JsonButtonImpl::groupName() const { return mInternal->groupName(); }
-
-void JsonButtonImpl::setGroup(const fl::string &groupName) { mInternal->setGroup(groupName); }
 
 void JsonButtonImpl::click() { mPressed = true; }
 

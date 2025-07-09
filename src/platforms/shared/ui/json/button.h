@@ -5,28 +5,22 @@
 #include "fl/engine_events.h"
 #include "fl/str.h"
 #include "platforms/shared/ui/json/ui_internal.h"
+#include "platforms/shared/ui/json/ui_element_base.h"
 
 namespace fl {
 
-class JsonButtonImpl {
+class JsonButtonImpl : public JsonUiElementBase {
   public:
     JsonButtonImpl(const fl::string &name);
     ~JsonButtonImpl();
     JsonButtonImpl &Group(const fl::string &name);
 
-    const fl::string &name() const;
-    void toJson(FLArduinoJson::JsonObject &json) const;
     bool isPressed() const;
     bool clicked() const;
     int clickedCount() const;
-    const fl::string &groupName() const;
     
-    // Method to allow parent UIElement class to set the group
-    void setGroup(const fl::string &groupName);
-
-    int id() const {
-      return mInternal->id();
-    }
+    // Override the virtual toJson method from the base class
+    void toJson(FLArduinoJson::JsonObject &json) const override;
 
     void click();
 
@@ -42,7 +36,6 @@ class JsonButtonImpl {
 
     void updateInternal(const FLArduinoJson::JsonVariantConst &value);
 
-    JsonUiInternalPtr mInternal;
     bool mPressed = false;
     bool mPressedLast = false;
     bool mClickedHappened = false;
