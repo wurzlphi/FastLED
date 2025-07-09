@@ -80,6 +80,12 @@ class bitset_dynamic {
     // Destructor
     ~bitset_dynamic() { delete[] _blocks; }
 
+    // Helper methods for efficient block copying
+    const block_type* get_blocks() const noexcept { return _blocks; }
+    block_type* get_blocks() noexcept { return _blocks; }
+    fl::u32 get_block_count() const noexcept { return _block_count; }
+    static constexpr fl::u32 get_bits_per_block() noexcept { return bits_per_block; }
+
     // Assign n bits to the value specified
     FL_DISABLE_WARNING_PUSH
     FL_DISABLE_WARNING(null-dereference)

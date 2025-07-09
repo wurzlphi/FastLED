@@ -5,6 +5,7 @@
 #include "fl/variant.h"
 #include "fl/stdint.h"
 #include "fl/int.h"
+#include "fl/math_macros.h"
 
 namespace fl {
 
@@ -29,6 +30,13 @@ template <fl::u32 N> class BitsetFixed {
 
     // Underlying blocks storing bits
     block_type _blocks[block_count];
+
+  public:
+    // Helper methods for efficient block copying
+    const block_type* get_blocks() const noexcept { return _blocks; }
+    block_type* get_blocks() noexcept { return _blocks; }
+    static constexpr fl::u32 get_block_count() noexcept { return block_count; }
+    static constexpr fl::u32 get_bits_per_block() noexcept { return bits_per_block; }
 
   public:
     struct Proxy {
@@ -337,11 +345,11 @@ class BitsetInlined {
                 bitset_dynamic *dynamic =
                     _storage.template ptr<bitset_dynamic>();
 
-                // Copy bits from dynamic to fixed
-                for (fl::u32 i = 0; i < N && i < dynamic->size(); ++i) {
-                    if (dynamic->test(i)) {
-                        fixed.set(i);
-                    }
+                // Optimize: Use fl::memcopy to copy block data directly
+                // Both fixed and dynamic bitsets use the same block structure
+                const fl::u32 copy_blocks = MIN(fixed.get_block_count(), dynamic->get_block_count());
+                if (copy_blocks > 0) {
+                    fl::memcopy(fixed.get_blocks(), dynamic->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::block_type));
                 }
 
                 _storage = fixed;
@@ -353,11 +361,11 @@ class BitsetInlined {
                 bitset_dynamic dynamic(new_size);
                 fixed_bitset *fixed = _storage.template ptr<fixed_bitset>();
 
-                // Copy bits from fixed to dynamic
-                for (fl::u32 i = 0; i < N; ++i) {
-                    if (fixed->test(i)) {
-                        dynamic.set(i);
-                    }
+                // Optimize: Use fl::memcopy to copy block data directly
+                // Both fixed and dynamic bitsets use the same block structure
+                const fl::u32 copy_blocks = MIN(fixed->get_block_count(), dynamic.get_block_count());
+                if (copy_blocks > 0) {
+                    fl::memcopy(dynamic.get_blocks(), fixed->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::block_type));
                 }
 
                 _storage = dynamic;
