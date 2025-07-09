@@ -37,6 +37,8 @@ template <fl::u32 N> class BitsetFixed {
     block_type* get_blocks() noexcept { return _blocks; }
     static constexpr fl::u32 get_block_count() noexcept { return block_count; }
     static constexpr fl::u32 get_bits_per_block() noexcept { return bits_per_block; }
+    // Make block_type accessible for external use
+    using public_block_type = block_type;
 
   public:
     struct Proxy {
@@ -349,7 +351,7 @@ class BitsetInlined {
                 // Both fixed and dynamic bitsets use the same block structure
                 const fl::u32 copy_blocks = MIN(fixed.get_block_count(), dynamic->get_block_count());
                 if (copy_blocks > 0) {
-                    fl::memcopy(fixed.get_blocks(), dynamic->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::block_type));
+                    fl::memcopy(fixed.get_blocks(), dynamic->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::public_block_type));
                 }
 
                 _storage = fixed;
@@ -365,7 +367,7 @@ class BitsetInlined {
                 // Both fixed and dynamic bitsets use the same block structure
                 const fl::u32 copy_blocks = MIN(fixed->get_block_count(), dynamic.get_block_count());
                 if (copy_blocks > 0) {
-                    fl::memcopy(dynamic.get_blocks(), fixed->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::block_type));
+                    fl::memcopy(dynamic.get_blocks(), fixed->get_blocks(), copy_blocks * sizeof(typename fixed_bitset::public_block_type));
                 }
 
                 _storage = dynamic;
