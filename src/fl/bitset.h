@@ -250,7 +250,6 @@ template <fl::u32 N> class BitsetFixed {
     fl::i32 find_run(bool test_value, fl::u32 min_length = 1, fl::u32 offset = 0) const noexcept {
         fl::u32 run_start = 0;
         fl::u32 run_length = 0;
-        fl::i32 first_valid_run = -1;
         
         for (fl::u32 i = offset; i < N; ++i) {
             if (test(i) == test_value) {
@@ -260,19 +259,19 @@ template <fl::u32 N> class BitsetFixed {
                 run_length++;
             } else {
                 // End of a run, check if it was valid
-                if (run_length >= min_length && first_valid_run == -1) {
-                    first_valid_run = static_cast<fl::i32>(run_start);
+                if (run_length >= min_length) {
+                    return static_cast<fl::i32>(run_start);
                 }
                 run_length = 0;
             }
         }
         
-        // Check if we have a run at the end
-        if (run_length >= min_length && first_valid_run == -1) {
-            first_valid_run = static_cast<fl::i32>(run_start);
+        // Check if we have a valid run at the end
+        if (run_length >= min_length) {
+            return static_cast<fl::i32>(run_start);
         }
         
-        return first_valid_run;
+        return -1; // No run found
     }
 
     /// Friend operators for convenience.
