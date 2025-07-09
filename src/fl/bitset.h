@@ -251,28 +251,20 @@ template <fl::u32 N> class BitsetFixed {
         fl::u32 run_start = offset;
         fl::u32 run_length = 0;
         
-        for (fl::u32 i = offset; i < N; ++i) {
-            if (run_length >= min_length) {
-                return run_start
-            }
+        for (fl::u32 i = offset; i < N && run_length < min_length; ++i) {
             bool current_bit = test(i);
-            if (current_bit == test_value) {
-                if (run_length == 0) {
-                    run_start = i;
-                }
-                run_length++;
-            } else {
-                // End of a run, check if it was valid
-                if (run_length >= min_length) {
-                    return static_cast<fl::i32>(run_start);
-                }
+            if (current_bit != test_value) {
                 run_length = 0;
+                if (i + 1 < N) {
+                    run_start = i + 1;
+                }
+            } else {
+                ++run_length;
             }
         }
-        
-        // Check the last run if it extends to the end
+
         if (run_length >= min_length) {
-            return static_cast<fl::i32>(run_start);
+            return run_start;
         }
         
         return -1; // No run found
