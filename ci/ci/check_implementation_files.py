@@ -401,20 +401,41 @@ def main():
 
     # Check inclusion in all-source build if requested
     if args.check_inclusion:
-        print("\n" + "=" * 80)
-        print("ALL-SOURCE BUILD INCLUSION CHECK")
-        print("=" * 80)
+        # Only show inclusion check if not suppressing or if we don't have 100% coverage
+        if not should_suppress_summary:
+            print("\n" + "=" * 80)
+            print("ALL-SOURCE BUILD INCLUSION CHECK")
+            print("=" * 80)
 
-        fl_inclusion = check_inclusion_in_all_source_build(fl_files, FL_DIR)
-        fx_inclusion = check_inclusion_in_all_source_build(fx_files, FX_DIR)
+            fl_inclusion = check_inclusion_in_all_source_build(fl_files, FL_DIR)
+            fx_inclusion = check_inclusion_in_all_source_build(fx_files, FX_DIR)
 
-        print(f"\n{search_symbol} FL DIRECTORY INCLUSION:")
-        print_inclusion_report(fl_inclusion, FL_DIR)
+            print(f"\n{search_symbol} FL DIRECTORY INCLUSION:")
+            print_inclusion_report(fl_inclusion, FL_DIR)
 
-        print(f"\n{search_symbol} FX DIRECTORY INCLUSION:")
-        print_inclusion_report(fx_inclusion, FX_DIR)
+            print(f"\n{search_symbol} FX DIRECTORY INCLUSION:")
+            print_inclusion_report(fx_inclusion, FX_DIR)
 
-        # Overall inclusion statistics
+            # Overall inclusion statistics
+            all_cpp_hpp_files = fl_files["cpp_hpp"] + fx_files["cpp_hpp"]
+            all_source_includes = get_all_source_build_includes()
+
+            included_count = 0
+            for file_path in all_cpp_hpp_files:
+                relative_path = file_path.relative_to(SRC_ROOT)
+                relative_path_str = str(relative_path).replace("\\", "/")
+                if relative_path_str in all_source_includes:
+                    included_count += 1
+
+            total_impl_files = len(all_cpp_hpp_files)
+            if total_impl_files > 0:
+                inclusion_percentage = (included_count / total_impl_files) * 100
+                print(f"\n{stats_symbol} OVERALL INCLUSION STATISTICS:")
+                print(f"   Total .cpp.hpp files found:     {total_impl_files}")
+                print(f"   Included in all-source build:   {included_count}")
+                print(f"   Inclusion percentage:           {inclusion_percentage:.1f}%")
+
+        # Always check for missing files and exit with error if any are missing
         all_cpp_hpp_files = fl_files["cpp_hpp"] + fx_files["cpp_hpp"]
         all_source_includes = get_all_source_build_includes()
 
@@ -426,14 +447,6 @@ def main():
                 included_count += 1
 
         total_impl_files = len(all_cpp_hpp_files)
-        if total_impl_files > 0:
-            inclusion_percentage = (included_count / total_impl_files) * 100
-            print(f"\n{stats_symbol} OVERALL INCLUSION STATISTICS:")
-            print(f"   Total .cpp.hpp files found:     {total_impl_files}")
-            print(f"   Included in all-source build:   {included_count}")
-            print(f"   Inclusion percentage:           {inclusion_percentage:.1f}%")
-
-        # Determine if any files are missing and force a non-zero exit code
         total_missing = total_impl_files - included_count
         if total_missing > 0:
             # Print an explicit error message before exiting
