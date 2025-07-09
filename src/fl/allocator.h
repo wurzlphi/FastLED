@@ -559,9 +559,27 @@ public:
             return ptr;
         }
         
-        // If we need heap storage
+        // If we need heap storage and this is the first time switching to heap
+        if (m_heap_used == 0 && m_inlined_used > 0) {
+            // Transfer inlined data to heap first
+            fl::size total_needed = m_inlined_used + n;
+            fl::size new_capacity = total_needed * 2; // Start with some extra capacity
+            
+            m_heap_data = m_base_allocator.allocate(new_capacity);
+            m_heap_capacity = new_capacity;
+            
+            // Move existing inlined data to heap
+            for (fl::size i = 0; i < m_inlined_used; ++i) {
+                m_base_allocator.construct(&m_heap_data[i], fl::move(get_inlined_ptr()[i]));
+                get_inlined_ptr()[i].~T();
+            }
+            m_heap_used = m_inlined_used;
+            m_inlined_used = 0;
+        }
+        
+        // If we need more heap storage
         if (m_heap_used + n > m_heap_capacity) {
-            fl::size new_capacity = m_heap_capacity == 0 ? n : m_heap_capacity * 2;
+            fl::size new_capacity = m_heap_capacity * 2;
             if (new_capacity < m_heap_used + n) {
                 new_capacity = m_heap_used + n;
             }
