@@ -15,8 +15,11 @@
 #include <string>
 #include <sstream>
 
+// Only use pragma comment on MSVC
+#ifdef _MSC_VER
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "psapi.lib")
+#endif
 
 namespace crash_handler_win {
 
@@ -106,8 +109,8 @@ inline void print_stacktrace_windows() {
             printf("Symbol handler initialized successfully.\n");
             
             // Check if debug symbols are available
-            DWORD64 moduleBase = 0;
-            if (SymGetModuleBase64(process, (DWORD64)GetModuleHandle(nullptr), &moduleBase)) {
+            DWORD64 moduleBase = SymGetModuleBase64(process, (DWORD64)GetModuleHandle(nullptr));
+            if (moduleBase != 0) {
                 g_debug_info_available = true;
                 printf("Debug symbols available for main module.\n");
             } else {
@@ -228,7 +231,7 @@ inline void print_stacktrace_windows() {
             }
         }
         if (cbNeeded / sizeof(HMODULE) > 10) {
-            printf("  ... and %lu more modules\n", (cbNeeded / sizeof(HMODULE)) - 10);
+            printf("  ... and %llu more modules\n", (unsigned long long)(cbNeeded / sizeof(HMODULE)) - 10);
         }
     }
     
@@ -328,9 +331,26 @@ inline LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) 
             break;
     }
     
-    // Print register state for debugging
+    // Print register state for debugging (64-bit registers)
     printf("\nRegister state:\n");
     if (ExceptionInfo->ContextRecord) {
+#ifdef _WIN64
+        // 64-bit registers
+        printf("  RAX: 0x%016llx  RBX: 0x%016llx  RCX: 0x%016llx  RDX: 0x%016llx\n",
+               ExceptionInfo->ContextRecord->Rax,
+               ExceptionInfo->ContextRecord->Rbx,
+               ExceptionInfo->ContextRecord->Rcx,
+               ExceptionInfo->ContextRecord->Rdx);
+        printf("  RSI: 0x%016llx  RDI: 0x%016llx  RBP: 0x%016llx  RSP: 0x%016llx\n",
+               ExceptionInfo->ContextRecord->Rsi,
+               ExceptionInfo->ContextRecord->Rdi,
+               ExceptionInfo->ContextRecord->Rbp,
+               ExceptionInfo->ContextRecord->Rsp);
+        printf("  RIP: 0x%016llx  RFLAGS: 0x%016llx\n",
+               ExceptionInfo->ContextRecord->Rip,
+               ExceptionInfo->ContextRecord->EFlags);
+#else
+        // 32-bit registers
         printf("  EAX: 0x%08lx  EBX: 0x%08lx  ECX: 0x%08lx  EDX: 0x%08lx\n",
                ExceptionInfo->ContextRecord->Eax,
                ExceptionInfo->ContextRecord->Ebx,
@@ -344,6 +364,7 @@ inline LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) 
         printf("  EIP: 0x%08lx  EFLAGS: 0x%08lx\n",
                ExceptionInfo->ContextRecord->Eip,
                ExceptionInfo->ContextRecord->EFlags);
+#endif
     }
     
     print_stacktrace_windows();
