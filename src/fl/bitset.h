@@ -230,16 +230,16 @@ template <fl::u32 N> class BitsetFixed {
             if (current_block != 0) {
                 // Step 1: Test entire u64 block
                 if (current_block != 0) {
-                    // Step 2: Cast to u16 blocks and test in blocks of 16
-                    fl::u16* u16_blocks = reinterpret_cast<fl::u16*>(&current_block);
+                    // Step 2: Use a union to treat as u16[4]
+                    union { block_type u64; fl::u16 u16[4]; } u16_union = { current_block };
                     for (fl::u32 u16_idx = 0; u16_idx < 4; ++u16_idx) {
-                        if (u16_blocks[u16_idx] != 0) {
-                            // Step 3: Cast to u8 blocks and test
-                            fl::u8* u8_blocks = reinterpret_cast<fl::u8*>(&u16_blocks[u16_idx]);
+                        if (u16_union.u16[u16_idx] != 0) {
+                            // Step 3: Use a union to treat as u8[2]
+                            union { fl::u16 u16; fl::u8 u8[2]; } u8_union = { u16_union.u16[u16_idx] };
                             for (fl::u32 u8_idx = 0; u8_idx < 2; ++u8_idx) {
-                                if (u8_blocks[u8_idx] != 0) {
+                                if (u8_union.u8[u8_idx] != 0) {
                                     // Step 4: Test each bit to find exact index
-                                    fl::u8 byte = u8_blocks[u8_idx];
+                                    fl::u8 byte = u8_union.u8[u8_idx];
                                     for (fl::u32 bit_idx = 0; bit_idx < 8; ++bit_idx) {
                                         if (byte & (1 << bit_idx)) {
                                             fl::u32 global_bit_idx = block_idx * bits_per_block + 
