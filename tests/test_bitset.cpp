@@ -413,15 +413,41 @@ TEST_CASE("test bitset_inlined find_first") {
 }
 
 TEST_CASE("test bitset_fixed find_run") {
-    // Test find_run for true bits
-    bitset_fixed<4> bs;
-    
-    // Initially no bits are set, so find_run(true) should return -1
-    REQUIRE_EQ(bs.find_run(true), -1);
-    
-    // find_run(false) should return 0 (first unset bit)
-    REQUIRE_EQ(bs.find_run(false), 0);
+    // Test interesting patterns
+    bitset_fixed<32> bs;
+    // Set pattern: 0011 1000 0111 1100 0000 1111 0000 0011
+    //             [3,4] [7]  [9-11] [12-13]  [20-23]  [30,31]
+    bs.set(3);
+    bs.set(4);
+    bs.set(7);
+    bs.set(9);
+    bs.set(10);
+    bs.set(11);
+    bs.set(12);
+    bs.set(13);
+    bs.set(20);
+    bs.set(21);
+    bs.set(22);
+    bs.set(23);
+    bs.set(30);
+    bs.set(31);
 
-    REQUIRE_EQ(bs.find_run(false, 4), 0);
+    // Find first run of any length
+    REQUIRE_EQ(bs.find_run(true), 3);  // First run at 3
+    REQUIRE_EQ(bs.find_run(false), 0); // First gap at 0
 
+    // Find runs of specific lengths
+    REQUIRE_EQ(bs.find_run(true, 2), 3);   // Length 2 at 3
+    REQUIRE_EQ(bs.find_run(true, 3), 9);   // Length 3 at 9
+    REQUIRE_EQ(bs.find_run(true, 4), 20);  // Length 4 at 20
+    REQUIRE_EQ(bs.find_run(true, 5), -1);  // No runs of length 5
+
+    // Find runs with offset
+    REQUIRE_EQ(bs.find_run(true, 2, 5), 9);    // Skip first run, find at 9
+    REQUIRE_EQ(bs.find_run(true, 2, 15), 20);  // Skip to middle, find at 20
+    REQUIRE_EQ(bs.find_run(true, 2, 25), 30);  // Skip to end, find at 30
+
+    // Find gaps (false runs)
+    REQUIRE_EQ(bs.find_run(false, 4), 14);  // First gap of length 4
+    REQUIRE_EQ(bs.find_run(false, 6), 24);  // First gap of length 6
 }
