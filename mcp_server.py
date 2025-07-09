@@ -139,6 +139,16 @@ async def list_tools() -> List[Tool]:
                         "type": "boolean",
                         "description": "Enable verbose output showing all test details",
                         "default": False
+                    },
+                    "quick": {
+                        "type": "boolean",
+                        "description": "Use quick build mode for faster testing",
+                        "default": False
+                    },
+                    "cpp_only": {
+                        "type": "boolean",
+                        "description": "Run C++ tests only (use with --quick for bash test --quick --cpp)",
+                        "default": False
                     }
                 },
                 "required": ["test_type"]
@@ -570,6 +580,8 @@ async def run_tests(arguments: Dict[str, Any], project_root: Path) -> CallToolRe
     use_clang = arguments.get("use_clang", False)
     clean = arguments.get("clean", False)
     verbose = arguments.get("verbose", False)
+    quick = arguments.get("quick", False)
+    cpp_only = arguments.get("cpp_only", False)
     
     # Use bash test format as per user directive
     if test_case and specific_test:
@@ -584,22 +596,29 @@ async def run_tests(arguments: Dict[str, Any], project_root: Path) -> CallToolRe
         cmd = ["bash", "test", specific_test]
         context = f"Running specific test: bash test {specific_test}\n"
     else:
-        # For all tests or cpp tests, use the original format
-        cmd = ["uv", "run", "test.py"]
-        
-        if test_type == "cpp":
-            cmd.append("--cpp")
-        
-        if use_clang:
-            cmd.append("--clang")
-        
-        if clean:
-            cmd.append("--clean")
+        # Check if we should use bash test with quick options
+        if quick:
+            cmd = ["bash", "test", "--quick"]
+            if cpp_only:
+                cmd.append("--cpp")
+            context = f"Running quick tests: {' '.join(cmd)}\n"
+        else:
+            # For all tests or cpp tests, use the original format
+            cmd = ["uv", "run", "test.py"]
             
-        if verbose:
-            cmd.append("--verbose")
+            if test_type == "cpp":
+                cmd.append("--cpp")
             
-        context = f"Command executed: {' '.join(cmd)}\n"
+            if use_clang:
+                cmd.append("--clang")
+            
+            if clean:
+                cmd.append("--clean")
+                
+            if verbose:
+                cmd.append("--verbose")
+                
+            context = f"Command executed: {' '.join(cmd)}\n"
     
     result = await run_command(cmd, project_root)
     
@@ -737,7 +756,13 @@ bash test <test_name>
 Example: `bash test algorithm` (runs `test_algorithm.cpp`)
 Example: `bash test audio_json_parsing` (runs `test_audio_json_parsing.cpp`)
 
-### 3. Alternative: Using test.py directly
+### 3. Quick Build Options
+```bash
+bash test --quick --cpp     # Quick C++ tests only (when no *.py changes)
+bash test --quick           # Quick tests including Python (when *.py changes)
+```
+
+### 4. Alternative: Using test.py directly
 For advanced options, you can also use:
 ```bash
 uv run test.py              # Run all tests
@@ -745,7 +770,7 @@ uv run test.py --cpp        # Run only C++ tests
 uv run test.py --cpp <name> # Run specific test file
 ```
 
-### 4. Run with Verbose Output
+### 5. Run with Verbose Output
 ```bash
 uv run test.py --cpp <test_name> --verbose
 ```
@@ -775,8 +800,14 @@ uv run test.py --cpp algorithm --verbose
 # (use MCP list_test_cases tool with test_file: "algorithm")
 ```
 
-### Test Development Workflow
+### Quick Development Workflow
 ```bash
+# Quick C++ tests (when no Python changes)
+bash test --quick --cpp
+
+# Quick tests including Python (when *.py changes)
+bash test --quick
+
 # Clean build and run specific test
 uv run test.py --cpp easing --clean --verbose
 
@@ -795,10 +826,12 @@ uv run test.py --cpp easing --clean --verbose
 
 ## Tips
 1. **Always use `bash test <name>`** format for running specific tests
-2. **Use `--verbose`** to see detailed test output and assertions
-3. **Use `--clean`** when testing after code changes
-4. **List TEST_CASEs first** to see what's available before running
-5. **Check test output carefully** - doctest provides detailed failure information
+2. **Use `bash test --quick --cpp`** for faster C++ testing when no Python files changed
+3. **Use `bash test --quick`** for faster testing when Python files have changed
+4. **Use `--verbose`** to see detailed test output and assertions
+5. **Use `--clean`** when testing after code changes
+6. **List TEST_CASEs first** to see what's available before running
+7. **Check test output carefully** - doctest provides detailed failure information
 
 ## Environment Setup
 - Have UV in your environment
