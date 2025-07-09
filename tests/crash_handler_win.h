@@ -13,6 +13,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "psapi.lib")
@@ -21,53 +22,98 @@ namespace crash_handler_win {
 
 // Global flag to track if symbols are initialized
 static bool g_symbols_initialized = false;
+static bool g_debug_info_available = false;
 
-// Helper function to get module name from address
-inline std::string get_module_name(DWORD64 address) {
+// Enhanced helper function to get module name and path from address
+inline std::string get_module_info(DWORD64 address, std::string& full_path) {
     HMODULE hModule;
     if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | 
                          GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                          (LPCTSTR)address, &hModule)) {
-        char moduleName[MAX_PATH];
-        if (GetModuleFileNameA(hModule, moduleName, MAX_PATH)) {
+        char modulePath[MAX_PATH];
+        if (GetModuleFileNameA(hModule, modulePath, MAX_PATH)) {
+            full_path = std::string(modulePath);
             // Extract just the filename
-            char* fileName = strrchr(moduleName, '\\');
+            char* fileName = strrchr(modulePath, '\\');
             if (fileName) fileName++;
-            else fileName = moduleName;
+            else fileName = modulePath;
             return std::string(fileName);
         }
     }
+    full_path = "unknown";
     return "unknown";
 }
 
-// Helper function to demangle C++ symbols
+// Enhanced C++ symbol demangling
 inline std::string demangle_symbol(const char* symbol_name) {
     if (!symbol_name) return "unknown";
     
-    // For now, return as-is. In a full implementation, you might want to use
-    // a C++ demangler library or call the Windows undecorate function
-    return std::string(symbol_name);
+    std::string name(symbol_name);
+    
+    // Basic demangling for common patterns
+    if (name.find("?") != std::string::npos) {
+        // This is a mangled C++ name, try to extract readable parts
+        size_t start = name.find("?");
+        if (start != std::string::npos) {
+            // Try to find function name after the mangled prefix
+            size_t func_start = name.find("?", start + 1);
+            if (func_start != std::string::npos) {
+                return name.substr(func_start + 1);
+            }
+        }
+    }
+    
+    return name;
 }
 
+// Enhanced stack trace with better error reporting
 inline void print_stacktrace_windows() {
     HANDLE process = GetCurrentProcess();
     
     // Initialize symbol handler if not already done
     if (!g_symbols_initialized) {
         // Set symbol options for better debugging
-        SymSetOptions(SYMOPT_LOAD_LINES | 
-                     SYMOPT_DEFERRED_LOADS | 
-                     SYMOPT_UNDNAME | 
-                     SYMOPT_DEBUG);
+        DWORD symOptions = SymSetOptions(SYMOPT_LOAD_LINES | 
+                                        SYMOPT_DEFERRED_LOADS | 
+                                        SYMOPT_UNDNAME | 
+                                        SYMOPT_DEBUG |
+                                        SYMOPT_FAIL_CRITICAL_ERRORS);
         
         if (!SymInitialize(process, nullptr, TRUE)) {
             DWORD error = GetLastError();
             printf("SymInitialize failed with error %lu (0x%lx)\n", error, error);
             printf("This may be due to missing debug symbols or insufficient permissions.\n");
-            printf("Try running as administrator or ensure debug symbols are available.\n\n");
+            printf("Try running as administrator or ensure debug symbols are available.\n");
+            printf("Symbol options set: 0x%lx\n\n", symOptions);
+            
+            // Try to get more detailed error information
+            switch (error) {
+                case ERROR_INVALID_PARAMETER:
+                    printf("Error: Invalid parameter passed to SymInitialize\n");
+                    break;
+                case ERROR_NOT_ENOUGH_MEMORY:
+                    printf("Error: Not enough memory to initialize symbol handler\n");
+                    break;
+                case ERROR_MOD_NOT_FOUND:
+                    printf("Error: Required module not found\n");
+                    break;
+                default:
+                    printf("Error: Unknown symbol initialization error\n");
+                    break;
+            }
         } else {
             g_symbols_initialized = true;
             printf("Symbol handler initialized successfully.\n");
+            
+            // Check if debug symbols are available
+            DWORD64 moduleBase = 0;
+            if (SymGetModuleBase64(process, (DWORD64)GetModuleHandle(nullptr), &moduleBase)) {
+                g_debug_info_available = true;
+                printf("Debug symbols available for main module.\n");
+            } else {
+                printf("Warning: No debug symbols found for main module.\n");
+                printf("Consider compiling with debug information enabled.\n");
+            }
         }
     }
     
@@ -88,13 +134,18 @@ inline void print_stacktrace_windows() {
     IMAGEHLP_LINE64 line;
     line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
     
+    // Module information
+    IMAGEHLP_MODULE64 moduleInfo;
+    moduleInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+    
     for (WORD i = 0; i < numberOfFrames; i++) {
         DWORD64 address = (DWORD64)(stack[i]);
         
         printf("#%-2d 0x%016llx", i, address);
         
-        // Get module name first
-        std::string moduleName = get_module_name(address);
+        // Get module name and full path
+        std::string fullPath;
+        std::string moduleName = get_module_info(address, fullPath);
         printf(" [%s]", moduleName.c_str());
         
         // Try to get symbol information
@@ -113,10 +164,31 @@ inline void print_stacktrace_windows() {
                     else fileName = line.FileName;
                     printf(" [%s:%lu]", fileName, line.LineNumber);
                 }
+                
+                // Try to get module information
+                if (SymGetModuleInfo64(process, address, &moduleInfo)) {
+                    printf(" (module: %s)", moduleInfo.ModuleName);
+                }
             } else {
                 DWORD error = GetLastError();
                 if (error != ERROR_MOD_NOT_FOUND) {
                     printf(" -- symbol lookup failed (error %lu)", error);
+                    
+                    // Provide more specific error information
+                    switch (error) {
+                        case ERROR_INVALID_ADDRESS:
+                            printf(" - invalid address");
+                            break;
+                        case ERROR_NOT_ENOUGH_MEMORY:
+                            printf(" - insufficient memory");
+                            break;
+                        case ERROR_FILE_NOT_FOUND:
+                            printf(" - symbol file not found");
+                            break;
+                        default:
+                            printf(" - unknown error");
+                            break;
+                    }
                 } else {
                     printf(" -- no debug symbols available");
                 }
@@ -129,15 +201,24 @@ inline void print_stacktrace_windows() {
     
     printf("\nDebug Information:\n");
     printf("- Symbol handler initialized: %s\n", g_symbols_initialized ? "Yes" : "No");
+    printf("- Debug symbols available: %s\n", g_debug_info_available ? "Yes" : "No");
     printf("- Process ID: %lu\n", GetCurrentProcessId());
     printf("- Thread ID: %lu\n", GetCurrentThreadId());
+    
+    // Show memory information
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (GetProcessMemoryInfo(process, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+        printf("- Working Set: %zu KB\n", pmc.WorkingSetSize / 1024);
+        printf("- Peak Working Set: %zu KB\n", pmc.PeakWorkingSetSize / 1024);
+        printf("- Private Usage: %zu KB\n", pmc.PrivateUsage / 1024);
+    }
     
     // Show loaded modules for debugging
     printf("\nLoaded modules:\n");
     HMODULE hModules[1024];
     DWORD cbNeeded;
     if (EnumProcessModules(process, hModules, sizeof(hModules), &cbNeeded)) {
-        for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
+        for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)) && i < 10; i++) {
             char moduleName[MAX_PATH];
             if (GetModuleFileNameA(hModules[i], moduleName, MAX_PATH)) {
                 char* fileName = strrchr(moduleName, '\\');
@@ -146,39 +227,73 @@ inline void print_stacktrace_windows() {
                 printf("  %s\n", fileName);
             }
         }
+        if (cbNeeded / sizeof(HMODULE) > 10) {
+            printf("  ... and %lu more modules\n", (cbNeeded / sizeof(HMODULE)) - 10);
+        }
     }
     
     printf("\n");
 }
 
+// Enhanced exception handler with more detailed information
 inline LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) {
     printf("\n=== WINDOWS EXCEPTION HANDLER ===\n");
     printf("Exception caught: 0x%08lx at address 0x%p\n", 
            ExceptionInfo->ExceptionRecord->ExceptionCode,
            ExceptionInfo->ExceptionRecord->ExceptionAddress);
     
-    // Print exception details
+    // Print exception details with more context
     switch (ExceptionInfo->ExceptionRecord->ExceptionCode) {
         case EXCEPTION_ACCESS_VIOLATION:
             printf("Exception type: Access Violation\n");
             printf("Attempted to %s at address 0x%p\n",
                    ExceptionInfo->ExceptionRecord->ExceptionInformation[0] ? "write" : "read",
                    (void*)ExceptionInfo->ExceptionRecord->ExceptionInformation[1]);
+            
+            // Additional context for access violations
+            if (ExceptionInfo->ExceptionRecord->ExceptionInformation[0]) {
+                printf("Write operation failed - possible causes:\n");
+                printf("  - Writing to read-only memory\n");
+                printf("  - Writing to unallocated memory\n");
+                printf("  - Writing to freed memory (use-after-free)\n");
+                printf("  - Buffer overflow\n");
+            } else {
+                printf("Read operation failed - possible causes:\n");
+                printf("  - Reading from unallocated memory\n");
+                printf("  - Reading from freed memory (use-after-free)\n");
+                printf("  - Null pointer dereference\n");
+                printf("  - Invalid pointer\n");
+            }
             break;
         case EXCEPTION_STACK_OVERFLOW:
             printf("Exception type: Stack Overflow\n");
+            printf("Possible causes:\n");
+            printf("  - Infinite recursion\n");
+            printf("  - Large local variables\n");
+            printf("  - Deep function call chain\n");
             break;
         case EXCEPTION_ILLEGAL_INSTRUCTION:
             printf("Exception type: Illegal Instruction\n");
+            printf("Possible causes:\n");
+            printf("  - Corrupted code memory\n");
+            printf("  - Jump to invalid address\n");
+            printf("  - CPU instruction not supported\n");
             break;
         case EXCEPTION_PRIV_INSTRUCTION:
             printf("Exception type: Privileged Instruction\n");
+            printf("Possible causes:\n");
+            printf("  - Attempting to execute privileged CPU instruction\n");
+            printf("  - Corrupted code memory\n");
             break;
         case EXCEPTION_NONCONTINUABLE_EXCEPTION:
             printf("Exception type: Non-continuable Exception\n");
+            printf("This exception cannot be continued from.\n");
             break;
         case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
             printf("Exception type: Array Bounds Exceeded\n");
+            printf("Possible causes:\n");
+            printf("  - Buffer overflow\n");
+            printf("  - Array index out of bounds\n");
             break;
         case EXCEPTION_FLT_DENORMAL_OPERAND:
             printf("Exception type: Floating Point Denormal Operand\n");
@@ -211,6 +326,24 @@ inline LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) 
             printf("Exception type: Unknown (0x%08lx)\n", 
                    ExceptionInfo->ExceptionRecord->ExceptionCode);
             break;
+    }
+    
+    // Print register state for debugging
+    printf("\nRegister state:\n");
+    if (ExceptionInfo->ContextRecord) {
+        printf("  EAX: 0x%08lx  EBX: 0x%08lx  ECX: 0x%08lx  EDX: 0x%08lx\n",
+               ExceptionInfo->ContextRecord->Eax,
+               ExceptionInfo->ContextRecord->Ebx,
+               ExceptionInfo->ContextRecord->Ecx,
+               ExceptionInfo->ContextRecord->Edx);
+        printf("  ESI: 0x%08lx  EDI: 0x%08lx  EBP: 0x%08lx  ESP: 0x%08lx\n",
+               ExceptionInfo->ContextRecord->Esi,
+               ExceptionInfo->ContextRecord->Edi,
+               ExceptionInfo->ContextRecord->Ebp,
+               ExceptionInfo->ContextRecord->Esp);
+        printf("  EIP: 0x%08lx  EFLAGS: 0x%08lx\n",
+               ExceptionInfo->ContextRecord->Eip,
+               ExceptionInfo->ContextRecord->EFlags);
     }
     
     print_stacktrace_windows();

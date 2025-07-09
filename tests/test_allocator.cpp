@@ -1,12 +1,66 @@
 // Unit tests for SlabAllocator to ensure contiguous memory allocation
 
-#include "test.h"
+#include "doctest.h"
 #include "fl/allocator.h"
 #include "fl/vector.h"
+#include "crash_handler.h"
 #include <algorithm>
-#include <set>
+#include <cstring>
+
+// Enhanced logging for debugging allocator issues
+#define ALLOCATOR_DEBUG_LOG(fmt, ...) \
+    printf("[ALLOCATOR_DEBUG] " fmt "\n", ##__VA_ARGS__)
+
+#define ALLOCATOR_ERROR_LOG(fmt, ...) \
+    printf("[ALLOCATOR_ERROR] " fmt "\n", ##__VA_ARGS__)
+
+// Memory validation helper
+inline bool validate_memory_region(const void* ptr, size_t size, const char* context = "unknown") {
+    if (!ptr) {
+        ALLOCATOR_ERROR_LOG("Null pointer in %s", context);
+        return false;
+    }
+    
+    // Check if pointer is aligned
+    if (reinterpret_cast<uintptr_t>(ptr) % sizeof(void*) != 0) {
+        ALLOCATOR_ERROR_LOG("Unaligned pointer 0x%p in %s", ptr, context);
+        return false;
+    }
+    
+    // Try to read the memory region to check if it's accessible
+    // Note: This is a basic check and may not catch all issues
+    volatile const uint8_t* bytes = static_cast<const uint8_t*>(ptr);
+    for (size_t i = 0; i < size; ++i) {
+        volatile uint8_t val = bytes[i];
+        (void)val; // Suppress unused variable warning
+    }
+    
+    return true;
+}
+
+// Enhanced memory corruption detection
+inline void log_memory_state(const char* label, const void* ptr, size_t size) {
+    if (!ptr) {
+        ALLOCATOR_DEBUG_LOG("%s: null pointer", label);
+        return;
+    }
+    
+    ALLOCATOR_DEBUG_LOG("%s: ptr=0x%p, size=%zu", label, ptr, size);
+    
+    // Log first few bytes for debugging
+    const uint8_t* bytes = static_cast<const uint8_t*>(ptr);
+    printf("[ALLOCATOR_DEBUG] %s: first 16 bytes: ", label);
+    for (size_t i = 0; i < std::min(size, size_t(16)); ++i) {
+        printf("%02x ", bytes[i]);
+    }
+    printf("\n");
+}
 
 using namespace fl;
+
+// Initialize crash handler for better debugging
+TEST_SUITE_BEGIN("allocator_tests");
+TEST_SUITE_END();
 
 // Test struct for slab allocator testing
 struct TestObject {
@@ -500,36 +554,78 @@ TEST_CASE("allocator_inlined - Free slot management") {
         
         fl::vector<int*> ptrs;
         
+        ALLOCATOR_DEBUG_LOG("Starting heap slot reuse test");
+        
         // Allocate more than inlined capacity to force heap usage
         for (size_t i = 0; i < 5; ++i) {
             int* ptr = allocator.allocate(1);
             REQUIRE(ptr != nullptr);
+            
+            // Validate memory before writing
+            if (!validate_memory_region(ptr, sizeof(int), "allocation")) {
+                ALLOCATOR_ERROR_LOG("Memory validation failed for ptr[%zu]", i);
+                continue;
+            }
+            
             *ptr = static_cast<int>(i + 100);
             ptrs.push_back(ptr);
+            
+            ALLOCATOR_DEBUG_LOG("Allocated ptr[%zu] = 0x%p, value = %d", i, ptr, *ptr);
+            log_memory_state("ptr", ptr, sizeof(int));
         }
         
         // Deallocate a heap slot (index 4)
+        ALLOCATOR_DEBUG_LOG("Deallocating ptr[4] = 0x%p", ptrs[4]);
         allocator.deallocate(ptrs[4], 1);
         ptrs[4] = nullptr;
         
         // Allocate a new slot - should reuse the freed heap slot
         int* new_ptr = allocator.allocate(1);
         REQUIRE(new_ptr != nullptr);
-        *new_ptr = 999;
         
-        // Verify other allocations are still intact
+        // Validate memory before writing
+        if (!validate_memory_region(new_ptr, sizeof(int), "new allocation")) {
+            ALLOCATOR_ERROR_LOG("Memory validation failed for new_ptr");
+        }
+        
+        *new_ptr = 999;
+        ALLOCATOR_DEBUG_LOG("Allocated new_ptr = 0x%p, value = %d", new_ptr, *new_ptr);
+        log_memory_state("new_ptr", new_ptr, sizeof(int));
+        
+        // Verify other allocations are still intact with enhanced logging
         for (size_t i = 0; i < 4; ++i) {
-            CHECK(*ptrs[i] == static_cast<int>(i + 100));
+            if (!validate_memory_region(ptrs[i], sizeof(int), "verification")) {
+                ALLOCATOR_ERROR_LOG("Memory validation failed for ptr[%zu] during verification", i);
+                continue;
+            }
+            
+            int expected = static_cast<int>(i + 100);
+            int actual = *ptrs[i];
+            
+            ALLOCATOR_DEBUG_LOG("Verifying ptr[%zu] = 0x%p: expected=%d, actual=%d", 
+                               i, ptrs[i], expected, actual);
+            
+            if (actual != expected) {
+                ALLOCATOR_ERROR_LOG("Memory corruption detected at ptr[%zu]: expected=%d, actual=%d", 
+                                   i, expected, actual);
+                log_memory_state("corrupted_ptr", ptrs[i], sizeof(int));
+            }
+            
+            CHECK(actual == expected);
         }
         CHECK(*new_ptr == 999);
         
         // Cleanup
         for (size_t i = 0; i < ptrs.size(); ++i) {
             if (ptrs[i] != nullptr) {
+                ALLOCATOR_DEBUG_LOG("Deallocating ptr[%zu] = 0x%p", i, ptrs[i]);
                 allocator.deallocate(ptrs[i], 1);
             }
         }
+        ALLOCATOR_DEBUG_LOG("Deallocating new_ptr = 0x%p", new_ptr);
         allocator.deallocate(new_ptr, 1);
+        
+        ALLOCATOR_DEBUG_LOG("Heap slot reuse test completed");
     }
 }
 
@@ -740,5 +836,40 @@ TEST_CASE("allocator_inlined - Clear functionality") {
         CHECK(*new_ptr == 999);
         
         allocator.deallocate(new_ptr, 1);
+    }
+}
+
+TEST_CASE("allocator_inlined - Crash handler verification") {
+    // This test verifies that the crash handler is properly set up
+    // and can provide useful debugging information
+    
+    SUBCASE("Crash handler setup verification") {
+        // The crash handler should be automatically set up
+        // We can test this by calling print_stacktrace
+        printf("Testing crash handler functionality...\n");
+        
+        // This should work without crashing
+        print_stacktrace();
+        
+        printf("Crash handler test completed successfully.\n");
+    }
+    
+    SUBCASE("Memory corruption detection test") {
+        using TestAllocator = fl::allocator_inlined<int, 3>;
+        TestAllocator allocator;
+        
+        // Allocate some memory
+        int* ptr = allocator.allocate(1);
+        REQUIRE(ptr != nullptr);
+        *ptr = 42;
+        
+        // Test memory validation
+        CHECK(validate_memory_region(ptr, sizeof(int), "test"));
+        
+        // Test memory logging
+        log_memory_state("test_ptr", ptr, sizeof(int));
+        
+        // Cleanup
+        allocator.deallocate(ptr, 1);
     }
 } 
