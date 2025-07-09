@@ -331,19 +331,19 @@ endif()
 # Enable testing
 enable_testing()
 
-# Create shared test infrastructure as object files to avoid rebuilding
-add_library(test_shared_objects OBJECT
+# Create a shared library for test infrastructure that only needs to be linked once
+add_library(test_shared SHARED
     doctest_main.cpp
 )
 
-target_include_directories(test_shared_objects PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_compile_options(test_shared_objects PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
-target_compile_options(test_shared_objects PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
-target_compile_definitions(test_shared_objects PRIVATE ${COMMON_COMPILE_DEFINITIONS})
+target_include_directories(test_shared PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_options(test_shared PRIVATE ${UNIT_TEST_COMPILE_FLAGS})
+target_compile_options(test_shared PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${UNIT_TEST_CXX_FLAGS}>)
+target_compile_definitions(test_shared PRIVATE ${COMMON_COMPILE_DEFINITIONS})
 
 # Add Windows debugging libraries for crash handler
 if(WIN32)
-    target_link_libraries(test_shared_objects dbghelp psapi)
+    target_link_libraries(test_shared dbghelp psapi)
 endif()
 
 # Find all test source files
@@ -352,13 +352,13 @@ file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/test_*.cpp")
 # Find test executables (only actual test executables, not libraries)
 file(GLOB TEST_BINARIES "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/test_*${CMAKE_EXECUTABLE_SUFFIX}")
 
-# Process source files - create executables that link to shared objects
+# Process source files - create minimal executables that link to shared library
 foreach(TEST_SOURCE ${TEST_SOURCES})
     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)
     
-    # Create executable that links to shared objects
-    add_executable(${TEST_NAME} ${TEST_SOURCE} $<TARGET_OBJECTS:test_shared_objects>)
-    target_link_libraries(${TEST_NAME} fastled)
+    # Create minimal executable that only contains the test code
+    add_executable(${TEST_NAME} ${TEST_SOURCE})
+    target_link_libraries(${TEST_NAME} fastled test_shared)
     
     # Set the correct subsystem for Windows
     if(WIN32)
