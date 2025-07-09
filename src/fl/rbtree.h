@@ -11,17 +11,41 @@
 
 namespace fl {
 
-// Red-Black Tree implementation
-// This is a self-balancing binary search tree with O(log n) operations
-template <typename Key, typename Value, typename Compare = DefaultLess<Key>, typename Allocator = allocator_slab<char>>
-class MapRedBlackTree {
-public:
+// Identity key extractor for fl::set
+template<typename T>
+struct IdentityKeyExtractor {
+    const T& operator()(const T& value) const { return value; }
+    using key_type = T;
+};
+
+// Pair key extractor for fl::map
+template<typename T>
+struct PairKeyExtractor {
+    using key_type = typename T::first_type;
+    const key_type& operator()(const T& value) const { return value.first; }
+};
+
+// Specialization for fl::Pair since it doesn't have first_type typedef
+template<typename Key, typename Value>
+struct PairKeyExtractor<fl::Pair<Key, Value>> {
     using key_type = Key;
-    using mapped_type = Value;
-    using value_type = fl::pair<Key, Value>;
+    const key_type& operator()(const fl::Pair<Key, Value>& value) const { return value.first; }
+};
+
+// Generic Red-Black Tree implementation
+// This is a self-balancing binary search tree with O(log n) operations
+// ValueType: the type stored in the tree (Key for set, pair<Key, Value> for map)
+// KeyExtractor: function object that extracts the key from ValueType
+// Compare: comparison function for keys
+template <typename ValueType, typename KeyExtractor = IdentityKeyExtractor<ValueType>, typename Compare = DefaultLess<typename KeyExtractor::key_type>, typename Allocator = allocator_slab<char>>
+class RedBlackTree {
+public:
+    using value_type = ValueType;
+    using key_type = typename KeyExtractor::key_type;
     using size_type = fl::size;
     using difference_type = ptrdiff_t;
     using key_compare = Compare;
+    using key_extractor = KeyExtractor;
     using reference = value_type&;
     using const_reference = const value_type&;
     using pointer = value_type*;
@@ -42,8 +66,9 @@ private:
         Node(const value_type& val, Color c = RED, Node* p = nullptr)
             : data(val), color(c), left(nullptr), right(nullptr), parent(p) {}
         
-        Node(const Key& k, const Value& v, Color c = RED, Node* p = nullptr)
-            : data(k, v), color(c), left(nullptr), right(nullptr), parent(p) {}
+        template<typename... Args>
+        Node(Color c, Node* p, Args&&... args)
+            : data(fl::forward<Args>(args)...), color(c), left(nullptr), right(nullptr), parent(p) {}
     };
 
     using NodeAllocator = typename Allocator::template rebind<Node>::other;
@@ -51,6 +76,7 @@ private:
     Node* root_;
     fl::size size_;
     Compare comp_;
+    KeyExtractor key_extract_;
     NodeAllocator alloc_;
 
     // Helper methods
@@ -225,12 +251,13 @@ private:
         if (x) x->color = BLACK;
     }
 
-    Node* findNode(const Key& key) const {
+    Node* findNode(const key_type& key) const {
         Node* current = root_;
         while (current != nullptr) {
-            if (comp_(key, current->data.first)) {
+            const key_type& currentKey = key_extract_(current->data);
+            if (comp_(key, currentKey)) {
                 current = current->left;
-            } else if (comp_(current->data.first, key)) {
+            } else if (comp_(currentKey, key)) {
                 current = current->right;
             } else {
                 return current;
@@ -267,11 +294,11 @@ private:
 public:
     // Iterator implementation
     class iterator {
-        friend class MapRedBlackTree;
+        friend class RedBlackTree;
         friend class const_iterator;
     private:
         Node* node_;
-        const MapRedBlackTree* tree_;
+        const RedBlackTree* tree_;
 
         Node* successor(Node* x) const {
             if (x == nullptr) return nullptr;
@@ -301,14 +328,14 @@ public:
 
     public:
         iterator() : node_(nullptr), tree_(nullptr) {}
-        iterator(Node* n, const MapRedBlackTree* t) : node_(n), tree_(t) {}
+        iterator(Node* n, const RedBlackTree* t) : node_(n), tree_(t) {}
 
         value_type& operator*() const { 
-            FASTLED_ASSERT(node_ != nullptr, "MapRedBlackTree::iterator: dereferencing end iterator");
+            FASTLED_ASSERT(node_ != nullptr, "RedBlackTree::iterator: dereferencing end iterator");
             return node_->data; 
         }
         value_type* operator->() const { 
-            FASTLED_ASSERT(node_ != nullptr, "MapRedBlackTree::iterator: dereferencing end iterator");
+            FASTLED_ASSERT(node_ != nullptr, "RedBlackTree::iterator: dereferencing end iterator");
             return &(node_->data); 
         }
 
@@ -351,11 +378,11 @@ public:
     };
 
     class const_iterator {
-        friend class MapRedBlackTree;
+        friend class RedBlackTree;
         friend class iterator;
     private:
         const Node* node_;
-        const MapRedBlackTree* tree_;
+        const RedBlackTree* tree_;
 
         const Node* successor(const Node* x) const {
             if (x == nullptr) return nullptr;
@@ -385,15 +412,15 @@ public:
 
     public:
         const_iterator() : node_(nullptr), tree_(nullptr) {}
-        const_iterator(const Node* n, const MapRedBlackTree* t) : node_(n), tree_(t) {}
+        const_iterator(const Node* n, const RedBlackTree* t) : node_(n), tree_(t) {}
         const_iterator(const iterator& it) : node_(it.node_), tree_(it.tree_) {}
 
         const value_type& operator*() const { 
-            FASTLED_ASSERT(node_ != nullptr, "MapRedBlackTree::iterator: dereferencing end iterator");
+            FASTLED_ASSERT(node_ != nullptr, "RedBlackTree::iterator: dereferencing end iterator");
             return node_->data; 
         }
         const value_type* operator->() const { 
-            FASTLED_ASSERT(node_ != nullptr, "MapRedBlackTree::iterator: dereferencing end iterator");
+            FASTLED_ASSERT(node_ != nullptr, "RedBlackTree::iterator: dereferencing end iterator");
             return &(node_->data); 
         }
 
@@ -436,21 +463,22 @@ public:
     };
 
     // Constructors and destructor
-    MapRedBlackTree(const Compare& comp = Compare(), const Allocator& alloc = Allocator()) 
-        : root_(nullptr), size_(0), comp_(comp), alloc_(alloc) {}
+    RedBlackTree(const Compare& comp = Compare(), const KeyExtractor& key_extract = KeyExtractor(), const Allocator& alloc = Allocator()) 
+        : root_(nullptr), size_(0), comp_(comp), key_extract_(key_extract), alloc_(alloc) {}
 
-    MapRedBlackTree(const MapRedBlackTree& other) 
-        : root_(nullptr), size_(other.size_), comp_(other.comp_), alloc_(other.alloc_) {
+    RedBlackTree(const RedBlackTree& other) 
+        : root_(nullptr), size_(other.size_), comp_(other.comp_), key_extract_(other.key_extract_), alloc_(other.alloc_) {
         if (other.root_) {
             root_ = copyTree(other.root_);
         }
     }
 
-    MapRedBlackTree& operator=(const MapRedBlackTree& other) {
+    RedBlackTree& operator=(const RedBlackTree& other) {
         if (this != &other) {
             clear();
             size_ = other.size_;
             comp_ = other.comp_;
+            key_extract_ = other.key_extract_;
             alloc_ = other.alloc_;
             if (other.root_) {
                 root_ = copyTree(other.root_);
@@ -459,7 +487,7 @@ public:
         return *this;
     }
 
-    ~MapRedBlackTree() {
+    ~RedBlackTree() {
         clear();
     }
 
@@ -495,65 +523,6 @@ public:
     fl::size size() const { return size_; }
     fl::size max_size() const { return fl::size(-1); }
 
-    // Element access
-    Value& operator[](const Key& key) {
-        Node* node = findNode(key);
-        if (node) {
-            return node->data.second;
-        }
-        
-        // Insert new node
-        Node* newNode = alloc_.allocate(1);
-        if (newNode == nullptr) {
-            // Out of memory - we cannot create the value
-            // This will cause undefined behavior, but it's better than segfault
-            static Value default_value;
-            return default_value;
-        }
-        alloc_.construct(newNode, key, Value());
-        
-        if (root_ == nullptr) {
-            root_ = newNode;
-            root_->color = BLACK;
-        } else {
-            Node* parent = nullptr;
-            Node* current = root_;
-            
-            while (current != nullptr) {
-                parent = current;
-                if (comp_(key, current->data.first)) {
-                    current = current->left;
-                } else {
-                    current = current->right;
-                }
-            }
-            
-            newNode->parent = parent;
-            if (comp_(key, parent->data.first)) {
-                parent->left = newNode;
-            } else {
-                parent->right = newNode;
-            }
-            
-            insertFixup(newNode);
-        }
-        
-        ++size_;
-        return newNode->data.second;
-    }
-
-    Value& at(const Key& key) {
-        Node* node = findNode(key);
-        FASTLED_ASSERT(node != nullptr, "MapRedBlackTree::at: key not found");
-        return node->data.second;
-    }
-
-    const Value& at(const Key& key) const {
-        Node* node = findNode(key);
-        FASTLED_ASSERT(node != nullptr, "MapRedBlackTree::at: key not found");
-        return node->data.second;
-    }
-
     // Modifiers
     void clear() {
         destroyTree(root_);
@@ -562,7 +531,8 @@ public:
     }
 
     fl::pair<iterator, bool> insert(const value_type& value) {
-        Node* existing = findNode(value.first);
+        const key_type& key = key_extract_(value);
+        Node* existing = findNode(key);
         if (existing) {
             return fl::pair<iterator, bool>(iterator(existing, this), false);
         }
@@ -583,7 +553,8 @@ public:
             
             while (current != nullptr) {
                 parent = current;
-                if (comp_(value.first, current->data.first)) {
+                const key_type& currentKey = key_extract_(current->data);
+                if (comp_(key, currentKey)) {
                     current = current->left;
                 } else {
                     current = current->right;
@@ -591,7 +562,8 @@ public:
             }
             
             newNode->parent = parent;
-            if (comp_(value.first, parent->data.first)) {
+            const key_type& parentKey = key_extract_(parent->data);
+            if (comp_(key, parentKey)) {
                 parent->left = newNode;
             } else {
                 parent->right = newNode;
@@ -622,11 +594,12 @@ public:
             successor = const_cast<Node*>(next.node_);
         }
         
-        erase(nodeToDelete->data.first);
+        const key_type& key = key_extract_(nodeToDelete->data);
+        erase(key);
         return iterator(successor, this);
     }
 
-    fl::size erase(const Key& key) {
+    fl::size erase(const key_type& key) {
         Node* nodeToDelete = findNode(key);
         if (nodeToDelete == nullptr) {
             return 0;
@@ -672,32 +645,33 @@ public:
         return 1;
     }
 
-    void swap(MapRedBlackTree& other) {
+    void swap(RedBlackTree& other) {
         fl::swap(root_, other.root_);
         fl::swap(size_, other.size_);
         fl::swap(comp_, other.comp_);
+        fl::swap(key_extract_, other.key_extract_);
     }
 
     // Lookup
-    fl::size count(const Key& key) const {
+    fl::size count(const key_type& key) const {
         return findNode(key) != nullptr ? 1 : 0;
     }
 
-    iterator find(const Key& key) {
+    iterator find(const key_type& key) {
         Node* node = findNode(key);
         return node ? iterator(node, this) : end();
     }
 
-    const_iterator find(const Key& key) const {
+    const_iterator find(const key_type& key) const {
         Node* node = findNode(key);
         return node ? const_iterator(node, this) : end();
     }
 
-    bool contains(const Key& key) const {
+    bool contains(const key_type& key) const {
         return findNode(key) != nullptr;
     }
 
-    fl::pair<iterator, iterator> equal_range(const Key& key) {
+    fl::pair<iterator, iterator> equal_range(const key_type& key) {
         iterator it = find(key);
         if (it == end()) {
             return fl::pair<iterator, iterator>(it, it);
@@ -707,7 +681,7 @@ public:
         return fl::pair<iterator, iterator>(it, next);
     }
 
-    fl::pair<const_iterator, const_iterator> equal_range(const Key& key) const {
+    fl::pair<const_iterator, const_iterator> equal_range(const key_type& key) const {
         const_iterator it = find(key);
         if (it == end()) {
             return fl::pair<const_iterator, const_iterator>(it, it);
@@ -717,12 +691,13 @@ public:
         return fl::pair<const_iterator, const_iterator>(it, next);
     }
 
-    iterator lower_bound(const Key& key) {
+    iterator lower_bound(const key_type& key) {
         Node* current = root_;
         Node* result = nullptr;
         
         while (current != nullptr) {
-            if (!comp_(current->data.first, key)) {
+            const key_type& currentKey = key_extract_(current->data);
+            if (!comp_(currentKey, key)) {
                 result = current;
                 current = current->left;
             } else {
@@ -733,12 +708,13 @@ public:
         return result ? iterator(result, this) : end();
     }
 
-    const_iterator lower_bound(const Key& key) const {
+    const_iterator lower_bound(const key_type& key) const {
         Node* current = root_;
         Node* result = nullptr;
         
         while (current != nullptr) {
-            if (!comp_(current->data.first, key)) {
+            const key_type& currentKey = key_extract_(current->data);
+            if (!comp_(currentKey, key)) {
                 result = current;
                 current = current->left;
             } else {
@@ -749,12 +725,13 @@ public:
         return result ? const_iterator(result, this) : end();
     }
 
-    iterator upper_bound(const Key& key) {
+    iterator upper_bound(const key_type& key) {
         Node* current = root_;
         Node* result = nullptr;
         
         while (current != nullptr) {
-            if (comp_(key, current->data.first)) {
+            const key_type& currentKey = key_extract_(current->data);
+            if (comp_(key, currentKey)) {
                 result = current;
                 current = current->left;
             } else {
@@ -765,12 +742,13 @@ public:
         return result ? iterator(result, this) : end();
     }
 
-    const_iterator upper_bound(const Key& key) const {
+    const_iterator upper_bound(const key_type& key) const {
         Node* current = root_;
         Node* result = nullptr;
         
         while (current != nullptr) {
-            if (comp_(key, current->data.first)) {
+            const key_type& currentKey = key_extract_(current->data);
+            if (comp_(key, currentKey)) {
                 result = current;
                 current = current->left;
             } else {
@@ -787,7 +765,7 @@ public:
     }
 
     // Comparison operators
-    bool operator==(const MapRedBlackTree& other) const {
+    bool operator==(const RedBlackTree& other) const {
         if (size() != other.size()) {
             return false;
         }
@@ -796,7 +774,7 @@ public:
         const_iterator it2 = other.begin();
         
         while (it1 != end() && it2 != other.end()) {
-            if (it1->first != it2->first || it1->second != it2->second) {
+            if (!(*it1 == *it2)) {
                 return false;
             }
             ++it1;
@@ -806,9 +784,51 @@ public:
         return it1 == end() && it2 == other.end();
     }
 
-    bool operator!=(const MapRedBlackTree& other) const {
+    bool operator!=(const RedBlackTree& other) const {
         return !(*this == other);
     }
 };
+
+// Map-specific wrapper that adds operator[] and at() methods
+template <typename Key, typename Value, typename Compare = DefaultLess<Key>, typename Allocator = allocator_slab<char>>
+class MapRedBlackTree : public RedBlackTree<fl::pair<Key, Value>, PairKeyExtractor<fl::pair<Key, Value>>, Compare, Allocator> {
+private:
+    using BaseTree = RedBlackTree<fl::pair<Key, Value>, PairKeyExtractor<fl::pair<Key, Value>>, Compare, Allocator>;
+    
+public:
+    using key_type = Key;
+    using mapped_type = Value;
+    using value_type = fl::pair<Key, Value>;
+    
+    // Inherit constructors
+    using BaseTree::BaseTree;
+    
+    // Map-specific element access methods
+    Value& operator[](const Key& key) {
+        auto it = this->find(key);
+        if (it != this->end()) {
+            return it->second;
+        }
+        
+        auto result = this->insert(value_type(key, Value()));
+        return result.first->second;
+    }
+    
+    Value& at(const Key& key) {
+        auto it = this->find(key);
+        FASTLED_ASSERT(it != this->end(), "MapRedBlackTree::at: key not found");
+        return it->second;
+    }
+    
+    const Value& at(const Key& key) const {
+        auto it = this->find(key);
+        FASTLED_ASSERT(it != this->end(), "MapRedBlackTree::at: key not found");
+        return it->second;
+    }
+};
+
+// Convenience alias for sets
+template <typename Key, typename Compare = DefaultLess<Key>, typename Allocator = allocator_slab<char>>
+using SetRedBlackTree = RedBlackTree<Key, IdentityKeyExtractor<Key>, Compare, Allocator>;
 
 } // namespace fl

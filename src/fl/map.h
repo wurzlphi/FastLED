@@ -525,6 +525,178 @@ class SortedHeapMap {
     }
 };
 
+// fl::map<Key, Value, Compare, Allocator> - Ordered map implementation using MapRedBlackTree
+// This is an ordered map that keeps elements sorted by key, similar to std::map
+template <typename Key, typename Value, typename Compare = fl::DefaultLess<Key>, typename Allocator = fl::allocator_slab<char>>
+class map {
+  private:
+    using TreeType = fl::MapRedBlackTree<Key, Value, Compare, Allocator>;
+    TreeType tree_data;
+    
+  public:
+    // Standard map typedefs
+    using key_type = Key;
+    using mapped_type = Value;
+    using value_type = fl::pair<Key, Value>;
+    using size_type = fl::size;
+    using difference_type = ptrdiff_t;
+    using key_compare = Compare;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    
+    // Iterator types
+    using iterator = typename TreeType::iterator;
+    using const_iterator = typename TreeType::const_iterator;
+    
+    // Value comparison class for std::map compatibility
+    class value_compare {
+        friend class map;
+        Compare comp_;
+        value_compare(Compare c) : comp_(c) {}
+    public:
+        bool operator()(const value_type& x, const value_type& y) const {
+            return comp_(x.first, y.first);
+        }
+    };
+    
+    // Constructors
+    map(const Compare& comp = Compare(), const Allocator& alloc = Allocator()) 
+        : tree_data(comp, fl::PairKeyExtractor<value_type>(), alloc) {}
+    map(const map& other) = default;
+    map(map&& other) = default;
+    map& operator=(const map& other) = default;
+    map& operator=(map&& other) = default;
+    
+    // Iterators
+    iterator begin() { return tree_data.begin(); }
+    iterator end() { return tree_data.end(); }
+    const_iterator begin() const { return tree_data.begin(); }
+    const_iterator end() const { return tree_data.end(); }
+    const_iterator cbegin() const { return tree_data.cbegin(); }
+    const_iterator cend() const { return tree_data.cend(); }
+    
+    // Capacity
+    bool empty() const { return tree_data.empty(); }
+    size_type size() const { return tree_data.size(); }
+    size_type max_size() const { return tree_data.max_size(); }
+    
+    // Element access
+    Value& operator[](const Key& key) {
+        auto it = tree_data.find(key);
+        if (it != tree_data.end()) {
+            return it->second;
+        }
+        
+        auto result = tree_data.insert(value_type(key, Value()));
+        return result.first->second;
+    }
+    
+    Value& at(const Key& key) {
+        auto it = tree_data.find(key);
+        FASTLED_ASSERT(it != tree_data.end(), "map::at: key not found");
+        return it->second;
+    }
+    
+    const Value& at(const Key& key) const {
+        auto it = tree_data.find(key);
+        FASTLED_ASSERT(it != tree_data.end(), "map::at: key not found");
+        return it->second;
+    }
+    
+    // Modifiers
+    void clear() { tree_data.clear(); }
+    
+    fl::pair<iterator, bool> insert(const value_type& value) {
+        return tree_data.insert(value);
+    }
+    
+    fl::pair<iterator, bool> insert(value_type&& value) {
+        return tree_data.insert(fl::move(value));
+    }
+    
+    template<class... Args>
+    fl::pair<iterator, bool> emplace(Args&&... args) {
+        return tree_data.emplace(fl::forward<Args>(args)...);
+    }
+    
+    iterator erase(const_iterator pos) {
+        return tree_data.erase(pos);
+    }
+    
+    size_type erase(const Key& key) {
+        return tree_data.erase(key);
+    }
+    
+    void swap(map& other) {
+        tree_data.swap(other.tree_data);
+    }
+    
+    // Lookup
+    size_type count(const Key& key) const {
+        return tree_data.count(key);
+    }
+    
+    iterator find(const Key& key) {
+        return tree_data.find(key);
+    }
+    
+    const_iterator find(const Key& key) const {
+        return tree_data.find(key);
+    }
+    
+    bool contains(const Key& key) const {
+        return tree_data.contains(key);
+    }
+    
+    bool has(const Key& key) const {
+        return contains(key);
+    }
+    
+    fl::pair<iterator, iterator> equal_range(const Key& key) {
+        return tree_data.equal_range(key);
+    }
+    
+    fl::pair<const_iterator, const_iterator> equal_range(const Key& key) const {
+        return tree_data.equal_range(key);
+    }
+    
+    iterator lower_bound(const Key& key) {
+        return tree_data.lower_bound(key);
+    }
+    
+    const_iterator lower_bound(const Key& key) const {
+        return tree_data.lower_bound(key);
+    }
+    
+    iterator upper_bound(const Key& key) {
+        return tree_data.upper_bound(key);
+    }
+    
+    const_iterator upper_bound(const Key& key) const {
+        return tree_data.upper_bound(key);
+    }
+    
+    // Observers
+    key_compare key_comp() const {
+        return tree_data.key_comp();
+    }
+    
+    value_compare value_comp() const {
+        return value_compare(key_comp());
+    }
+    
+    // Comparison operators
+    bool operator==(const map& other) const {
+        return tree_data == other.tree_data;
+    }
+    
+    bool operator!=(const map& other) const {
+        return tree_data != other.tree_data;
+    }
+};
+
 } // namespace fl
 
 // Drop-in replacement for std::map
@@ -537,7 +709,7 @@ namespace fl {
 // Can't use fl::map because it conflicts with Arduino.h's map() function when
 // the user is using `using namespace fl`
 template <typename Key, typename T, typename Compare = fl::DefaultLess<Key>>
-using fl_map = MapRedBlackTree<Key, T, Compare, fl::allocator_slab<char>>;
+using fl_map = fl::map<Key, T, Compare, fl::allocator_slab<char>>;
 
 
 } // namespace fl

@@ -25,6 +25,15 @@ template <typename Key, typename Value> struct Pair {
         }
         return *this;
     }
+    
+    // Comparison operators
+    bool operator==(const Pair& other) const {
+        return first == other.first && second == other.second;
+    }
+    
+    bool operator!=(const Pair& other) const {
+        return !(*this == other);
+    }
 };
 
 // std compatibility
