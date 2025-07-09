@@ -145,7 +145,7 @@ def run_command(command: str, cwd: Path | None = None) -> None:
         sys.exit(1)
 
 
-def compile_fastled(specific_test: str | None = None) -> None:
+def compile_fastled(specific_test: str | None = None, quick_build: bool = False) -> None:
     if USE_ZIG:
         print("USING ZIG COMPILER")
         rtn = subprocess.run(
@@ -171,6 +171,10 @@ def compile_fastled(specific_test: str | None = None) -> None:
         "-DCMAKE_VERBOSE_MAKEFILE=ON",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
     ]
+
+    # Add quick build flag if requested
+    if quick_build:
+        cmake_configure_command_list.append("-DFASTLED_QUICK_BUILD=ON")
 
     if WASM_BUILD:
         cmake_configure_command_list.extend(
@@ -217,6 +221,11 @@ def parse_arguments():
         "--test",
         help="Specific test to compile (without test_ prefix)",
     )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Compile tests as quickly as possible (no debug, no inlining, -O0)",
+    )
     return parser.parse_args()
 
 
@@ -234,6 +243,7 @@ def get_build_info(args: argparse.Namespace) -> dict[str, str | dict[str, str]]:
             "use_zig": str(args.use_zig),
             "use_clang": str(args.use_clang),
             "wasm": str(args.wasm),
+            "quick": str(args.quick),
         },
     }
 
@@ -287,7 +297,7 @@ def main() -> None:
     if args.clean or should_clean_build(build_info):
         clean_build_directory()
 
-    compile_fastled(args.test)
+    compile_fastled(args.test, args.quick)
     update_build_info(build_info)
     print("FastLED library compiled successfully.")
 

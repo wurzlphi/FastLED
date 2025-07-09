@@ -67,6 +67,12 @@ set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
 # Output the current build type
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
+# Check if we're in quick mode (passed via command line)
+if(DEFINED FASTLED_QUICK_BUILD AND FASTLED_QUICK_BUILD)
+    set(CMAKE_BUILD_TYPE Quick CACHE STRING "Choose the type of build." FORCE)
+    message(STATUS "Quick build mode enabled - compiling for maximum speed")
+endif()
+
 # Optimization suggestions for even faster builds (uncomment to test):
 # 1. Use -Og instead of -O1 for potentially faster compilation:
 #    set(FAST_DEBUG_OPT -Og)
@@ -84,6 +90,15 @@ set(FAST_DEBUG_OPT -O0)  # No optimization for accurate debugging
 set(FAST_DEBUG_INFO -g3)  # Full debug info including macros
 set(FAST_FRAME_POINTER -fno-omit-frame-pointer)
 
+# Quick build settings (for maximum compilation speed)
+if(CMAKE_BUILD_TYPE STREQUAL "Quick")
+    set(FAST_DEBUG_OPT -O0)  # No optimization for fastest compilation
+    set(FAST_DEBUG_INFO -g0)  # No debug info for fastest compilation
+    set(FAST_FRAME_POINTER -fomit-frame-pointer)  # No frame pointers for fastest compilation
+    set(FAST_QUICK_FLAGS -fno-inline -fno-inline-functions)  # Disable function inlining
+    message(STATUS "Quick build flags: ${FAST_DEBUG_OPT} ${FAST_DEBUG_INFO} ${FAST_FRAME_POINTER} ${FAST_QUICK_FLAGS}")
+endif()
+
 # Define common compiler flags and definitions
 set(COMMON_COMPILE_FLAGS
     -Wall
@@ -93,6 +108,7 @@ set(COMMON_COMPILE_FLAGS
     ${FAST_DEBUG_INFO}
     ${FAST_FRAME_POINTER}
     ${FAST_DEBUG_OPT}
+    ${FAST_QUICK_FLAGS}
     -Werror=return-type
     -Werror=missing-declarations
     -Werror=redundant-decls
@@ -177,6 +193,7 @@ set(UNIT_TEST_COMPILE_FLAGS
     ${FAST_DEBUG_INFO}
     ${FAST_FRAME_POINTER}
     ${FAST_DEBUG_OPT}
+    ${FAST_QUICK_FLAGS}
     -Werror=return-type
     -Werror=missing-declarations
     #-Werror=redundant-decls

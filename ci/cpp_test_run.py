@@ -261,6 +261,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Enable verbose output showing all test details",
     )
+    parser.add_argument(
+        "--quick",
+        action="store_true",
+        help="Compile tests as quickly as possible (no debug, no inlining, -O0)",
+    )
     args, unknown = parser.parse_known_args()
     args.unknown = unknown
     return args
@@ -283,6 +288,8 @@ def main() -> None:
         passthrough_args = args.unknown
         if use_clang:
             passthrough_args.append("--use-clang")
+        if args.quick:
+            passthrough_args.append("--quick")
         compile_tests(clean=args.clean, unknown_args=passthrough_args)
 
     if not compile_only:
