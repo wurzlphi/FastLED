@@ -40,34 +40,45 @@ template <typename R, typename... Args> class function<R(Args...)> {
     struct MemberCallable {
         // Object pointer (void* to avoid template bloat)
         void* obj;
-        // Member function pointer (void* to avoid template bloat)
-        void* mfp;
+        // Member function pointer stored in a union to allow void* casting
+        union {
+            void* void_ptr;
+            // Non-const member function pointer
+            R (*nonconst_mfp)(void*, Args...);
+            // Const member function pointer  
+            R (*const_mfp)(const void*, Args...);
+        } func_ptr;
         // Whether this is a const member function
         bool is_const;
         
-        MemberCallable() : obj(nullptr), mfp(nullptr), is_const(false) {}
+        MemberCallable() : obj(nullptr), func_ptr{nullptr}, is_const(false) {}
         
         // Constructor for non-const member function
         template <typename C>
         MemberCallable(C* object, R (C::*member_func)(Args...)) 
-            : obj(object), mfp(reinterpret_cast<void*>(member_func)), is_const(false) {}
+            : obj(object), is_const(false) {
+            // Create a function pointer that can call the member function
+            func_ptr.nonconst_mfp = [=](void* obj, Args... args) -> R {
+                return (static_cast<C*>(obj)->*member_func)(args...);
+            };
+        }
         
         // Constructor for const member function
         template <typename C>
         MemberCallable(const C* object, R (C::*member_func)(Args...) const)
-            : obj(const_cast<void*>(static_cast<const void*>(object))), 
-              mfp(reinterpret_cast<void*>(member_func)), is_const(true) {}
+            : obj(const_cast<void*>(static_cast<const void*>(object))), is_const(true) {
+            // Create a function pointer that can call the const member function
+            func_ptr.const_mfp = [=](const void* obj, Args... args) -> R {
+                return (static_cast<const C*>(obj)->*member_func)(args...);
+            };
+        }
         
-        // Invoke the member function - requires class type at runtime
-        // This is a limitation, but we can work around it for common cases
-        template <typename C>
-        R invoke_impl(Args... args) const {
+        // Invoke the member function
+        R invoke(Args... args) const {
             if (is_const) {
-                auto const_mfp = reinterpret_cast<R (C::*)(Args...) const>(mfp);
-                return (static_cast<const C*>(obj)->*const_mfp)(args...);
+                return func_ptr.const_mfp(obj, args...);
             } else {
-                auto nonconst_mfp = reinterpret_cast<R (C::*)(Args...)>(mfp);
-                return (static_cast<C*>(obj)->*nonconst_mfp)(args...);
+                return func_ptr.nonconst_mfp(obj, args...);
             }
         }
     };
@@ -169,14 +180,10 @@ template <typename R, typename... Args> class function<R(Args...)> {
         new (&storage_.member_callable) MemberCallable(obj, mf);
     }
 
-    // Invocation - for now, we'll use a simple approach that works for common cases
-    // In a real implementation, you might want to store the class type info
+    // Invocation
     R operator()(Args... args) const { 
         if (is_member_callable_) {
-            // For now, we'll use a simple approach that works for common cases
-            // This is a limitation of the current implementation
-            FL_WARN("Member function call without class type - this is a limitation of the current implementation");
-            return R{};
+            return storage_.member_callable.invoke(args...);
         } else {
             return storage_.heap_callable->invoke(args...);
         }
@@ -196,7 +203,7 @@ template <typename R, typename... Args> class function<R(Args...)> {
         }
         if (is_member_callable_) {
             return storage_.member_callable.obj == o.storage_.member_callable.obj &&
-                   storage_.member_callable.mfp == o.storage_.member_callable.mfp &&
+                   storage_.member_callable.func_ptr.void_ptr == o.storage_.member_callable.func_ptr.void_ptr &&
                    storage_.member_callable.is_const == o.storage_.member_callable.is_const;
         } else {
             return storage_.heap_callable == o.storage_.heap_callable;
