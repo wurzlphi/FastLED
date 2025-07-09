@@ -15,7 +15,7 @@
 
 namespace fl {
 
-NoisePalette::NoisePalette(XYMap xyMap, float fps)
+NoisePalette::NoisePalette(const XYMap& xyMap, float fps)
     : Fx2d(xyMap), speed(0), scale(0), colorLoop(1), mFps(fps) {
     // currentPalette = PartyColors_p;
     static_assert(sizeof(currentPalette) == sizeof(CRGBPalette16),

@@ -22,7 +22,7 @@ class NoisePalette : public Fx2d {
   public:
     // Fps is used by the fx_engine to maintain a fixed frame rate, ignored
     // otherwise.
-    NoisePalette(XYMap xyMap, float fps = 60.f);
+    NoisePalette(const XYMap& xyMap, float fps = 60.f);
 
     bool hasFixedFrameRate(float *fps) const override {
         *fps = mFps;
