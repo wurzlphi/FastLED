@@ -242,6 +242,34 @@ template <fl::u32 N> class BitsetFixed {
         return -1; // No matching bit found
     }
 
+    /// Finds the first run of consecutive bits that match the test value.
+    /// Returns the index of the first bit in the run, or -1 if no run found.
+    fl::i32 find_run(bool test_value) const noexcept {
+        fl::u32 run_start = 0;
+        fl::u32 run_length = 0;
+        
+        for (fl::u32 i = 0; i < N; ++i) {
+            if (test(i) == test_value) {
+                if (run_length == 0) {
+                    run_start = i;
+                }
+                run_length++;
+            } else {
+                if (run_length > 0) {
+                    return static_cast<fl::i32>(run_start);
+                }
+                run_length = 0;
+            }
+        }
+        
+        // Check if we have a run at the end
+        if (run_length > 0) {
+            return static_cast<fl::i32>(run_start);
+        }
+        
+        return -1; // No run found
+    }
+
     /// Friend operators for convenience.
     friend BitsetFixed operator&(BitsetFixed lhs,
                                  const BitsetFixed &rhs) noexcept {

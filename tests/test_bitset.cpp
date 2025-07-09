@@ -411,3 +411,76 @@ TEST_CASE("test bitset_inlined find_first") {
     REQUIRE_EQ(bs4.find_first(true), 150);
     REQUIRE_EQ(bs4.find_first(false), 0);
 }
+
+TEST_CASE("test bitset_fixed find_run") {
+    // Test find_run for true bits
+    bitset_fixed<64> bs;
+    
+    // Initially no bits are set, so find_run(true) should return -1
+    REQUIRE_EQ(bs.find_run(true), -1);
+    
+    // find_run(false) should return 0 (first unset bit)
+    REQUIRE_EQ(bs.find_run(false), 0);
+    
+    // Set a single bit - no run
+    bs.set(5);
+    REQUIRE_EQ(bs.find_run(true), 5);
+    REQUIRE_EQ(bs.find_run(false), 0);
+    
+    // Set consecutive bits to create a run
+    bs.set(1);
+    bs.set(2);
+    bs.set(3);
+    REQUIRE_EQ(bs.find_run(true), 1); // First run starts at 1
+    REQUIRE_EQ(bs.find_run(false), 0);
+    
+    // Clear bits 1 and 2, now only bit 3 remains (no run)
+    bs.reset(1);
+    bs.reset(2);
+    REQUIRE_EQ(bs.find_run(true), 3); // Single bit at 3
+    REQUIRE_EQ(bs.find_run(false), 0);
+    
+    // Create multiple runs
+    bs.set(10);
+    bs.set(11);
+    bs.set(12);
+    bs.set(20);
+    bs.set(21);
+    REQUIRE_EQ(bs.find_run(true), 3); // First run starts at 3 (single bit)
+    REQUIRE_EQ(bs.find_run(false), 0);
+    
+    // Clear bit 3, now first run should be at 10
+    bs.reset(3);
+    REQUIRE_EQ(bs.find_run(true), 10); // First run starts at 10
+    REQUIRE_EQ(bs.find_run(false), 0);
+    
+    // Test with all bits set (one big run)
+    bitset_fixed<8> bs2;
+    for (fl::u32 i = 0; i < 8; ++i) {
+        bs2.set(i);
+    }
+    REQUIRE_EQ(bs2.find_run(true), 0); // Run starts at 0
+    REQUIRE_EQ(bs2.find_run(false), -1); // No false bits
+    
+    // Test with no bits set (one big run of false)
+    bitset_fixed<8> bs3;
+    REQUIRE_EQ(bs3.find_run(true), -1); // No true bits
+    REQUIRE_EQ(bs3.find_run(false), 0); // Run starts at 0
+    
+    // Test with alternating bits (no runs of length > 1)
+    bitset_fixed<8> bs4;
+    for (fl::u32 i = 0; i < 8; ++i) {
+        if (i % 2 == 0) {
+            bs4.set(i);
+        }
+    }
+    REQUIRE_EQ(bs4.find_run(true), 0); // First true bit at 0
+    REQUIRE_EQ(bs4.find_run(false), 1); // First false bit at 1
+    
+    // Test with run at the end
+    bitset_fixed<16> bs5;
+    bs5.set(14);
+    bs5.set(15);
+    REQUIRE_EQ(bs5.find_run(true), 14); // Run starts at 14
+    REQUIRE_EQ(bs5.find_run(false), 0); // False run starts at 0
+}
