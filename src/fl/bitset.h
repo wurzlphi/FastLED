@@ -277,6 +277,7 @@ class BitsetInlined {
     // Either store a fixed Bitset<N> or a dynamic Bitset
     using fixed_bitset = BitsetFixed<N>;
     Variant<fixed_bitset, bitset_dynamic> _storage;
+    fl::u32 _actual_size; // Track the actual size after resize operations
 
   public:
     struct Proxy {
@@ -297,24 +298,26 @@ class BitsetInlined {
     Proxy operator[](fl::u32 pos) { return Proxy(*this, pos); }
 
     /// Constructs a Bitset with all bits reset.
-    BitsetInlined() : _storage(fixed_bitset()) {}
-    BitsetInlined(fl::size size) : _storage(fixed_bitset()) {
+    BitsetInlined() : _storage(fixed_bitset()), _actual_size(N) {}
+    BitsetInlined(fl::size size) : _storage(fixed_bitset()), _actual_size(size) {
         if (size > N) {
             _storage = bitset_dynamic(size);
         }
     }
-    BitsetInlined(const BitsetInlined &other) : _storage(other._storage) {}
+    BitsetInlined(const BitsetInlined &other) : _storage(other._storage), _actual_size(other._actual_size) {}
     BitsetInlined(BitsetInlined &&other) noexcept
-        : _storage(fl::move(other._storage)) {}
+        : _storage(fl::move(other._storage)), _actual_size(other._actual_size) {}
     BitsetInlined &operator=(const BitsetInlined &other) {
         if (this != &other) {
             _storage = other._storage;
+            _actual_size = other._actual_size;
         }
         return *this;
     }
     BitsetInlined &operator=(BitsetInlined &&other) noexcept {
         if (this != &other) {
             _storage = fl::move(other._storage);
+            _actual_size = other._actual_size;
         }
         return *this;
     }
@@ -339,7 +342,15 @@ class BitsetInlined {
 
     /// Resizes the Bitset if needed
     void resize(fl::u32 new_size) {
-        if (new_size <= N) {
+        if (new_size == 0) {
+            // Special case: resize to 0 clears everything
+            if (_storage.template is<bitset_dynamic>()) {
+                _storage = fixed_bitset();
+            } else {
+                _storage.template ptr<fixed_bitset>()->reset();
+            }
+            _actual_size = 0;
+        } else if (new_size <= N) {
             // If we're already using the fixed Bitset, nothing to do
             if (_storage.template is<bitset_dynamic>()) {
                 // Convert back to fixed Bitset
@@ -361,19 +372,25 @@ class BitsetInlined {
                     const fl::u32 block_start_bit = i * fixed.get_bits_per_block();
                     const fl::u32 block_end_bit = block_start_bit + fixed.get_bits_per_block() - 1;
                     
-                    if (block_start_bit >= N) {
+                    if (block_start_bit >= new_size) {
                         // This entire block is beyond the fixed size, clear it
                         fixed.get_blocks()[i] = 0;
-                    } else if (block_end_bit >= N) {
+                    } else if (block_end_bit >= new_size) {
                         // This block is partially beyond the fixed size, mask it
-                        const fl::u32 last_bit_pos = (N - 1) % fixed.get_bits_per_block();
+                        const fl::u32 last_bit_pos = (new_size - 1) % fixed.get_bits_per_block();
                         const typename fixed_bitset::public_block_type mask = 
                             (typename fixed_bitset::public_block_type(1) << (last_bit_pos + 1)) - 1;
                         fixed.get_blocks()[i] &= mask;
                     }
                 }
 
+                // Also clear any blocks that weren't copied but might contain old data
+                for (fl::u32 i = copy_blocks; i < fixed_block_count; ++i) {
+                    fixed.get_blocks()[i] = 0;
+                }
+
                 _storage = fixed;
+                _actual_size = new_size;
             }
         } else {
             // Need to use dynamic Bitset
@@ -390,9 +407,11 @@ class BitsetInlined {
                 }
 
                 _storage = dynamic;
+                _actual_size = new_size;
             } else {
                 // Already using dynamic, just resize
                 _storage.template ptr<bitset_dynamic>()->resize(new_size);
+                _actual_size = new_size;
             }
         }
     }
@@ -404,7 +423,7 @@ class BitsetInlined {
         }
 
         if (_storage.template is<fixed_bitset>()) {
-            if (pos < N) {
+            if (pos < _actual_size) {
                 _storage.template ptr<fixed_bitset>()->set(pos, value);
             }
         } else {
@@ -426,7 +445,7 @@ class BitsetInlined {
         }
 
         if (_storage.template is<fixed_bitset>()) {
-            if (pos < N) {
+            if (pos < _actual_size) {
                 _storage.template ptr<fixed_bitset>()->flip(pos);
             }
         } else {
@@ -451,7 +470,7 @@ class BitsetInlined {
     /// Tests whether the bit at position pos is set.
     bool test(fl::u32 pos) const noexcept {
         if (_storage.template is<fixed_bitset>()) {
-            return pos < N ? _storage.template ptr<fixed_bitset>()->test(pos)
+            return pos < _actual_size ? _storage.template ptr<fixed_bitset>()->test(pos)
                            : false;
         } else {
             return _storage.template ptr<bitset_dynamic>()->test(pos);
@@ -498,7 +517,7 @@ class BitsetInlined {
     /// Size of the Bitset (number of bits).
     fl::u32 size() const noexcept {
         if (_storage.template is<fixed_bitset>()) {
-            return N;
+            return _actual_size;
         } else {
             return _storage.template ptr<bitset_dynamic>()->size();
         }
