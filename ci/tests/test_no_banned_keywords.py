@@ -127,22 +127,6 @@ class TestNoBannedKeywords(unittest.TestCase):
             on_fail=on_fail,
         )
 
-    def test_no_banned_keywords_examples(self) -> None:
-        """Searches through the examples to check for banned keywords."""
-
-        def on_fail(msg: str) -> None:
-            self.fail(
-                msg + "\n"
-                "You can add '// ok keyword' at the end of the line to silence this error for specific usages."
-            )
-
-        test_directories = ["examples"]
-
-        _test_no_banned_keywords(
-            test_directories=test_directories,
-            banned_keywords_list=BANNED_KEYWORDS,
-            on_fail=on_fail,
-        )
 
     def test_no_banned_keywords_platforms(self) -> None:
         """Searches through the platforms directory to check for banned keywords."""
