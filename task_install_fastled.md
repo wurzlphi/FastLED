@@ -38,6 +38,19 @@ Implement the `fastled --install` command that installs the Auto Debug tool used
   - If NO `.ino` files AND NO `examples/` folder found: Prompt user to install examples [y/n]
   - If existing content found: Skip example installation to avoid conflicts
 
+### 6. FastLED Build Tasks Configuration
+- **Generate/Update `.vscode/tasks.json`**: Add FastLED-specific build tasks
+- **Run FastLED (Debug)**: Task with `--debug` flag for debugging mode
+- **Run FastLED (Quick)**: Task with `--background-update` flag for quick execution
+- **Project Root Execution**: Tasks configured to run `fastled` from project root directory
+
+### 7. Testing Requirements
+- **Dry Run Mode**: Support `--dry-run` flag for testing without actual installations
+- **Temporary Directory Testing**: Unit tests must run in isolated temporary folders
+- **Plugin Installation**: In dry-run mode, output `[DRY-RUN]: NO PLUGIN INSTALLED` instead of installing extension
+- **File Creation**: Still create `.vscode/*.json` files in dry-run mode for validation
+- **Validation**: Verify generated JSON files are valid and contain expected configurations
+
 ## Implementation Details
 
 ### Core Components
@@ -170,50 +183,8 @@ def generate_vscode_project():
     with open(".vscode/launch.json", 'w') as f:
         json.dump(launch_config, f, indent=4)
     
-    # Generate tasks.json
-    tasks_config = {
-        "version": "2.0.0",
-        "tasks": [
-            {
-                "type": "shell",
-                "label": "Run FastLED Web Compiler",
-                "command": "uv",
-                "args": ["run", "fastled", "${file}", "--no-auto-updates"],
-                "options": {"cwd": "${workspaceFolder}"},
-                "group": {"kind": "build", "isDefault": True},
-                "presentation": {
-                    "echo": True,
-                    "reveal": "always",
-                    "focus": True,
-                    "panel": "new",
-                    "showReuseMessage": False,
-                    "clear": True
-                },
-                "detail": "Run FastLED web compiler on the current .ino file",
-                "problemMatcher": []
-            },
-            {
-                "type": "shell",
-                "label": "Install FastLED Package",
-                "command": "pip",
-                "args": ["install", "fastled"],
-                "options": {"cwd": "${workspaceFolder}"},
-                "group": "build",
-                "presentation": {
-                    "echo": True,
-                    "reveal": "always",
-                    "focus": False,
-                    "panel": "shared",
-                    "showReuseMessage": True,
-                    "clear": False
-                },
-                "detail": "Install or upgrade the FastLED Python package"
-            }
-        ]
-    }
-    
-    with open(".vscode/tasks.json", 'w') as f:
-        json.dump(tasks_config, f, indent=4)
+    # Generate FastLED tasks using the dedicated function
+    generate_fastled_tasks()
     
     # Generate settings.json
     settings_config = {
@@ -247,7 +218,6 @@ def generate_vscode_project():
         json.dump(extensions_config, f, indent=4)
     
     print("📁 Generated .vscode/launch.json - Arduino debugging configuration")
-    print("📁 Generated .vscode/tasks.json - FastLED build tasks")
     print("📁 Generated .vscode/settings.json - Basic project settings")
     print("📁 Generated .vscode/extensions.json - Recommended extensions")
     
@@ -389,6 +359,95 @@ void loop() {
         f.write(blink_content)
     
     print("📝 Created Blink.ino in project root for quick testing")
+
+def generate_fastled_tasks():
+    """Generate or update .vscode/tasks.json with FastLED build tasks"""
+    tasks_config = {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "type": "shell",
+                "label": "Run FastLED (Debug)",
+                "command": "fastled",
+                "args": ["${file}", "--debug"],
+                "options": {"cwd": "${workspaceFolder}"},
+                "group": {"kind": "build", "isDefault": True},
+                "presentation": {
+                    "echo": True,
+                    "reveal": "always",
+                    "focus": True,
+                    "panel": "new",
+                    "showReuseMessage": False,
+                    "clear": True
+                },
+                "detail": "Run FastLED web compiler with debug mode on the current .ino file",
+                "problemMatcher": []
+            },
+            {
+                "type": "shell",
+                "label": "Run FastLED (Quick)",
+                "command": "fastled",
+                "args": ["${file}", "--background-update"],
+                "options": {"cwd": "${workspaceFolder}"},
+                "group": "build",
+                "presentation": {
+                    "echo": True,
+                    "reveal": "always",
+                    "focus": True,
+                    "panel": "new",
+                    "showReuseMessage": False,
+                    "clear": True
+                },
+                "detail": "Run FastLED web compiler with background updates on the current .ino file",
+                "problemMatcher": []
+            },
+            {
+                "type": "shell",
+                "label": "Install FastLED Package",
+                "command": "pip",
+                "args": ["install", "fastled"],
+                "options": {"cwd": "${workspaceFolder}"},
+                "group": "build",
+                "presentation": {
+                    "echo": True,
+                    "reveal": "always",
+                    "focus": False,
+                    "panel": "shared",
+                    "showReuseMessage": True,
+                    "clear": False
+                },
+                "detail": "Install or upgrade the FastLED Python package"
+            }
+        ]
+    }
+    
+    # Check if tasks.json already exists
+    tasks_path = ".vscode/tasks.json"
+    if os.path.exists(tasks_path):
+        # Load existing tasks and merge
+        try:
+            with open(tasks_path, 'r') as f:
+                existing_tasks = json.load(f)
+            
+            # Remove any existing FastLED tasks to avoid duplicates
+            if "tasks" in existing_tasks:
+                existing_tasks["tasks"] = [
+                    task for task in existing_tasks["tasks"]
+                    if not (task.get("label", "").startswith("Run FastLED") or 
+                           task.get("label") == "Install FastLED Package")
+                ]
+                # Add new FastLED tasks
+                existing_tasks["tasks"].extend(tasks_config["tasks"])
+                tasks_config = existing_tasks
+            
+        except (json.JSONDecodeError, KeyError):
+            # If existing file is malformed, use new config
+            pass
+    
+    with open(tasks_path, 'w') as f:
+        json.dump(tasks_config, f, indent=4)
+    
+    print("📁 Generated/Updated .vscode/tasks.json - FastLED build tasks")
 ```
 
 #### 2. Auto Debug Extension Management
@@ -599,7 +658,7 @@ def update_vscode_settings_for_fastled():
 #### 5. Main Installation Function
 
 ```python
-def fastled_install():
+def fastled_install(dry_run=False):
     """Main installation function for fastled --install"""
     try:
         # Validate we're in a VSCode project
@@ -615,20 +674,30 @@ def fastled_install():
             print("📦 General project detected - installing Arduino debugging support only")
         
         # Prompt for Auto Debug extension installation
-        print("Would you like to install the plugin for FastLED (auto-debug)? [y/n]")
-        response = input().strip().lower()
+        if not dry_run:
+            print("Would you like to install the plugin for FastLED (auto-debug)? [y/n]")
+            response = input().strip().lower()
+        else:
+            response = 'yes'  # Default to yes for dry-run testing
         
         installed_count = 0
         if response in ['y', 'yes']:
-            # Download and install Auto Debug extension
-            extension_path = download_auto_debug_extension()
-            installed_count = install_vscode_extensions(extension_path)
+            if dry_run:
+                print("[DRY-RUN]: NO PLUGIN INSTALLED")
+                installed_count = 1  # Simulate successful installation for testing
+            else:
+                # Download and install Auto Debug extension
+                extension_path = download_auto_debug_extension()
+                installed_count = install_vscode_extensions(extension_path)
         else:
             print("Skipping Auto Debug extension installation.")
         
         # Update launch.json for Arduino debugging
         update_launch_json_for_arduino()
         print("✅ Arduino debugging configuration added to .vscode/launch.json")
+        
+        # Generate FastLED build tasks
+        generate_fastled_tasks()
         
         # Check if we should install examples (for existing projects)
         if not check_existing_arduino_content():
@@ -717,6 +786,11 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
   - Add/update Auto Debug configuration with `"*.ino": "Arduino: Run .ino with FastLED"`
   - Remove examples-specific paths (`"examples/**/*.ino"`)
   - Add Arduino debug configuration if missing
+- **`.vscode/tasks.json`**: 
+  - Add "Run FastLED (Debug)" task with `--debug` flag
+  - Add "Run FastLED (Quick)" task with `--background-update` flag
+  - Merge with existing tasks (replace duplicates)
+  - Set Debug task as default build task
 - **Examples Installation** (conditional):
   - If NO `.ino` files AND NO `examples/` folder: Prompt to install FastLED examples
   - Downloads all examples from FastLED repository into `./examples/` directory
@@ -790,9 +864,253 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 17. ✅ Provides clear feedback and manual fallback instructions
 18. ✅ Handles all error conditions gracefully
 
+## Testing Requirements
+
+### Unit Test Implementation
+
+**Test Function**: `test_fastled_install_dry_run()`
+
+```python
+import tempfile
+import os
+import json
+from pathlib import Path
+
+def test_fastled_install_dry_run():
+    """Test fastled --install in dry-run mode"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Change to temporary directory
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+        
+        try:
+            # Run installation in dry-run mode
+            result = fastled_install(dry_run=True)
+            
+            # Validate successful execution
+            assert result == True, "Installation should succeed in dry-run mode"
+            
+            # Validate .vscode directory was created
+            vscode_dir = Path(".vscode")
+            assert vscode_dir.exists(), ".vscode directory should be created"
+            assert vscode_dir.is_dir(), ".vscode should be a directory"
+            
+            # Validate launch.json
+            launch_json = vscode_dir / "launch.json"
+            assert launch_json.exists(), "launch.json should be created"
+            
+            with open(launch_json, 'r') as f:
+                launch_config = json.load(f)
+            
+            assert "configurations" in launch_config, "launch.json should have configurations"
+            assert len(launch_config["configurations"]) > 0, "Should have at least one configuration"
+            
+            # Find Auto Debug configuration
+            auto_debug_config = None
+            for config in launch_config["configurations"]:
+                if config.get("name") == "🎯 Auto Debug (Smart File Detection)":
+                    auto_debug_config = config
+                    break
+            
+            assert auto_debug_config is not None, "Should have Auto Debug configuration"
+            assert "*.ino" in auto_debug_config.get("map", {}), "Should map *.ino files"
+            assert auto_debug_config["map"]["*.ino"] == "Arduino: Run .ino with FastLED", "Should map to Arduino config"
+            
+            # Validate Arduino debug configuration exists
+            arduino_config_exists = any(
+                config.get("name") == "Arduino: Run .ino with FastLED" 
+                for config in launch_config["configurations"]
+            )
+            assert arduino_config_exists, "Should have Arduino debug configuration"
+            
+            # Validate tasks.json
+            tasks_json = vscode_dir / "tasks.json"
+            assert tasks_json.exists(), "tasks.json should be created"
+            
+            with open(tasks_json, 'r') as f:
+                tasks_config = json.load(f)
+            
+            assert "tasks" in tasks_config, "tasks.json should have tasks array"
+            
+            task_labels = [task.get("label", "") for task in tasks_config["tasks"]]
+            assert "Run FastLED (Debug)" in task_labels, "Should have Debug task"
+            assert "Run FastLED (Quick)" in task_labels, "Should have Quick task"
+            
+            # Validate Debug task configuration
+            debug_task = next(task for task in tasks_config["tasks"] if task.get("label") == "Run FastLED (Debug)")
+            assert "--debug" in debug_task.get("args", []), "Debug task should have --debug flag"
+            
+            # Validate Quick task configuration
+            quick_task = next(task for task in tasks_config["tasks"] if task.get("label") == "Run FastLED (Quick)")
+            assert "--background-update" in quick_task.get("args", []), "Quick task should have --background-update flag"
+            
+            # Validate settings.json
+            settings_json = vscode_dir / "settings.json"
+            assert settings_json.exists(), "settings.json should be created"
+            
+            with open(settings_json, 'r') as f:
+                settings_config = json.load(f)
+            
+            assert "files.associations" in settings_config, "Should have file associations"
+            assert settings_config["files.associations"].get("*.ino") == "cpp", "Should associate .ino with cpp"
+            
+            # Validate extensions.json
+            extensions_json = vscode_dir / "extensions.json"
+            assert extensions_json.exists(), "extensions.json should be created"
+            
+            with open(extensions_json, 'r') as f:
+                extensions_config = json.load(f)
+            
+            assert "recommendations" in extensions_config, "Should have extension recommendations"
+            assert "ms-python.python" in extensions_config["recommendations"], "Should recommend Python extension"
+            
+            # Validate Blink.ino example was created
+            blink_ino = Path("Blink.ino")
+            assert blink_ino.exists(), "Blink.ino should be created"
+            
+            with open(blink_ino, 'r') as f:
+                blink_content = f.read()
+            
+            assert "#include <FastLED.h>" in blink_content, "Blink.ino should include FastLED"
+            assert "CRGB leds" in blink_content, "Blink.ino should declare LED array"
+            
+            print("✅ All dry-run validations passed!")
+            
+        finally:
+            # Restore original directory
+            os.chdir(original_cwd)
+
+def test_fastled_install_existing_vscode_project():
+    """Test installation in existing VSCode project"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+        
+        try:
+            # Create existing .vscode directory with basic launch.json
+            vscode_dir = Path(".vscode")
+            vscode_dir.mkdir()
+            
+            existing_launch = {
+                "version": "0.2.0",
+                "configurations": [
+                    {
+                        "name": "Existing Config",
+                        "type": "python",
+                        "request": "launch",
+                        "program": "${file}"
+                    }
+                ]
+            }
+            
+            with open(vscode_dir / "launch.json", 'w') as f:
+                json.dump(existing_launch, f, indent=4)
+            
+            # Run installation in dry-run mode
+            result = fastled_install(dry_run=True)
+            assert result == True, "Installation should succeed"
+            
+            # Validate existing configuration was preserved
+            with open(vscode_dir / "launch.json", 'r') as f:
+                updated_launch = json.load(f)
+            
+            config_names = [config.get("name") for config in updated_launch["configurations"]]
+            assert "Existing Config" in config_names, "Should preserve existing configurations"
+            assert "🎯 Auto Debug (Smart File Detection)" in config_names, "Should add Auto Debug config"
+            
+            print("✅ Existing project validation passed!")
+            
+        finally:
+            os.chdir(original_cwd)
+
+def test_fastled_install_tasks_merging():
+    """Test tasks.json merging with existing tasks"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+        
+        try:
+            # Create .vscode directory with existing tasks
+            vscode_dir = Path(".vscode")
+            vscode_dir.mkdir()
+            
+            existing_tasks = {
+                "version": "2.0.0",
+                "tasks": [
+                    {
+                        "label": "Existing Task",
+                        "type": "shell",
+                        "command": "echo",
+                        "args": ["hello"]
+                    },
+                    {
+                        "label": "Run FastLED (Debug)",  # This should be replaced
+                        "type": "shell",
+                        "command": "old-command"
+                    }
+                ]
+            }
+            
+            with open(vscode_dir / "tasks.json", 'w') as f:
+                json.dump(existing_tasks, f, indent=4)
+            
+            # Generate FastLED tasks
+            generate_fastled_tasks()
+            
+            # Validate tasks were merged correctly
+            with open(vscode_dir / "tasks.json", 'r') as f:
+                updated_tasks = json.load(f)
+            
+            task_labels = [task.get("label") for task in updated_tasks["tasks"]]
+            assert "Existing Task" in task_labels, "Should preserve existing tasks"
+            assert "Run FastLED (Debug)" in task_labels, "Should have FastLED Debug task"
+            assert "Run FastLED (Quick)" in task_labels, "Should have FastLED Quick task"
+            
+            # Ensure old FastLED tasks were replaced
+            debug_tasks = [task for task in updated_tasks["tasks"] if task.get("label") == "Run FastLED (Debug)"]
+            assert len(debug_tasks) == 1, "Should have only one FastLED Debug task"
+            assert debug_tasks[0].get("command") == "fastled", "Should use new fastled command"
+            
+            print("✅ Tasks merging validation passed!")
+            
+        finally:
+            os.chdir(original_cwd)
+```
+
+### Dry-Run Mode Implementation
+
+**Required Command Line Interface:**
+```bash
+fastled --install --dry-run
+```
+
+**Expected Output:**
+```
+✅ VSCode project detected
+📦 General project detected - installing Arduino debugging support only
+[DRY-RUN]: NO PLUGIN INSTALLED
+✅ Arduino debugging configuration added to .vscode/launch.json
+📁 Generated/Updated .vscode/tasks.json - FastLED build tasks
+📦 Installing FastLED examples...
+✅ Installed example: Blink
+...
+🎉 Arduino debugging installation complete!
+```
+
+### Validation Requirements
+
+1. **JSON Validity**: All generated `.vscode/*.json` files must be valid JSON
+2. **Configuration Completeness**: All required configurations must be present
+3. **Task Functionality**: Tasks must have correct commands and arguments
+4. **File Associations**: Proper file type associations must be set
+5. **Extension Recommendations**: Required extensions must be listed
+6. **Example Content**: Generated example files must be syntactically correct
+
 ## Integration Notes
 
 - Add this functionality to the existing fastled-wasm CLI interface
 - Follow existing command patterns and error handling
 - Ensure compatibility with existing fastled commands
 - Maintain consistency with current FastLED development workflow
+- Implement comprehensive unit testing with dry-run mode
+- Validate all generated configurations in isolated test environments
