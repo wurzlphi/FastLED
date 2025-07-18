@@ -57,6 +57,7 @@ Would you like to install FastLED examples? [y/n]
 ```
 - **Only prompt** if NO `.ino` files AND NO `examples/` folder exist
 - **New projects**: Auto-install examples without prompting
+- **Implementation**: Use FastLED's built-in `--project-init` command
 
 ### 3. Installation Modes
 
@@ -65,7 +66,7 @@ Would you like to install FastLED examples? [y/n]
 | **Basic Project** | `.vscode/` exists, not FastLED | Arduino debugging + tasks |
 | **External FastLED** | `library.json` has FastLED, not repository | Arduino debugging + tasks (NO clangd) |
 | **FastLED Repository** | All repository markers present | Full development environment |
-| **New Project** | No `.vscode/`, IDE available | Generate project + examples + tasks |
+| **New Project** | No `.vscode/`, IDE available | Generate project + `--project-init` + tasks |
 
 ## 🚨 CRITICAL SAFETY REQUIREMENTS
 
@@ -111,9 +112,9 @@ def fastled_install(dry_run=False):
         update_launch_json_for_arduino()
         generate_fastled_tasks()
         
-        # 5. Examples installation (conditional)
-        if not check_existing_arduino_content():
-            install_fastled_examples()
+                 # 5. Examples installation (conditional)
+         if not check_existing_arduino_content():
+             install_fastled_examples_via_project_init()
         
         # 6. Full development setup (repository only)
         if is_fastled_project:
@@ -176,12 +177,53 @@ def check_existing_arduino_content():
     ino_files = list(Path.cwd().rglob("*.ino"))
     examples_folder = Path("examples").exists()
     return len(ino_files) > 0 or examples_folder
+
+def install_fastled_examples_via_project_init(force=False):
+    """Install FastLED examples using built-in --project-init command"""
+    if not force:
+        print("No existing Arduino content found.")
+        print("Would you like to install FastLED examples? [y/n]")
+        
+        response = input().strip().lower()
+        if response not in ['y', 'yes']:
+            print("Skipping FastLED examples installation.")
+            return False
+    
+    print("📦 Installing FastLED examples using project initialization...")
+    
+    try:
+        import subprocess
+        
+        # Use FastLED's built-in project initialization
+        result = subprocess.run(
+            ["fastled", "--project-init"],
+            check=True, 
+            capture_output=True, 
+            text=True,
+            cwd="."
+        )
+        
+        print("✅ FastLED project initialized successfully!")
+        print("📁 Examples and project structure created")
+        print("🚀 Quick start: Check for generated .ino files and press F5 to debug")
+        
+        return True
+        
+    except subprocess.CalledProcessError as e:
+        print(f"⚠️  Warning: Failed to initialize FastLED project: {e}")
+        print("You can manually run: fastled --project-init")
+        return False
+    except FileNotFoundError:
+        print("⚠️  Warning: FastLED package not found. Please install it first:")
+        print("    pip install fastled")
+        print("Then run: fastled --project-init")
+        return False
 ```
 
 **Installation Process**:
-1. Download examples from FastLED GitHub repository
-2. Create `examples/` directory structure
-3. Generate `Blink.ino` in project root for quick testing
+1. Execute `fastled --project-init` to initialize project with examples
+2. Uses FastLED's built-in project initialization functionality
+3. Creates appropriate project structure and example files
 
 #### 4. Post-Installation Auto-Execution
 
@@ -193,7 +235,7 @@ def check_existing_arduino_content():
 ```python
 def auto_execute_fastled():
     """Auto-launch fastled after successful installation"""
-    if check_existing_arduino_content() or os.path.exists("Blink.ino"):
+    if check_existing_arduino_content():
         # Filter arguments: remove --install, --dry-run
         # Add current directory if no target specified
         # Call main() directly: equivalent to 'fastled .'
@@ -219,7 +261,7 @@ def test_fastled_install_dry_run():
     # Verify all .vscode files created and valid
     # Check Auto Debug configuration mapping
     # Validate FastLED tasks presence and arguments
-    # Confirm Blink.ino example creation
+    # Confirm project initialization (via --project-init)
 
 def test_fastled_install_existing_vscode_project():
     """Test configuration merging with existing projects"""
@@ -255,11 +297,11 @@ def test_fastled_repository_detection_safety():
 | ✅ .vscode | N/A | ✅ | ❌ | ✅ | Any | **Limited**: Arduino debugging (NO clangd) |
 | ✅ .vscode | N/A | ✅ | ✅ | ✅ | Any | **Full Dev**: Arduino + clangd + dev env |
 | ❌ | ✅ Found | ✅ | Any | Any | Any | **Prompt**: Install in parent? |
-| ❌ | ❌ None | ✅ | Any | Any | Any | **Generate**: New project + examples |
+| ❌ | ❌ None | ✅ | Any | Any | Any | **Generate**: New project + `--project-init` |
 | ❌ | ❌ None | ❌ | Any | Any | Any | **Error**: No IDE found |
 
 ### Post-Installation Actions
-- **Examples**: Installed if no existing Arduino content
+- **Examples**: Installed via `fastled --project-init` if no existing Arduino content
 - **Auto-Execution**: Runs `fastled .` if content present (skip in dry-run)
 - **Protection Messages**: Clear explanations when skipping clangd
 
@@ -282,8 +324,8 @@ def test_fastled_repository_detection_safety():
 ### Content Management
 11. ✅ Detects existing Arduino content to avoid conflicts
 12. ✅ Prompts for examples only when no existing content found
-13. ✅ Downloads complete FastLED examples from GitHub
-14. ✅ Creates quick-start Blink.ino example
+13. ✅ Uses FastLED's built-in `--project-init` for examples installation
+14. ✅ Creates appropriate project structure and example files
 
 ### Safety and Environment Protection
 15. ✅ 🚨 **CRITICAL**: Only applies clangd settings in actual FastLED repository
