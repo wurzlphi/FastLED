@@ -32,6 +32,12 @@ Implement the `fastled --install` command that installs the Auto Debug tool used
 - Do NOT install support for surrounding files (`.h`, `*.cpp`) UNLESS `library.json` contains "FastLED"
 - Only `.ino` files get debugging support in non-FastLED projects
 
+### 5. Project Initialization with Examples
+- **New Projects**: Automatically copy all FastLED examples when generating new VSCode project
+- **Existing Projects**: Check for existing `.ino` files or `examples/` folder
+  - If NO `.ino` files AND NO `examples/` folder found: Prompt user to install examples [y/n]
+  - If existing content found: Skip example installation to avoid conflicts
+
 ## Implementation Details
 
 ### Core Components
@@ -244,6 +250,145 @@ def generate_vscode_project():
     print("📁 Generated .vscode/tasks.json - FastLED build tasks")
     print("📁 Generated .vscode/settings.json - Basic project settings")
     print("📁 Generated .vscode/extensions.json - Recommended extensions")
+    
+    # For new projects, automatically install examples
+    install_fastled_examples(force=True)
+
+def check_existing_arduino_content():
+    """Check if project already has .ino files or examples folder"""
+    # Check for any .ino files in current directory and subdirectories
+    current_dir = Path.cwd()
+    ino_files = list(current_dir.rglob("*.ino"))
+    
+    # Check for examples folder
+    examples_folder = current_dir / "examples"
+    has_examples_folder = examples_folder.exists() and examples_folder.is_dir()
+    
+    return len(ino_files) > 0 or has_examples_folder
+
+def install_fastled_examples(force=False):
+    """Install FastLED examples into the current project"""
+    if not force and check_existing_arduino_content():
+        print("Found existing .ino files or examples/ folder.")
+        print("Would you like to install FastLED examples anyway? [y/n]")
+        
+        response = input().strip().lower()
+        if response not in ['y', 'yes']:
+            print("Skipping FastLED examples installation.")
+            return False
+    elif not force:
+        print("No existing Arduino content found.")
+        print("Would you like to install FastLED examples? [y/n]")
+        
+        response = input().strip().lower()
+        if response not in ['y', 'yes']:
+            print("Skipping FastLED examples installation.")
+            return False
+    
+    print("📦 Installing FastLED examples...")
+    
+    # Download examples from FastLED repository
+    examples_url = "https://api.github.com/repos/fastled/fastled/contents/examples"
+    
+    try:
+        import requests
+        response = requests.get(examples_url)
+        response.raise_for_status()
+        examples_data = response.json()
+        
+        # Create examples directory
+        examples_dir = Path("examples")
+        examples_dir.mkdir(exist_ok=True)
+        
+        installed_count = 0
+        for item in examples_data:
+            if item["type"] == "dir":
+                example_name = item["name"]
+                download_example_folder(example_name, examples_dir / example_name)
+                installed_count += 1
+                print(f"✅ Installed example: {example_name}")
+        
+        # Also create a simple Blink example in root for quick testing
+        create_simple_blink_example()
+        
+        print(f"🎉 Successfully installed {installed_count} FastLED examples!")
+        print("📁 Examples available in ./examples/ directory")
+        print("🚀 Quick start: Open Blink.ino and press F5 to debug")
+        
+        return True
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Failed to install examples: {e}")
+        print("You can manually download examples from: https://github.com/FastLED/FastLED/tree/main/examples")
+        return False
+
+def download_example_folder(example_name, target_dir):
+    """Download a specific example folder from GitHub"""
+    import requests
+    
+    folder_url = f"https://api.github.com/repos/fastled/fastled/contents/examples/{example_name}"
+    
+    try:
+        response = requests.get(folder_url)
+        response.raise_for_status()
+        folder_data = response.json()
+        
+        # Create target directory
+        target_dir.mkdir(parents=True, exist_ok=True)
+        
+        for item in folder_data:
+            if item["type"] == "file":
+                file_response = requests.get(item["download_url"])
+                file_response.raise_for_status()
+                
+                file_path = target_dir / item["name"]
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(file_response.text)
+            elif item["type"] == "dir":
+                # Recursively download subdirectories
+                download_example_folder(f"{example_name}/{item['name']}", target_dir / item["name"])
+    
+    except Exception as e:
+        print(f"⚠️  Warning: Failed to download {example_name}: {e}")
+
+def create_simple_blink_example():
+    """Create a simple Blink.ino example in the project root"""
+    blink_content = """// FastLED Blink Example
+// A simple example to get started with FastLED
+
+#include <FastLED.h>
+
+#define LED_PIN     5
+#define NUM_LEDS    50
+#define BRIGHTNESS  64
+#define LED_TYPE    WS2811
+#define COLOR_ORDER GRB
+
+CRGB leds[NUM_LEDS];
+
+void setup() {
+    delay(3000); // power-up safety delay
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+    FastLED.setBrightness(BRIGHTNESS);
+}
+
+void loop() {
+    // Turn the LED on, then pause
+    leds[0] = CRGB::Red;
+    FastLED.show();
+    delay(500);
+    
+    // Now turn the LED off, then pause
+    leds[0] = CRGB::Black;
+    FastLED.show();
+    delay(500);
+}
+"""
+    
+    with open("Blink.ino", 'w') as f:
+        f.write(blink_content)
+    
+    print("📝 Created Blink.ino in project root for quick testing")
 ```
 
 #### 2. Auto Debug Extension Management
@@ -477,6 +622,10 @@ def fastled_install():
         update_launch_json_for_arduino()
         print("✅ Arduino debugging configuration added to .vscode/launch.json")
         
+        # Check if we should install examples (for existing projects)
+        if not check_existing_arduino_content():
+            install_fastled_examples()
+        
         # Full FastLED setup only if this is a FastLED project
         if is_fastled_project:
             setup_fastled_development_environment()
@@ -527,13 +676,15 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 ## Installation Behavior Matrix
 
-| Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | `library.json` has "FastLED" | Installation Behavior |
-|--------------|-----------------|-------------------|---------------|------------------------------|----------------------|
-| VSCode Project | ✅ | N/A | ✅ | ❌ | **Basic**: Arduino debugging only |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
-| Parent VSCode | ❌ | ✅ | ✅ | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install |
-| No VSCode (with IDE) | ❌ | ❌ | ✅ | N/A | **Prompt**: Generate VSCode project → Basic/Full install |
-| No VSCode (no IDE) | ❌ | ❌ | ❌ | N/A | **Error**: "No supported IDE found" |
+| Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | `library.json` has "FastLED" | Has .ino/examples | Installation Behavior |
+|--------------|-----------------|-------------------|---------------|------------------------------|------------------|----------------------|
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ✅ | **Basic**: Arduino debugging only |
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | **Basic + Examples**: Arduino debugging + prompt for examples |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | ❌ | **Full + Examples**: FastLED dev environment + prompt for examples |
+| Parent VSCode | ❌ | ✅ | ✅ | N/A | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install |
+| New Project | ❌ | ❌ | ✅ | N/A | N/A | **Generate**: VSCode project + auto-install examples |
+| No IDE | ❌ | ❌ | ❌ | N/A | N/A | **Error**: "No supported IDE found" |
 
 **Search Range**: Up to 5 parent directories  
 **IDE Available**: Either `code` (VSCode) or `cursor` (Cursor) command exists
@@ -548,6 +699,19 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 - **Extension Installation**: 
   - Download and install `DarrenLevine.auto-debug-1.0.2.vsix`
   - Support both VSCode (`code`) and Cursor (`cursor`) commands
+- **Examples Installation** (conditional):
+  - If NO `.ino` files AND NO `examples/` folder: Prompt to install FastLED examples
+  - Downloads all examples from FastLED repository into `./examples/` directory
+  - Creates `Blink.ino` in project root for quick testing
+
+### New Projects (Generate VSCode Project)
+- **Complete VSCode Setup**:
+  - Generate `.vscode/launch.json`, `.vscode/tasks.json`, `.vscode/settings.json`, `.vscode/extensions.json`
+  - Full Arduino debugging configuration
+- **Automatic Examples Installation**:
+  - Downloads ALL FastLED examples automatically (no prompt)
+  - Creates complete `./examples/` directory structure
+  - Creates `Blink.ino` in project root for immediate testing
 
 ### FastLED Projects Only (Full Install)
 - **All basic install features** PLUS:
@@ -594,13 +758,18 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 3. ✅ Offers to install in found parent VSCode project with directory change
 4. ✅ Checks for available IDE (VSCode/Cursor) before offering project generation
 5. ✅ Generates complete VSCode project with FastLED configuration when requested
-6. ✅ Correctly detects FastLED vs non-FastLED projects
-7. ✅ Downloads and installs Auto Debug extension
-8. ✅ Updates `.vscode/launch.json` for Arduino debugging
-9. ✅ Supports `.ino` files anywhere in project (not just examples/)
-10. ✅ Conditional full setup for FastLED projects only
-11. ✅ Provides clear feedback and manual fallback instructions
-12. ✅ Handles all error conditions gracefully
+6. ✅ Automatically installs FastLED examples for new projects
+7. ✅ Detects existing Arduino content (.ino files or examples/ folder)
+8. ✅ Prompts for examples installation only when no existing content found
+9. ✅ Downloads complete FastLED examples from GitHub repository
+10. ✅ Creates quick-start Blink.ino example in project root
+11. ✅ Correctly detects FastLED vs non-FastLED projects
+12. ✅ Downloads and installs Auto Debug extension
+13. ✅ Updates `.vscode/launch.json` for Arduino debugging
+14. ✅ Supports `.ino` files anywhere in project (not just examples/)
+15. ✅ Conditional full setup for FastLED projects only
+16. ✅ Provides clear feedback and manual fallback instructions
+17. ✅ Handles all error conditions gracefully
 
 ## Integration Notes
 
