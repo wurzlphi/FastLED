@@ -8,7 +8,8 @@ Implement the `fastled --install` command that installs the Auto Debug tool used
 
 ### 1. Directory Validation
 - **Primary**: Must be executed in a VSCode project (`.vscode/` directory must exist in current directory)
-- **Alternative**: If no `.vscode/` directory exists, prompt user to generate VSCode project
+- **Secondary**: Search up to 5 parent directories for existing `.vscode/` projects
+- **Alternative**: If no `.vscode/` directory found anywhere, prompt user to generate VSCode project
 - **IDE Check**: Only offer VSCode project generation if `code` OR `cursor` commands are available
 - **Error Message**: If no IDEs available: "No supported IDE found (VSCode or Cursor). Please install VSCode or Cursor first."
 
@@ -49,6 +50,22 @@ def validate_vscode_project():
     if os.path.exists(".vscode"):
         return True
     
+    # Search for .vscode directory up to 5 levels up
+    vscode_project_path = find_vscode_project_upward()
+    if vscode_project_path:
+        print(f"Found a .vscode project in {vscode_project_path}")
+        print("Install there? [y/n]")
+        
+        response = input().strip().lower()
+        if response in ['y', 'yes']:
+            # Change to the parent directory and continue installation there
+            os.chdir(vscode_project_path)
+            print(f"✅ Changed to VSCode project directory: {vscode_project_path}")
+            return True
+        else:
+            print("Continuing with current directory...")
+            # Fall through to generate new project logic
+    
     # Check if any supported IDE is available
     has_vscode = shutil.which("code") is not None
     has_cursor = shutil.which("cursor") is not None
@@ -57,8 +74,11 @@ def validate_vscode_project():
         raise Exception("No supported IDE found (VSCode or Cursor). Please install VSCode or Cursor first.")
     
     # Prompt user to generate VSCode project
-    print("No .vscode directory found in current directory.")
-    print("Would you like to generate a VSCode project with FastLED configuration? [y/n]")
+    if vscode_project_path:
+        print("Would you like to generate a new VSCode project with FastLED configuration in the current directory? [y/n]")
+    else:
+        print("No .vscode directory found in current directory or parent directories.")
+        print("Would you like to generate a VSCode project with FastLED configuration? [y/n]")
     
     response = input().strip().lower()
     if response in ['y', 'yes']:
@@ -69,6 +89,23 @@ def validate_vscode_project():
         raise Exception("VSCode project generation declined. Cannot proceed without .vscode directory.")
     
     return False
+
+def find_vscode_project_upward(max_levels=5):
+    """Search for .vscode directory up to max_levels parent directories"""
+    current_path = Path.cwd()
+    
+    for level in range(max_levels):
+        # Go up one level (start with parent for level 0)
+        parent_path = current_path.parent
+        if parent_path == current_path:  # Reached filesystem root
+            break
+        current_path = parent_path
+        
+        vscode_path = current_path / ".vscode"
+        if vscode_path.exists() and vscode_path.is_dir():
+            return str(current_path.absolute())
+    
+    return None
 
 def detect_fastled_project():
     """Check if this is a FastLED library project"""
@@ -490,13 +527,15 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 ## Installation Behavior Matrix
 
-| Project Type | `.vscode/` exists | IDE Available | `library.json` has "FastLED" | Installation Behavior |
-|--------------|-------------------|---------------|------------------------------|----------------------|
-| VSCode Project | ✅ | ✅ | ❌ | **Basic**: Arduino debugging only |
-| FastLED Project | ✅ | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
-| No VSCode (with IDE) | ❌ | ✅ | N/A | **Prompt**: Generate VSCode project → Basic/Full install |
-| No VSCode (no IDE) | ❌ | ❌ | N/A | **Error**: "No supported IDE found" |
+| Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | `library.json` has "FastLED" | Installation Behavior |
+|--------------|-----------------|-------------------|---------------|------------------------------|----------------------|
+| VSCode Project | ✅ | N/A | ✅ | ❌ | **Basic**: Arduino debugging only |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
+| Parent VSCode | ❌ | ✅ | ✅ | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install |
+| No VSCode (with IDE) | ❌ | ❌ | ✅ | N/A | **Prompt**: Generate VSCode project → Basic/Full install |
+| No VSCode (no IDE) | ❌ | ❌ | ❌ | N/A | **Error**: "No supported IDE found" |
 
+**Search Range**: Up to 5 parent directories  
 **IDE Available**: Either `code` (VSCode) or `cursor` (Cursor) command exists
 
 ## Configuration Changes Summary
@@ -525,7 +564,10 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 ## Error Handling Requirements
 
 1. **Missing `.vscode/` Directory**: 
-   - **With IDE Available**: Prompt user to generate VSCode project with [y/n] choice
+   - **Parent Directory Found**: Prompt "Found a .vscode project in `<path>`, install there? [y/n]"
+     - If yes: Change to parent directory and continue installation
+     - If no: Fall through to generation prompt
+   - **No Parent Found + IDE Available**: Prompt user to generate VSCode project with [y/n] choice
    - **No IDE Available**: Error with exact message: "No supported IDE found (VSCode or Cursor). Please install VSCode or Cursor first."
    - **User Declines Generation**: "VSCode project generation declined. Cannot proceed without .vscode directory."
 
@@ -547,16 +589,18 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 ## Success Criteria
 
-1. ✅ Validates VSCode project directory requirement or offers to generate one
-2. ✅ Checks for available IDE (VSCode/Cursor) before offering project generation
-3. ✅ Generates complete VSCode project with FastLED configuration when requested
-4. ✅ Correctly detects FastLED vs non-FastLED projects
-5. ✅ Downloads and installs Auto Debug extension
-6. ✅ Updates `.vscode/launch.json` for Arduino debugging
-7. ✅ Supports `.ino` files anywhere in project (not just examples/)
-8. ✅ Conditional full setup for FastLED projects only
-9. ✅ Provides clear feedback and manual fallback instructions
-10. ✅ Handles all error conditions gracefully
+1. ✅ Validates VSCode project directory requirement or searches parent directories
+2. ✅ Searches up to 5 parent directories for existing `.vscode/` projects
+3. ✅ Offers to install in found parent VSCode project with directory change
+4. ✅ Checks for available IDE (VSCode/Cursor) before offering project generation
+5. ✅ Generates complete VSCode project with FastLED configuration when requested
+6. ✅ Correctly detects FastLED vs non-FastLED projects
+7. ✅ Downloads and installs Auto Debug extension
+8. ✅ Updates `.vscode/launch.json` for Arduino debugging
+9. ✅ Supports `.ino` files anywhere in project (not just examples/)
+10. ✅ Conditional full setup for FastLED projects only
+11. ✅ Provides clear feedback and manual fallback instructions
+12. ✅ Handles all error conditions gracefully
 
 ## Integration Notes
 
