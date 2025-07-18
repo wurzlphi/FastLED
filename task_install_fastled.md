@@ -51,7 +51,14 @@ Implement the `fastled --install` command that installs the Auto Debug tool used
 - **Execution Behavior**: Equivalent to running `fastled .` from command line
 - **Dry-Run Skip**: Do NOT auto-execute in dry-run mode
 
-### 8. Testing Requirements
+### 🚨 CRITICAL SAFETY REQUIREMENT 🚨
+### 8. clangd Settings Protection
+- **MANDATORY**: Do NOT install clangd VSCode settings unless user is in the FastLED repository
+- **Repository Detection**: Only apply clangd settings if current directory is the actual FastLED repo
+- **Environment Protection**: Prevents corruption of user's existing C++ development environment
+- **NO EXCEPTIONS**: This rule must be followed without any exceptions or overrides
+
+### 9. Testing Requirements
 - **Dry Run Mode**: Support `--dry-run` flag for testing without actual installations
 - **Temporary Directory Testing**: Unit tests must run in isolated temporary folders
 - **Plugin Installation**: In dry-run mode, output `[DRY-RUN]: NO PLUGIN INSTALLED` instead of installing extension
@@ -145,6 +152,47 @@ def detect_fastled_project():
             return "FastLED" in library_data.get("name", "")
     except (json.JSONDecodeError, KeyError):
         return False
+
+def is_fastled_repository():
+    """
+    🚨 CRITICAL: Detect if we are in the actual FastLED repository
+    This is used to prevent clangd settings from corrupting user environments
+    """
+    # Check for FastLED-specific repository markers
+    fastled_repo_indicators = [
+        "library.json",  # Must exist
+        "src/FastLED.h", # Core FastLED header
+        "examples/Blink/Blink.ino",  # Standard example
+        "ci/ci-compile.py",  # CI infrastructure
+        "src/platforms/",  # Platform-specific code
+        "tests/test_*.cpp"  # Test files pattern
+    ]
+    
+    # All indicators must be present
+    for indicator in fastled_repo_indicators[:5]:  # Check first 5 specific files/dirs
+        if not os.path.exists(indicator):
+            return False
+    
+    # Check for test files pattern
+    test_files = list(Path("tests").glob("test_*.cpp")) if os.path.exists("tests") else []
+    if len(test_files) == 0:
+        return False
+    
+    # Additional verification: check library.json content
+    try:
+        with open("library.json", 'r') as f:
+            library_data = json.load(f)
+            # Must be the official FastLED library
+            if library_data.get("name") != "FastLED":
+                return False
+            # Must have expected repository URL
+            repo_url = library_data.get("repository", {}).get("url", "")
+            if "FastLED/FastLED" not in repo_url and "fastled/fastled" not in repo_url:
+                return False
+    except (json.JSONDecodeError, KeyError, FileNotFoundError):
+        return False
+    
+    return True
 
 def generate_vscode_project():
     """Generate a complete VSCode project with FastLED configuration"""
@@ -595,7 +643,13 @@ This replicates the functionality from the `./install` script:
 ```python
 def setup_fastled_development_environment():
     """Full FastLED development environment setup"""
-    print("🔧 Setting up FastLED development environment...")
+    # 🚨 CRITICAL SAFETY CHECK: Only run full dev setup in FastLED repository
+    if not is_fastled_repository():
+        print("⚠️  Skipping FastLED development environment setup - not in FastLED repository")
+        print("ℹ️  (This protects your environment from FastLED-specific configurations)")
+        return
+    
+    print("🔧 FastLED repository detected - setting up full development environment...")
     
     # Build tests to generate compile_commands.json for clangd
     print("Building C++ tests to generate compile_commands.json...")
@@ -625,6 +679,13 @@ def setup_fastled_development_environment():
 def update_vscode_settings_for_fastled():
     """Update VSCode settings for FastLED development"""
     settings_path = ".vscode/settings.json"
+    
+    # 🚨 CRITICAL SAFETY CHECK: Only apply clangd settings in FastLED repository
+    if not is_fastled_repository():
+        print("⚠️  Skipping clangd settings - not in FastLED repository (protects your environment)")
+        return
+    
+    print("🔧 FastLED repository detected - applying clangd development settings...")
     
     # Essential clangd settings for FastLED development
     fastled_settings = {
@@ -829,18 +890,21 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 ## Installation Behavior Matrix
 
-| Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | `library.json` has "FastLED" | Has .ino/examples | Installation Behavior |
-|--------------|-----------------|-------------------|---------------|------------------------------|------------------|----------------------|
-| VSCode Project | ✅ | N/A | ✅ | ❌ | ✅ | **Basic**: Prompt for auto-debug → Arduino debugging → Auto-launch FastLED |
-| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | **Basic + Examples**: Prompt for auto-debug + examples → Auto-launch FastLED |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | ✅ | **Full**: Prompt for auto-debug → Full dev environment → Auto-launch FastLED |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | ❌ | **Full + Examples**: Prompt for auto-debug + examples + dev env → Auto-launch FastLED |
-| Parent VSCode | ❌ | ✅ | ✅ | N/A | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install → Auto-launch if content |
-| New Project | ❌ | ❌ | ✅ | N/A | N/A | **Generate**: VSCode project + auto-install examples + prompt auto-debug → Auto-launch FastLED |
-| No IDE | ❌ | ❌ | ❌ | N/A | N/A | **Error**: "No supported IDE found" |
+| Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | Is FastLED Repo | `library.json` has "FastLED" | Has .ino/examples | Installation Behavior |
+|--------------|-----------------|-------------------|---------------|----------------|------------------------------|------------------|----------------------|
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | ✅ | **Basic**: Prompt for auto-debug → Arduino debugging → Auto-launch FastLED |
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | ❌ | **Basic + Examples**: Prompt for auto-debug + examples → Auto-launch FastLED |
+| FastLED Project (External) | ✅ | N/A | ✅ | ❌ | ✅ | ✅ | **Limited Full**: Arduino debugging only (NO clangd) → Auto-launch FastLED |
+| FastLED Project (External) | ✅ | N/A | ✅ | ❌ | ✅ | ❌ | **Limited Full + Examples**: Arduino debugging + examples (NO clangd) → Auto-launch FastLED |
+| FastLED Repository | ✅ | N/A | ✅ | ✅ | ✅ | ✅ | **Full Dev**: Auto-debug + clangd + dev environment → Auto-launch FastLED |
+| FastLED Repository | ✅ | N/A | ✅ | ✅ | ✅ | ❌ | **Full Dev + Examples**: Auto-debug + clangd + dev env + examples → Auto-launch FastLED |
+| Parent VSCode | ❌ | ✅ | ✅ | ? | N/A | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install → Auto-launch if content |
+| New Project | ❌ | ❌ | ✅ | ❌ | N/A | N/A | **Generate**: VSCode project + examples + auto-debug (NO clangd) → Auto-launch FastLED |
+| No IDE | ❌ | ❌ | ❌ | N/A | N/A | N/A | **Error**: "No supported IDE found" |
 
 **Search Range**: Up to 5 parent directories  
 **IDE Available**: Either `code` (VSCode) or `cursor` (Cursor) command exists  
+**Is FastLED Repo**: Strict detection of actual FastLED repository (prevents clangd corruption)  
 **Auto-launch FastLED**: Automatically runs `fastled .` if `.ino` files or examples are present (skipped in dry-run mode)
 
 ## Configuration Changes Summary
@@ -873,8 +937,14 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
   - Creates complete `./examples/` directory structure
   - Creates `Blink.ino` in project root for immediate testing
 
-### FastLED Projects Only (Full Install)
+### FastLED Projects (External) - Limited Install
 - **All basic install features** PLUS:
+- **Repository Safety**: Detects external FastLED projects but skips clangd settings
+- **Protection Message**: "⚠️ Skipping clangd settings - not in FastLED repository (protects your environment)"
+
+### FastLED Repository Only (Full Development Install)
+- **All basic install features** PLUS:
+- **Repository Verification**: Strict detection of actual FastLED repository
 - **`.vscode/settings.json`**: 
   - Add clangd configuration with FastLED-specific paths
   - Disable conflicting C++ IntelliSense
@@ -884,6 +954,7 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
   - Copy from `tests/.build/compile_commands.json` to project root
 - **JavaScript Environment**: 
   - Setup fast Node.js-based linting via `ci/setup-js-linting-fast.py`
+- **Environment Protection**: Only applies when all FastLED repository markers are present
 
 ## Error Handling Requirements
 
@@ -932,8 +1003,12 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 17. ✅ Auto-executes FastLED when Arduino content is present after installation
 18. ✅ Skips auto-execution in dry-run mode for testing
 19. ✅ Properly handles argument filtering for auto-execution
-20. ✅ Provides clear feedback and manual fallback instructions
-21. ✅ Handles all error conditions gracefully
+20. ✅ 🚨 CRITICAL: Only applies clangd settings in actual FastLED repository
+21. ✅ 🚨 CRITICAL: Protects user environments from FastLED-specific configurations
+22. ✅ Detects FastLED repository with multiple verification markers
+23. ✅ Provides clear protection messages when skipping clangd settings
+24. ✅ Provides clear feedback and manual fallback instructions
+25. ✅ Handles all error conditions gracefully
 
 ## Testing Requirements
 
@@ -1194,6 +1269,66 @@ def test_fastled_install_tasks_merging():
             
         finally:
             os.chdir(original_cwd)
+
+def test_fastled_repository_detection_safety():
+    """Test that clangd settings are only applied in actual FastLED repository"""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+        
+        try:
+            # Create a fake FastLED project (not the actual repository)
+            vscode_dir = Path(".vscode")
+            vscode_dir.mkdir()
+            
+            # Create library.json with FastLED name but not the full repository
+            fake_library = {
+                "name": "FastLED",
+                "description": "A fake FastLED project"
+                # Missing repository URL and other markers
+            }
+            
+            with open("library.json", 'w') as f:
+                json.dump(fake_library, f, indent=4)
+            
+            # Run installation - should be detected as FastLED project but not repository
+            result = fastled_install(dry_run=True)
+            assert result == True, "Installation should succeed"
+            
+            # Verify clangd settings were NOT applied
+            settings_json = vscode_dir / "settings.json"
+            if settings_json.exists():
+                with open(settings_json, 'r') as f:
+                    settings_config = json.load(f)
+                
+                # Should NOT have clangd settings
+                assert "clangd.arguments" not in settings_config, "Should NOT have clangd settings in non-repository"
+                assert "C_Cpp.intelliSenseEngine" not in settings_config, "Should NOT disable C++ IntelliSense in non-repository"
+            
+            # Verify repository detection returns False
+            assert not is_fastled_repository(), "Should not detect as FastLED repository"
+            
+            print("✅ Repository detection safety validation passed!")
+            
+        finally:
+            os.chdir(original_cwd)
+
+def test_fastled_repository_detection_true():
+    """Test repository detection in actual FastLED repository"""
+    # This test should only run if we're actually in the FastLED repository
+    if not os.path.exists("src/FastLED.h"):
+        print("ℹ️  Skipping repository detection test - not in FastLED repository")
+        return
+    
+    original_cwd = os.getcwd()
+    try:
+        # Should detect as FastLED repository
+        assert is_fastled_repository(), "Should detect as FastLED repository when all markers present"
+        
+        print("✅ Repository detection (true case) validation passed!")
+        
+    finally:
+        os.chdir(original_cwd)
 ```
 
 ### Dry-Run Mode Implementation
