@@ -44,12 +44,20 @@ Implement the `fastled --install` command that installs the Auto Debug tool used
 - **Run FastLED (Quick)**: Task with `--background-update` flag for quick execution
 - **Project Root Execution**: Tasks configured to run `fastled` from project root directory
 
-### 7. Testing Requirements
+### 7. Post-Installation Auto-Execution
+- **Condition Check**: After successful installation, check for Arduino content
+- **Content Detection**: Look for `.ino` files OR installed examples
+- **Automatic Launch**: If content found, remove `--install` argument and run `main()`
+- **Execution Behavior**: Equivalent to running `fastled .` from command line
+- **Dry-Run Skip**: Do NOT auto-execute in dry-run mode
+
+### 8. Testing Requirements
 - **Dry Run Mode**: Support `--dry-run` flag for testing without actual installations
 - **Temporary Directory Testing**: Unit tests must run in isolated temporary folders
 - **Plugin Installation**: In dry-run mode, output `[DRY-RUN]: NO PLUGIN INSTALLED` instead of installing extension
 - **File Creation**: Still create `.vscode/*.json` files in dry-run mode for validation
 - **Validation**: Verify generated JSON files are valid and contain expected configurations
+- **Auto-Execution Testing**: Verify that auto-execution is triggered when appropriate
 
 ## Implementation Details
 
@@ -739,7 +747,66 @@ def fastled_install(dry_run=False):
         else:
             print("\nℹ️  Auto Debug extension was not installed. You can install it later by running fastled --install again.")
         
+        # Post-installation auto-execution
+        if not dry_run:
+            auto_execute_fastled()
+        
         return True
+
+def auto_execute_fastled():
+    """Auto-execute fastled if Arduino content is present after installation"""
+    import sys
+    
+    # Check if we have Arduino content to work with
+    has_arduino_content = check_existing_arduino_content()
+    
+    # Also check if we just installed examples (Blink.ino should exist)
+    blink_exists = os.path.exists("Blink.ino")
+    
+    if has_arduino_content or blink_exists:
+        print("\n🚀 Arduino content detected - launching FastLED...")
+        print("=" * 60)
+        
+        # Remove --install and other install-specific arguments from sys.argv
+        filtered_argv = []
+        skip_next = False
+        
+        for i, arg in enumerate(sys.argv):
+            if skip_next:
+                skip_next = False
+                continue
+                
+            if arg in ['--install', '--dry-run']:
+                continue
+            elif arg.startswith('--install') or arg.startswith('--dry-run'):
+                continue
+            else:
+                filtered_argv.append(arg)
+        
+        # If no file argument provided, use current directory
+        if len(filtered_argv) == 1:  # Only script name
+            filtered_argv.append('.')
+        
+        # Update sys.argv for main() call
+        original_argv = sys.argv[:]
+        sys.argv = filtered_argv
+        
+        try:
+            # Import and call the main FastLED function
+            # This is equivalent to running: fastled .
+            from fastled import main
+            main()
+        except ImportError:
+            print("⚠️  Warning: FastLED package not found. Please install it first:")
+            print("    pip install fastled")
+        except Exception as e:
+            print(f"⚠️  Warning: Failed to auto-launch FastLED: {e}")
+            print("You can manually run: fastled .")
+        finally:
+            # Restore original argv
+            sys.argv = original_argv
+    else:
+        print("\nℹ️  No Arduino content found. Create a .ino file and run 'fastled <filename>' to get started!")
         
     except Exception as e:
         print(f"❌ Installation failed: {e}")
@@ -764,16 +831,17 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 | Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | `library.json` has "FastLED" | Has .ino/examples | Installation Behavior |
 |--------------|-----------------|-------------------|---------------|------------------------------|------------------|----------------------|
-| VSCode Project | ✅ | N/A | ✅ | ❌ | ✅ | **Basic**: Prompt for auto-debug → Arduino debugging |
-| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | **Basic + Examples**: Prompt for auto-debug + examples |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | ✅ | **Full**: Prompt for auto-debug → Full dev environment |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | ❌ | **Full + Examples**: Prompt for auto-debug + examples + dev env |
-| Parent VSCode | ❌ | ✅ | ✅ | N/A | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install |
-| New Project | ❌ | ❌ | ✅ | N/A | N/A | **Generate**: VSCode project + auto-install examples + prompt auto-debug |
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ✅ | **Basic**: Prompt for auto-debug → Arduino debugging → Auto-launch FastLED |
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | **Basic + Examples**: Prompt for auto-debug + examples → Auto-launch FastLED |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | ✅ | **Full**: Prompt for auto-debug → Full dev environment → Auto-launch FastLED |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | ❌ | **Full + Examples**: Prompt for auto-debug + examples + dev env → Auto-launch FastLED |
+| Parent VSCode | ❌ | ✅ | ✅ | N/A | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install → Auto-launch if content |
+| New Project | ❌ | ❌ | ✅ | N/A | N/A | **Generate**: VSCode project + auto-install examples + prompt auto-debug → Auto-launch FastLED |
 | No IDE | ❌ | ❌ | ❌ | N/A | N/A | **Error**: "No supported IDE found" |
 
 **Search Range**: Up to 5 parent directories  
-**IDE Available**: Either `code` (VSCode) or `cursor` (Cursor) command exists
+**IDE Available**: Either `code` (VSCode) or `cursor` (Cursor) command exists  
+**Auto-launch FastLED**: Automatically runs `fastled .` if `.ino` files or examples are present (skipped in dry-run mode)
 
 ## Configuration Changes Summary
 
@@ -861,8 +929,11 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 14. ✅ Updates `.vscode/launch.json` for Arduino debugging
 15. ✅ Supports `.ino` files anywhere in project (not just examples/)
 16. ✅ Conditional full setup for FastLED projects only
-17. ✅ Provides clear feedback and manual fallback instructions
-18. ✅ Handles all error conditions gracefully
+17. ✅ Auto-executes FastLED when Arduino content is present after installation
+18. ✅ Skips auto-execution in dry-run mode for testing
+19. ✅ Properly handles argument filtering for auto-execution
+20. ✅ Provides clear feedback and manual fallback instructions
+21. ✅ Handles all error conditions gracefully
 
 ## Testing Requirements
 
@@ -978,6 +1049,54 @@ def test_fastled_install_dry_run():
             
         finally:
             # Restore original directory
+            os.chdir(original_cwd)
+
+def test_fastled_install_auto_execution():
+    """Test auto-execution after installation"""
+    import unittest.mock
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+        
+        try:
+            # Mock the main function to verify it gets called
+            with unittest.mock.patch('fastled.main') as mock_main:
+                with unittest.mock.patch('sys.argv', ['fastled', '--install']):
+                    # Run installation (not dry-run)
+                    result = fastled_install(dry_run=False)
+                    assert result == True, "Installation should succeed"
+                    
+                    # Verify auto-execution was attempted
+                    mock_main.assert_called_once(), "FastLED main() should be called after installation"
+            
+            print("✅ Auto-execution validation passed!")
+            
+        finally:
+            os.chdir(original_cwd)
+
+def test_fastled_install_no_auto_execution_dry_run():
+    """Test that auto-execution is skipped in dry-run mode"""
+    import unittest.mock
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_cwd = os.getcwd()
+        os.chdir(temp_dir)
+        
+        try:
+            # Mock the main function to verify it does NOT get called
+            with unittest.mock.patch('fastled.main') as mock_main:
+                with unittest.mock.patch('sys.argv', ['fastled', '--install', '--dry-run']):
+                    # Run installation in dry-run mode
+                    result = fastled_install(dry_run=True)
+                    assert result == True, "Installation should succeed in dry-run"
+                    
+                    # Verify auto-execution was NOT attempted
+                    mock_main.assert_not_called(), "FastLED main() should NOT be called in dry-run mode"
+            
+            print("✅ Dry-run auto-execution skip validation passed!")
+            
+        finally:
             os.chdir(original_cwd)
 
 def test_fastled_install_existing_vscode_project():
