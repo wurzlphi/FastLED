@@ -614,9 +614,17 @@ def fastled_install():
         else:
             print("📦 General project detected - installing Arduino debugging support only")
         
-        # Download and install Auto Debug extension
-        extension_path = download_auto_debug_extension()
-        installed_count = install_vscode_extensions(extension_path)
+        # Prompt for Auto Debug extension installation
+        print("Would you like to install the plugin for FastLED (auto-debug)? [y/n]")
+        response = input().strip().lower()
+        
+        installed_count = 0
+        if response in ['y', 'yes']:
+            # Download and install Auto Debug extension
+            extension_path = download_auto_debug_extension()
+            installed_count = install_vscode_extensions(extension_path)
+        else:
+            print("Skipping Auto Debug extension installation.")
         
         # Update launch.json for Arduino debugging
         update_launch_json_for_arduino()
@@ -636,22 +644,31 @@ def fastled_install():
             print("  - Run tests: bash test")
             print("  - Run linting: bash lint (Python, C++, and JavaScript)")
             print("  - Debug in VSCode: Open test file and press F5")
-            print("  - Auto Debug: Use '🎯 Auto Debug (Smart File Detection)' configuration")
+            if response in ['y', 'yes'] and installed_count > 0:
+                print("  - Auto Debug: Use '🎯 Auto Debug (Smart File Detection)' configuration")
             print("  - clangd IntelliSense: Should work automatically in VSCode")
         else:
             print("\n🎉 Arduino debugging installation complete!")
             print("\nTo use:")
             print("  - Debug .ino files: Open any .ino file and press F5")
-            print("  - Auto Debug: Use '🎯 Auto Debug (Smart File Detection)' configuration")
+            if response in ['y', 'yes'] and installed_count > 0:
+                print("  - Auto Debug: Use '🎯 Auto Debug (Smart File Detection)' configuration")
         
         # Installation summary
-        if installed_count == 0:
-            print("\n⚠️  Warning: Auto Debug extension could not be installed automatically.")
-            print("      Please install manually:")
-            print("      - Open VSCode/Cursor")
-            print("      - Go to Extensions (Ctrl+Shift+X)")
-            print("      - Click ... menu → Install from VSIX")
-            print(f"      - Select: {extension_path}")
+        if response in ['y', 'yes']:
+            if installed_count == 0:
+                print("\n⚠️  Warning: Auto Debug extension could not be installed automatically.")
+                print("      Please install manually:")
+                print("      - Open VSCode/Cursor")
+                print("      - Go to Extensions (Ctrl+Shift+X)")
+                print("      - Click ... menu → Install from VSIX")
+                print(f"      - Select: {extension_path}")
+            elif installed_count == 1:
+                print(f"\n✅ Auto Debug extension installed on 1 editor.")
+            else:
+                print(f"\n✅ Auto Debug extension installed on {installed_count} editors!")
+        else:
+            print("\nℹ️  Auto Debug extension was not installed. You can install it later by running fastled --install again.")
         
         return True
         
@@ -678,12 +695,12 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 | Project Type | `.vscode/` here | `.vscode/` found up | IDE Available | `library.json` has "FastLED" | Has .ino/examples | Installation Behavior |
 |--------------|-----------------|-------------------|---------------|------------------------------|------------------|----------------------|
-| VSCode Project | ✅ | N/A | ✅ | ❌ | ✅ | **Basic**: Arduino debugging only |
-| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | **Basic + Examples**: Arduino debugging + prompt for examples |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
-| FastLED Project | ✅ | N/A | ✅ | ✅ | ❌ | **Full + Examples**: FastLED dev environment + prompt for examples |
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ✅ | **Basic**: Prompt for auto-debug → Arduino debugging |
+| VSCode Project | ✅ | N/A | ✅ | ❌ | ❌ | **Basic + Examples**: Prompt for auto-debug + examples |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | ✅ | **Full**: Prompt for auto-debug → Full dev environment |
+| FastLED Project | ✅ | N/A | ✅ | ✅ | ❌ | **Full + Examples**: Prompt for auto-debug + examples + dev env |
 | Parent VSCode | ❌ | ✅ | ✅ | N/A | N/A | **Prompt**: "Found .vscode in `<path>`, install there?" → cd + install |
-| New Project | ❌ | ❌ | ✅ | N/A | N/A | **Generate**: VSCode project + auto-install examples |
+| New Project | ❌ | ❌ | ✅ | N/A | N/A | **Generate**: VSCode project + auto-install examples + prompt auto-debug |
 | No IDE | ❌ | ❌ | ❌ | N/A | N/A | **Error**: "No supported IDE found" |
 
 **Search Range**: Up to 5 parent directories  
@@ -692,13 +709,14 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 ## Configuration Changes Summary
 
 ### All Projects (Basic Install)
+- **Auto Debug Extension** (prompted):
+  - Prompt: "Would you like to install the plugin for FastLED (auto-debug)? [y/n]"
+  - If yes: Download and install `DarrenLevine.auto-debug-1.0.2.vsix`
+  - Support both VSCode (`code`) and Cursor (`cursor`) commands
 - **`.vscode/launch.json`**: 
   - Add/update Auto Debug configuration with `"*.ino": "Arduino: Run .ino with FastLED"`
   - Remove examples-specific paths (`"examples/**/*.ino"`)
   - Add Arduino debug configuration if missing
-- **Extension Installation**: 
-  - Download and install `DarrenLevine.auto-debug-1.0.2.vsix`
-  - Support both VSCode (`code`) and Cursor (`cursor`) commands
 - **Examples Installation** (conditional):
   - If NO `.ino` files AND NO `examples/` folder: Prompt to install FastLED examples
   - Downloads all examples from FastLED repository into `./examples/` directory
@@ -764,12 +782,13 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 9. ✅ Downloads complete FastLED examples from GitHub repository
 10. ✅ Creates quick-start Blink.ino example in project root
 11. ✅ Correctly detects FastLED vs non-FastLED projects
-12. ✅ Downloads and installs Auto Debug extension
-13. ✅ Updates `.vscode/launch.json` for Arduino debugging
-14. ✅ Supports `.ino` files anywhere in project (not just examples/)
-15. ✅ Conditional full setup for FastLED projects only
-16. ✅ Provides clear feedback and manual fallback instructions
-17. ✅ Handles all error conditions gracefully
+12. ✅ Prompts user before installing Auto Debug extension
+13. ✅ Downloads and installs Auto Debug extension only if user consents
+14. ✅ Updates `.vscode/launch.json` for Arduino debugging
+15. ✅ Supports `.ino` files anywhere in project (not just examples/)
+16. ✅ Conditional full setup for FastLED projects only
+17. ✅ Provides clear feedback and manual fallback instructions
+18. ✅ Handles all error conditions gracefully
 
 ## Integration Notes
 
