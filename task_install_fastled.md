@@ -344,10 +344,183 @@ def test_fastled_repository_detection_safety():
 24. ✅ Validates all generated JSON configurations
 25. ✅ Provides clear feedback and manual fallback instructions
 
-## Integration Notes
+## Implementation Plan
+
+### File Structure Organization
+
+All implementation files must be located in `src/fastled-wasm/install/` directory:
+
+```
+src/fastled-wasm/install/
+├── __init__.py
+├── main.py              # Main installation orchestrator
+├── project_detection.py # Project and repository detection logic
+├── vscode_config.py     # VSCode configuration generation
+├── examples_manager.py  # Examples installation via --project-init
+├── extension_manager.py # Auto Debug extension handling
+└── test_install.py      # Single comprehensive test file
+```
+
+### Implementation Approach
+
+**Minimal Changes Strategy**: Make the smallest possible changes to existing codebase while implementing full functionality.
+
+#### Core Files
+
+**1. `main.py`** - Installation orchestrator
+```python
+def fastled_install(dry_run=False):
+    """Main installation function - coordinates all installation steps"""
+    # Entry point that calls other modules in sequence
+
+def auto_execute_fastled():
+    """Post-installation auto-execution"""
+    # Handles argument filtering and main() call
+```
+
+**2. `project_detection.py`** - Detection logic
+```python
+def validate_vscode_project():
+    """VSCode project validation and generation flow"""
+
+def find_vscode_project_upward(max_levels=5):
+    """Search parent directories for .vscode"""
+
+def detect_fastled_project():
+    """Check library.json for FastLED"""
+
+def is_fastled_repository():
+    """🚨 CRITICAL: Actual FastLED repository detection"""
+
+def check_existing_arduino_content():
+    """Detect existing .ino files or examples/"""
+```
+
+**3. `vscode_config.py`** - VSCode configuration
+```python
+def generate_vscode_project():
+    """Create complete .vscode structure"""
+
+def update_launch_json_for_arduino():
+    """Update launch.json with Arduino debugging"""
+
+def generate_fastled_tasks():
+    """Generate/update tasks.json with FastLED tasks"""
+
+def update_vscode_settings_for_fastled():
+    """🚨 Repository-only: Apply clangd settings"""
+```
+
+**4. `examples_manager.py`** - Examples via --project-init
+```python
+def install_fastled_examples_via_project_init(force=False):
+    """Use fastled --project-init for examples"""
+```
+
+**5. `extension_manager.py`** - Auto Debug extension
+```python
+def download_auto_debug_extension():
+    """Download .vsix from GitHub"""
+
+def install_vscode_extensions(extension_path):
+    """Install in VSCode/Cursor"""
+```
+
+### Testing Requirements
+
+**Single Test File**: `test_install.py` with **maximum 15 tests** running in **~3 seconds total**.
+
+#### Test Strategy
+```python
+# Mock Strategy:
+# - Mock repository/IDE detection functions 
+# - Allow actual file writes to temporary directories
+# - --dry-run prevents writes (separate from unit test mocks)
+
+@patch('project_detection.is_fastled_repository')
+@patch('project_detection.shutil.which')
+class TestFastLEDInstall(unittest.TestCase):
+    
+    def test_dry_run_basic_project(self, mock_which, mock_repo):
+        """Test 1: Dry-run in basic project"""
+        
+    def test_dry_run_fastled_external(self, mock_which, mock_repo):
+        """Test 2: Dry-run in external FastLED project"""
+        
+    def test_dry_run_fastled_repository(self, mock_which, mock_repo):
+        """Test 3: Dry-run in actual FastLED repository"""
+        
+    def test_existing_vscode_project(self, mock_which, mock_repo):
+        """Test 4: Merge with existing .vscode configs"""
+        
+    def test_parent_directory_detection(self, mock_which, mock_repo):
+        """Test 5: Find .vscode in parent directories"""
+        
+    def test_project_generation(self, mock_which, mock_repo):
+        """Test 6: Generate new VSCode project"""
+        
+    def test_arduino_content_detection(self, mock_which, mock_repo):
+        """Test 7: Detect existing .ino files"""
+        
+    def test_tasks_json_merging(self, mock_which, mock_repo):
+        """Test 8: Merge FastLED tasks with existing"""
+        
+    def test_launch_json_updates(self, mock_which, mock_repo):
+        """Test 9: Update launch.json configurations"""
+        
+    def test_safety_clangd_protection(self, mock_which, mock_repo):
+        """Test 10: 🚨 CRITICAL - clangd safety protection"""
+        
+    def test_auto_execution_trigger(self, mock_which, mock_repo):
+        """Test 11: Post-installation auto-execution"""
+        
+    def test_no_ide_error_handling(self, mock_which, mock_repo):
+        """Test 12: Error when no IDE available"""
+        
+    def test_examples_installation(self, mock_which, mock_repo):
+        """Test 13: --project-init examples installation"""
+        
+    def test_extension_installation_flow(self, mock_which, mock_repo):
+        """Test 14: Auto Debug extension prompt/install"""
+        
+    def test_comprehensive_integration(self, mock_which, mock_repo):
+        """Test 15: End-to-end integration test"""
+```
+
+#### Mock Configuration
+```python
+# Mock repository detection but allow file I/O
+mock_repo.return_value = False  # or True for repository tests
+mock_which.side_effect = lambda cmd: '/usr/bin/code' if cmd == 'code' else None
+
+# Each test runs in isolated tempfile.TemporaryDirectory()
+# Real file writes happen, but to temporary locations
+# Validates actual JSON generation and file structure
+```
+
+#### Performance Requirements
+- **Total runtime**: ~3 seconds for all 15 tests
+- **Individual test**: <200ms average
+- **Fast mocking**: Repository/IDE detection mocked for speed
+- **Real I/O**: File writes to temp directories (validates actual output)
+- **Dry-run separation**: `--dry-run` flag separate from unit test mocks
+
+### CLI Integration
+
+**Minimal CLI Changes**: Add to existing fastled-wasm argument parser
+```python
+# In existing CLI handler
+if args.install:
+    from src.fastled_wasm.install.main import fastled_install
+    result = fastled_install(dry_run=args.dry_run)
+    sys.exit(0 if result else 1)
+```
+
+### Integration Notes
 
 - **CLI Interface**: Add to existing fastled-wasm command structure
 - **Command Pattern**: Follow existing argument parsing and error handling
 - **Compatibility**: Maintain compatibility with existing fastled commands
 - **Workflow Consistency**: Align with current FastLED development patterns
 - **Test Integration**: Include in automated test suite with proper isolation
+- **Minimal Impact**: Changes isolated to `src/fastled-wasm/install/` directory
