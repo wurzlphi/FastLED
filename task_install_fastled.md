@@ -7,8 +7,10 @@ Implement the `fastled --install` command that installs the Auto Debug tool used
 ## Requirements
 
 ### 1. Directory Validation
-- **MUST** be executed in a VSCode project (`.vscode/` directory must exist in current directory)
-- **Error Message**: "This must be executed in a vscode project (.vscode must be in the current directory)"
+- **Primary**: Must be executed in a VSCode project (`.vscode/` directory must exist in current directory)
+- **Alternative**: If no `.vscode/` directory exists, prompt user to generate VSCode project
+- **IDE Check**: Only offer VSCode project generation if `code` OR `cursor` commands are available
+- **Error Message**: If no IDEs available: "No supported IDE found (VSCode or Cursor). Please install VSCode or Cursor first."
 
 ### 2. Arduino File Support
 - Add Auto Debug entries for `*.ino` files **anywhere** in the project (not just examples/)
@@ -43,10 +45,30 @@ import subprocess
 from pathlib import Path
 
 def validate_vscode_project():
-    """Validate that we're in a VSCode project directory"""
-    if not os.path.exists(".vscode"):
-        raise Exception("This must be executed in a vscode project (.vscode must be in the current directory)")
-    return True
+    """Validate that we're in a VSCode project directory or offer to create one"""
+    if os.path.exists(".vscode"):
+        return True
+    
+    # Check if any supported IDE is available
+    has_vscode = shutil.which("code") is not None
+    has_cursor = shutil.which("cursor") is not None
+    
+    if not has_vscode and not has_cursor:
+        raise Exception("No supported IDE found (VSCode or Cursor). Please install VSCode or Cursor first.")
+    
+    # Prompt user to generate VSCode project
+    print("No .vscode directory found in current directory.")
+    print("Would you like to generate a VSCode project with FastLED configuration? [y/n]")
+    
+    response = input().strip().lower()
+    if response in ['y', 'yes']:
+        generate_vscode_project()
+        print("✅ VSCode project generated successfully!")
+        return True
+    else:
+        raise Exception("VSCode project generation declined. Cannot proceed without .vscode directory.")
+    
+    return False
 
 def detect_fastled_project():
     """Check if this is a FastLED library project"""
@@ -59,6 +81,132 @@ def detect_fastled_project():
             return "FastLED" in library_data.get("name", "")
     except (json.JSONDecodeError, KeyError):
         return False
+
+def generate_vscode_project():
+    """Generate a complete VSCode project with FastLED configuration"""
+    print("🔧 Generating VSCode project with FastLED configuration...")
+    
+    # Create .vscode directory
+    os.makedirs(".vscode", exist_ok=True)
+    
+    # Generate launch.json
+    launch_config = {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "🎯 Auto Debug (Smart File Detection)",
+                "type": "auto-debug",
+                "request": "launch",
+                "map": {
+                    "*.py": "Python: Current File (UV)",
+                    "*.ino": "Arduino: Run .ino with FastLED"
+                }
+            },
+            {
+                "name": "Python: Current File (UV)",
+                "type": "node-terminal",
+                "request": "launch",
+                "command": "uv run python \"${file}\"",
+                "cwd": "${workspaceFolder}",
+                "console": "integratedTerminal",
+                "internalConsoleOptions": "neverOpen"
+            },
+            {
+                "name": "Arduino: Run .ino with FastLED",
+                "type": "python",
+                "request": "launch",
+                "module": "fastled",
+                "args": ["${file}", "--background-update", "--app", "--debug"],
+                "console": "integratedTerminal",
+                "cwd": "${workspaceFolder}",
+                "justMyCode": False
+            }
+        ]
+    }
+    
+    with open(".vscode/launch.json", 'w') as f:
+        json.dump(launch_config, f, indent=4)
+    
+    # Generate tasks.json
+    tasks_config = {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "type": "shell",
+                "label": "Run FastLED Web Compiler",
+                "command": "uv",
+                "args": ["run", "fastled", "${file}", "--no-auto-updates"],
+                "options": {"cwd": "${workspaceFolder}"},
+                "group": {"kind": "build", "isDefault": True},
+                "presentation": {
+                    "echo": True,
+                    "reveal": "always",
+                    "focus": True,
+                    "panel": "new",
+                    "showReuseMessage": False,
+                    "clear": True
+                },
+                "detail": "Run FastLED web compiler on the current .ino file",
+                "problemMatcher": []
+            },
+            {
+                "type": "shell",
+                "label": "Install FastLED Package",
+                "command": "pip",
+                "args": ["install", "fastled"],
+                "options": {"cwd": "${workspaceFolder}"},
+                "group": "build",
+                "presentation": {
+                    "echo": True,
+                    "reveal": "always",
+                    "focus": False,
+                    "panel": "shared",
+                    "showReuseMessage": True,
+                    "clear": False
+                },
+                "detail": "Install or upgrade the FastLED Python package"
+            }
+        ]
+    }
+    
+    with open(".vscode/tasks.json", 'w') as f:
+        json.dump(tasks_config, f, indent=4)
+    
+    # Generate settings.json
+    settings_config = {
+        "files.eol": "\n",
+        "files.autoDetectEol": False,
+        "files.insertFinalNewline": True,
+        "files.trimFinalNewlines": True,
+        "editor.tabSize": 4,
+        "editor.insertSpaces": True,
+        "editor.detectIndentation": True,
+        "editor.formatOnSave": False,
+        "python.defaultInterpreterPath": "uv",
+        "files.associations": {
+            "*.ino": "cpp"
+        }
+    }
+    
+    with open(".vscode/settings.json", 'w') as f:
+        json.dump(settings_config, f, indent=4)
+    
+    # Generate extensions.json
+    extensions_config = {
+        "recommendations": [
+            "ms-python.python",
+            "ms-vscode.cpptools",
+            "ms-vscode.cmake-tools"
+        ]
+    }
+    
+    with open(".vscode/extensions.json", 'w') as f:
+        json.dump(extensions_config, f, indent=4)
+    
+    print("📁 Generated .vscode/launch.json - Arduino debugging configuration")
+    print("📁 Generated .vscode/tasks.json - FastLED build tasks")
+    print("📁 Generated .vscode/settings.json - Basic project settings")
+    print("📁 Generated .vscode/extensions.json - Recommended extensions")
 ```
 
 #### 2. Auto Debug Extension Management
@@ -342,11 +490,14 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 ## Installation Behavior Matrix
 
-| Project Type | `.vscode/` exists | `library.json` has "FastLED" | Installation Behavior |
-|--------------|-------------------|------------------------------|----------------------|
-| VSCode Project | ✅ | ❌ | **Basic**: Arduino debugging only |
-| FastLED Project | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
-| Non-VSCode | ❌ | N/A | **Error**: "Must be executed in a vscode project" |
+| Project Type | `.vscode/` exists | IDE Available | `library.json` has "FastLED" | Installation Behavior |
+|--------------|-------------------|---------------|------------------------------|----------------------|
+| VSCode Project | ✅ | ✅ | ❌ | **Basic**: Arduino debugging only |
+| FastLED Project | ✅ | ✅ | ✅ | **Full**: Arduino debugging + FastLED dev environment |
+| No VSCode (with IDE) | ❌ | ✅ | N/A | **Prompt**: Generate VSCode project → Basic/Full install |
+| No VSCode (no IDE) | ❌ | ❌ | N/A | **Error**: "No supported IDE found" |
+
+**IDE Available**: Either `code` (VSCode) or `cursor` (Cursor) command exists
 
 ## Configuration Changes Summary
 
@@ -374,7 +525,9 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 ## Error Handling Requirements
 
 1. **Missing `.vscode/` Directory**: 
-   - Immediate error with exact message: "This must be executed in a vscode project (.vscode must be in the current directory)"
+   - **With IDE Available**: Prompt user to generate VSCode project with [y/n] choice
+   - **No IDE Available**: Error with exact message: "No supported IDE found (VSCode or Cursor). Please install VSCode or Cursor first."
+   - **User Declines Generation**: "VSCode project generation declined. Cannot proceed without .vscode directory."
 
 2. **Network Failures**: 
    - Graceful fallback with manual installation instructions
@@ -394,14 +547,16 @@ https://raw.githubusercontent.com/fastled/fastled/main/install
 
 ## Success Criteria
 
-1. ✅ Validates VSCode project directory requirement
-2. ✅ Correctly detects FastLED vs non-FastLED projects
-3. ✅ Downloads and installs Auto Debug extension
-4. ✅ Updates `.vscode/launch.json` for Arduino debugging
-5. ✅ Supports `.ino` files anywhere in project (not just examples/)
-6. ✅ Conditional full setup for FastLED projects only
-7. ✅ Provides clear feedback and manual fallback instructions
-8. ✅ Handles all error conditions gracefully
+1. ✅ Validates VSCode project directory requirement or offers to generate one
+2. ✅ Checks for available IDE (VSCode/Cursor) before offering project generation
+3. ✅ Generates complete VSCode project with FastLED configuration when requested
+4. ✅ Correctly detects FastLED vs non-FastLED projects
+5. ✅ Downloads and installs Auto Debug extension
+6. ✅ Updates `.vscode/launch.json` for Arduino debugging
+7. ✅ Supports `.ino` files anywhere in project (not just examples/)
+8. ✅ Conditional full setup for FastLED projects only
+9. ✅ Provides clear feedback and manual fallback instructions
+10. ✅ Handles all error conditions gracefully
 
 ## Integration Notes
 
