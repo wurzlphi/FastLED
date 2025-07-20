@@ -10,7 +10,7 @@ file(GLOB FastLED_FL_SRCS "src/fl/*.cpp")
 file(GLOB FastLED_SENSORS_SRCS "src/sensors/*.cpp")
 file(GLOB FastLED_FX_SRCS "src/fx/*.cpp" "src/fx/**/*.cpp")
 
-file(GLOB ESP32_SRCS "src/platforms/esp/32/*.cpp" "src/platforms/esp/32/rmt_5/*.cpp")
+file(GLOB ESP32_SRCS "src/platforms/esp/32/*.cpp" "src/platforms/esp/32/rmt_5/*.cpp" "src/platforms/esp/32/**/*.cpp")
 file(GLOB ESP32_THIRD_PARTY_SRCS "src/third_party/**/src/*.c" "src/third_party/**/src/*.cpp")
 file(GLOB ESP32_LED_STRIP_SRCS "src/third_party/espressif/led_strip/src/*.c")
 
